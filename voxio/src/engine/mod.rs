@@ -170,6 +170,10 @@ impl Vox {
     /// value that was passed to it. Once a transition takes place, the *next* track will
     /// be set to None, and it will be safe to call this method without overwriting the
     /// previously passed value.
+    ///
+    /// This method uses non-blocking send - if the command channel is full, the command
+    /// is dropped. This is safe because QueueNext commands are coalesced by the worker,
+    /// so only the most recent one matters.
     pub fn set_next<P: AsRef<Path>>(&mut self, p: P) -> Result<()> {
         let path = p.as_ref();
 
@@ -177,9 +181,11 @@ impl Vox {
             return Err(VoxError::FileOpen(path.to_string_lossy().to_string()));
         }
 
-        self.commands
-            .send(VoxCommand::QueueNext(path.to_string_lossy().to_string()))
-            .map_err(|_| VoxError::Output("Channel closed".into()))
+        // Use try_send to avoid blocking if channel is full.
+        // Dropped commands are OK - we coalesce QueueNext and only the last one matters.
+        let _ = self.commands
+            .try_send(VoxCommand::QueueNext(path.to_string_lossy().to_string()));
+        Ok(())
     }
 
     pub fn seek_to(&mut self, pos: f64) -> Result<()> {

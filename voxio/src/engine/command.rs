@@ -89,7 +89,13 @@ impl VoxWorker {
             match self.current.is_some() {
                 true => {
                     self.poll_commands()?;
-                    self.decode_handler()?
+                    // Skip decoding while paused to avoid blocking on full buffer.
+                    // This prevents deadlock when commands can't be processed.
+                    if self.state.is_paused() {
+                        thread::sleep(Duration::from_millis(5));
+                    } else {
+                        self.decode_handler()?;
+                    }
                 }
                 false => self.wait_for_command()?,
             }
@@ -109,9 +115,17 @@ impl VoxWorker {
 
     fn poll_commands(&mut self) -> Result<()> {
         let mut pending_seek: Option<f64> = None;
+        let mut pending_next: Option<String> = None;
+        let mut pending_play: Option<String> = None;
 
         while let Ok(cmd) = self.rx.try_recv() {
             match cmd {
+                VoxCommand::Play(path) => {
+                    // Coalesce: only keep the latest play command
+                    // New play invalidates any queued next track
+                    pending_next = None;
+                    pending_play = Some(path);
+                }
                 VoxCommand::Seek(pos) => {
                     // Coalesce: accumulate relative seeks
                     let current = pending_seek.unwrap_or_else(|| self.get_elapsed());
@@ -120,10 +134,21 @@ impl VoxWorker {
                         SeekPosition::Relative(delta) => current + delta,
                     });
                 }
+                VoxCommand::QueueNext(path) => {
+                    // Coalesce: only keep the latest queued track
+                    // This prevents expensive file opens when shuffling rapidly
+                    pending_next = Some(path);
+                }
                 cmd => {
-                    // Flush pending seek before other commands
+                    // Flush pending operations before other commands
+                    if let Some(path) = pending_play.take() {
+                        self.handle_play(path)?;
+                    }
                     if let Some(target) = pending_seek.take() {
                         self.handle_seek(target)?;
+                    }
+                    if let Some(path) = pending_next.take() {
+                        self.queue_next(path)?;
                     }
                     if self.handle_command(cmd)? {
                         return Ok(());
@@ -132,9 +157,15 @@ impl VoxWorker {
             }
         }
 
-        // Execute final coalesced seek
+        // Execute final coalesced operations
+        if let Some(path) = pending_play {
+            self.handle_play(path)?;
+        }
         if let Some(target) = pending_seek {
             self.handle_seek(target)?;
+        }
+        if let Some(path) = pending_next {
+            self.queue_next(path)?;
         }
 
         Ok(())
