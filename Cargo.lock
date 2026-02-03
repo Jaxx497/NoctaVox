@@ -1124,7 +1124,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "noctavox_core"
+name = "noctavox"
 version = "0.2.1"
 dependencies = [
  "anyhow",

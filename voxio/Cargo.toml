@@ -2,6 +2,12 @@
 name = "voxio"
 version = "0.1.0"
 edition = "2024"
+authors = ["Jaxx497"]
+description = "A lightweight audio playback engine"
+license = "MIT"
+repository = "https://github.com/Jaxx497/NoctaVox/"
+keywords = ["music", "audio", "player" ]
+categories = ["multimedia::audio"]
 
 [dependencies]
 audioadapter = "2.0.0"

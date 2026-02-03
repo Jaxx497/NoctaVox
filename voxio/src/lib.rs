@@ -4,7 +4,7 @@ mod error;
 pub use engine::Vox;
 pub use error::VoxError;
 
-const BUFFER_MS: usize = 250;
+const BUFFER_MS: usize = 100;
 const CHANNEL_COUNT: usize = 16;
 const PENDING_CAPACITY: usize = 8192;
 const RESAMPLER_CHUNK_SIZE: usize = 1024;

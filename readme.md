@@ -27,7 +27,7 @@ cd noctavox
 cargo run --release 
 
 # Or install globally
-cargo install --path noctavox_core
+cargo install --path noctavox
 # and run with the following:
 vox
 ```

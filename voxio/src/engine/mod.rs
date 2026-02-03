@@ -59,9 +59,7 @@ impl Vox {
 
         let state = Arc::new(SharedState::default());
         let state_clone = Arc::clone(&state);
-        let mut last_seek_gen = state_clone.seek_generation();
         let mut was_seeking = false;
-        let mut was_inactive = true;
         let fade_total_samples = (output_rate as usize * output_channels * SEEK_FADE_MS) / 1000;
         let mut fade_samples_remaining: usize = 0;
 
@@ -70,30 +68,16 @@ impl Vox {
             .build_output_stream(
                 &stream_config,
                 move |data: &mut [f32], _| {
-                    let current_gen = state_clone.seek_generation();
-
-                    // Drain ring buffer if seek generation changed
-                    if current_gen != last_seek_gen {
-                        last_seek_gen = current_gen;
-                        while consumer.pop().is_ok() {}
-                    }
-
                     let is_seeking = state_clone.is_seeking();
-                    let is_inactive = state_clone.is_paused() || !state_clone.is_active() || is_seeking;
+                    let is_inactive =
+                        state_clone.is_paused() || !state_clone.is_active() || is_seeking;
 
                     // Output silence if paused, not active, or seeking
                     if is_inactive {
+                        while consumer.pop().is_ok() {}
                         data.fill(0.0);
                         was_seeking = is_seeking;
-                        was_inactive = true;
                         return;
-                    }
-
-                    // Drain buffer when transitioning from inactive to active playback
-                    // This catches cases where generation check missed the drain window
-                    if was_inactive {
-                        while consumer.pop().is_ok() {}
-                        was_inactive = false;
                     }
 
                     // Start fade-in if we just finished seeking
@@ -132,8 +116,6 @@ impl Vox {
             )
             .expect("Failed to create stream");
 
-        stream.play().map_err(|e| VoxError::Output(e.to_string()))?;
-
         let (tx, rx) = channel::bounded(CHANNEL_COUNT);
         let decoder_thread = command::spawn(
             rx,
@@ -142,6 +124,8 @@ impl Vox {
             output_rate as u32,
             output_channels,
         );
+
+        stream.play().map_err(|e| VoxError::Output(e.to_string()))?;
 
         Ok(Self {
             state: state,
@@ -193,7 +177,8 @@ impl Vox {
 
         // Use try_send to avoid blocking if channel is full.
         // Dropped commands are OK - we coalesce QueueNext and only the last one matters.
-        let _ = self.commands
+        let _ = self
+            .commands
             .try_send(VoxCommand::QueueNext(path.to_string_lossy().to_string()));
         Ok(())
     }

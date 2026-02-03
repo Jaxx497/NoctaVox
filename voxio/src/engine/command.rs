@@ -279,9 +279,6 @@ impl VoxWorker {
         }
         self.state.reset_samples();
 
-        self.state.set_active(true);
-        self.state.set_paused(false);
-
         match VoxDecoder::open(&path) {
             Ok(decoder) => {
                 let info = &decoder.info;
@@ -302,6 +299,9 @@ impl VoxWorker {
                 self.resampler =
                     VoxResampler::new(info.sample_rate, self.output_rate, info.channels)?;
                 self.current = Some(decoder);
+
+                self.state.set_active(true);
+                self.state.set_paused(false);
             }
             Err(e) => {
                 eprintln!("Failed to open {}: {}", path, e);
