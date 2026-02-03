@@ -24,5 +24,5 @@ voxio = {path = "../voxio/" }
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 
 [[bin]]
-name = "noctavox"
+name = "vox"
 path = "src/main.rs"

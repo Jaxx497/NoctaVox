@@ -1,13 +1,13 @@
 [workspace]
 members = [
-    "voxio",
-    "noctavox_core"
+    "noctavox_core",
+    "voxio"
 ]
 
 resolver = "3"
-
-# [profile.release]
-# lto = "thin"
-# codegen-units = 1
-# strip = true
-# opt-level = 3
+ 
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true
+opt-level = 3
