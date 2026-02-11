@@ -13,7 +13,7 @@ use KeyCode::*;
 #[rustfmt::skip]
 pub fn handle_key_event(key_event: KeyEvent, state: &mut UiState, buffer: &mut KeyBuffer) -> Option<Action> {
 
-    if let KeyCode::Char(c) = key_event.code {
+    if let KeyCode::Char(c) = key_event.code && key_event.modifiers == KeyModifiers::NONE {
         if buffer.push_digit(c) {
             state.set_buffer_count(buffer.get_count());
             return None;
@@ -83,6 +83,8 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
 
             // NAVIGATION
             (X, Char('/')) => Some(Action::ChangeMode(Mode::Search)),
+            (X, Char('=')) => Some(Action::GoToNowPlaying),
+            (S, Char('?')) => Some(Action::ShowStats),
 
             (A, Char('1')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
             (A, Char('2')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
@@ -278,8 +280,7 @@ fn handle_popup(key: &KeyEvent, popup: &PopupType) -> Option<Action> {
         PopupType::Settings(s) => root_manager(key, s),
         PopupType::Playlist(p) => handle_playlist(key, p),
         PopupType::ThemeManager => handle_themeing(key),
-        PopupType::Error(_) => Some(Action::ClosePopup),
-        _ => None,
+        _ => Some(Action::ClosePopup),
     }
 }
 

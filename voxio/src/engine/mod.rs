@@ -22,7 +22,7 @@ pub(crate) use command::VoxCommand;
 pub(crate) use decoder::VoxDecoder;
 pub(crate) use resampler::VoxResampler;
 pub(crate) use state::SharedState;
-pub(crate) use tap::SampleTap;
+pub(crate) use tap::TapReader;
 
 /// An audio playback engine capable of handling various formats, providing gapless playback, and a
 /// tap for visualization purposes.
@@ -30,7 +30,7 @@ pub struct Vox {
     state: Arc<SharedState>,
     commands: channel::Sender<VoxCommand>,
     sps: f64,
-    tap: SampleTap,
+    tap: TapReader,
     _stream: Stream,
     _decoder_thread: JoinHandle<()>,
 }
@@ -54,8 +54,7 @@ impl Vox {
 
         let buffer_size = (output_rate as usize * output_channels * BUFFER_MS) / 1000;
         let (producer, mut consumer) = rtrb::RingBuffer::new(buffer_size);
-        let tap = SampleTap::new(SAMPLE_TAP_CAPACITY);
-        let tap_input = tap.clone();
+        let (mut tap_writer, tap_reader) = tap::new_tap(SAMPLE_TAP_CAPACITY);
 
         let state = Arc::new(SharedState::default());
         let state_clone = Arc::clone(&state);
@@ -74,7 +73,13 @@ impl Vox {
 
                     // Output silence if paused, not active, or seeking
                     if is_inactive {
-                        while consumer.pop().is_ok() {}
+                        // Drain ring buffer in bulk
+                        let available = consumer.slots();
+                        if available > 0 {
+                            if let Ok(chunk) = consumer.read_chunk(available) {
+                                chunk.commit_all();
+                            }
+                        }
                         data.fill(0.0);
                         was_seeking = is_seeking;
                         return;
@@ -86,30 +91,38 @@ impl Vox {
                     }
                     was_seeking = is_seeking;
 
-                    let mut samples_consumed = 0u64;
-                    for sample in data.iter_mut() {
-                        match consumer.pop() {
-                            Ok(mut s) => {
-                                // Apply fade-in envelope
+                    // Batch read from ring buffer
+                    let available = consumer.slots();
+                    let to_read = available.min(data.len());
+
+                    if to_read > 0 {
+                        if let Ok(chunk) = consumer.read_chunk(to_read) {
+                            let (first, second) = chunk.as_slices();
+                            let mut i = 0;
+                            for &s in first.iter().chain(second.iter()) {
+                                let mut sample = s;
                                 if fade_samples_remaining > 0 {
                                     let progress = 1.0
                                         - (fade_samples_remaining as f32
                                             / fade_total_samples as f32);
-                                    s *= progress;
+                                    sample *= progress;
                                     fade_samples_remaining -= 1;
                                 }
-                                *sample = s;
-                                samples_consumed += 1;
+                                data[i] = sample;
+                                i += 1;
                             }
-                            Err(_) => *sample = 0.0,
+                            chunk.commit_all();
                         }
                     }
 
-                    if samples_consumed > 0 {
-                        state_clone.add_samples(samples_consumed);
+                    // Fill remainder with silence (underrun)
+                    data[to_read..].fill(0.0);
+
+                    if to_read > 0 {
+                        state_clone.add_samples(to_read as u64);
                     }
 
-                    tap_input.push(data);
+                    tap_writer.push(data);
                 },
                 |_e| {},
                 None,
@@ -133,7 +146,7 @@ impl Vox {
             sps: output_rate as f64 * output_channels as f64,
             _stream: stream,
             _decoder_thread: decoder_thread,
-            tap,
+            tap: tap_reader,
         })
     }
 
@@ -254,7 +267,7 @@ impl Vox {
 
     /// Retrieves the latest *amount* of requested samples
     /// Returns Vec<f32>
-    pub fn get_latest_samples(&self, amount: usize) -> Vec<f32> {
+    pub fn get_latest_samples(&mut self, amount: usize) -> Vec<f32> {
         self.tap.get_latest(amount)
     }
 

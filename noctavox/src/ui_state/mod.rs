@@ -6,6 +6,7 @@ mod popup;
 mod progress_display;
 mod search_state;
 mod settings;
+mod stats;
 mod theme;
 mod ui_snapshot;
 mod ui_state;
@@ -20,6 +21,7 @@ pub use popup::PopupType;
 pub use progress_display::ProgressDisplay;
 pub use search_state::MatchField;
 pub use settings::SettingsMode;
+pub use stats::LibraryStats;
 pub use theme::DisplayTheme;
 pub use ui_snapshot::UiSnapshot;
 pub use waveform::WaveformManager;
@@ -29,7 +31,7 @@ use crate::{
     database::DbWorker,
     library::{Album, Playlist, SimpleSong},
     player::PlaybackMetrics,
-    ui_state::{popup::PopupState, search_state::SearchState},
+    ui_state::{popup::PopupState, search_state::SearchState, stats::VoxStats},
 };
 
 pub struct UiState {
@@ -45,7 +47,8 @@ pub struct UiState {
     pub(crate) display_state: DisplayState,
 
     waveform: WaveformManager,
-    oscillo: VecDeque<f32>,
+    pub(crate) oscillo: VecDeque<f32>,
+    stats: VoxStats,
     progress_display: ProgressDisplay,
 
     legal_songs: Vec<Arc<SimpleSong>>,

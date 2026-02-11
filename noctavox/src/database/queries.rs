@@ -210,3 +210,28 @@ pub const UPDATE_PLAYLIST_POS: &str = "
 pub const RENAME_PLAYLIST: &str = "
     UPDATE playlists SET name = ? WHERE id = ?
 ";
+
+pub const GET_STATS: &str = "
+    SELECT
+        (SELECT COUNT(*) FROM songs)                  AS total_tracks,
+        (SELECT COUNT(DISTINCT album_id) FROM songs)  AS albums,
+        (SELECT COUNT(DISTINCT artist_id) FROM songs) AS artists,
+        (SELECT MIN(year) FROM songs)                 AS min_year,
+        (SELECT MAX(year) FROM songs)                 AS max_year,
+        (SELECT COUNT(*) FROM playlists)              AS playlists,
+        (SELECT SUM(duration) FROM songs)             AS total_duration,
+        (SELECT COUNT(*) FROM plays)                  AS unique_plays,
+        (SELECT SUM(count) FROM plays)                AS total_plays,
+        ROUND(
+        (SELECT COUNT(*) FROM plays) * 100.0
+        / (SELECT COUNT(*) FROM songs),
+        2)                                            AS play_percentage
+";
+
+pub const GET_TOP_SONGS: &str = "
+    SELECT s.id as id, p.count as count
+    FROM songs s
+    INNER JOIN plays p ON s.id = p.song_id
+    ORDER BY p.count DESC
+    LIMIT ?
+";

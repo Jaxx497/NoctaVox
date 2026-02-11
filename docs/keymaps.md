@@ -18,7 +18,8 @@ with the exception of searching as not to affect a user's search query.
 | Scroll Down* | `j` `↓` |
 | Scroll Down (5 / 25 Items) | `d` `D`|
 | Scroll Up (5 / 25 Items) | `u` `U`|
-| Go to * / Top / Bottom | `g` `G` |
+| Go to Top / Bottom | `g` `G` |
+| Go to album of now playing| `=` |
 
 #### Views
 | Action      | Keymap |

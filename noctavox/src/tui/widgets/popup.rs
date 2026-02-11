@@ -6,7 +6,7 @@ use ratatui::{
 use crate::{
     tui::{
         ErrorMsg,
-        widgets::{PlaylistPopup, RootManager, ThemeManager},
+        widgets::{PlaylistPopup, RootManager, ThemeManager, UserStats},
     },
     ui_state::{PopupType, UiState},
 };
@@ -22,6 +22,7 @@ impl StatefulWidget for PopupManager {
         state: &mut Self::State,
     ) {
         let popup_rect = match &state.popup.current {
+            PopupType::Stats => centered_rect(60, 80, area),
             PopupType::Playlist(_) => centered_rect(35, 40, area),
             PopupType::Settings(_) => centered_rect(40, 40, area),
             PopupType::ThemeManager => centered_rect(40, 40, area),
@@ -31,9 +32,9 @@ impl StatefulWidget for PopupManager {
 
         Clear.render(popup_rect, buf);
         match &state.popup.current {
+            PopupType::Stats => UserStats.render(popup_rect, buf, state),
             PopupType::Playlist(_) => PlaylistPopup.render(popup_rect, buf, state),
             PopupType::Settings(_) => RootManager.render(popup_rect, buf, state),
-
             PopupType::ThemeManager => ThemeManager.render(popup_rect, buf, state),
             PopupType::Error(_) => ErrorMsg.render(popup_rect, buf, state),
             _ => unreachable!(),

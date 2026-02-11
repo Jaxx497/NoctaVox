@@ -45,7 +45,7 @@ pub type SongMap = IndexMap<u64, Arc<SimpleSong>, BuildNoHashHasher<u64>>;
 
 // ~120fps
 pub const REFRESH_RATE: Duration = Duration::from_millis(8);
-pub const OSCILLO_BUFFER_CAPACITY: usize = 2048;
+pub const OSCILLO_BUFFER_CAPACITY: usize = 1024;
 
 pub const THEME_DIRECTORY: &'static str = "themes";
 pub const CONFIG_DIRECTORY: &'static str = "noctavox";

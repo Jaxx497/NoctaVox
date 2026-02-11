@@ -2,6 +2,7 @@ use crate::{
     CONFIG_DIRECTORY, DATABASE_FILENAME, SongMap,
     database::tables::CREATE_TABLES,
     library::{LongSong, SimpleSong, SongInfo},
+    ui_state::LibraryStats,
 };
 use anyhow::Result;
 use queries::*;
@@ -412,5 +413,56 @@ impl Database {
     pub(crate) fn delete_root(&mut self, path: &PathBuf) -> Result<()> {
         self.conn.execute(DELETE_ROOT, params![path.to_str()])?;
         Ok(())
+    }
+
+    // ==========
+    //   STATS
+    // ==========
+
+    pub(crate) fn get_stats(&mut self) -> Result<LibraryStats> {
+        let x = self.conn.query_one(GET_STATS, params![], |row| {
+            let total_tracks: u32 = row.get("total_tracks")?;
+            let total_albums: u32 = row.get("albums")?;
+            let total_artists: u32 = row.get("artists")?;
+            let min_year: u32 = row.get("min_year")?;
+            let max_year: u32 = row.get("max_year")?;
+            let total_playlists: u32 = row.get("playlists")?;
+            let unique_plays: u32 = row.get("unique_plays")?;
+            let total_plays: u32 = row.get("total_plays")?;
+            let play_percentage: f32 = row.get("play_percentage")?;
+            let total_duration: f32 = row.get("total_duration")?;
+
+            Ok(LibraryStats {
+                total_tracks,
+                total_albums,
+                total_artists,
+                min_year,
+                max_year,
+                total_playlists,
+                unique_plays,
+                total_plays,
+                play_percentage,
+                total_duration,
+            })
+        })?;
+
+        Ok(x)
+    }
+
+    pub fn get_most_played(&mut self, count: u16) -> Result<Vec<(u64, u16)>> {
+        let mut stmt = self.conn.prepare(GET_TOP_SONGS)?;
+
+        let rows = stmt
+            .query_map(params![count], |row| {
+                let hash_bytes: Vec<u8> = row.get("id")?;
+                let hash_array: [u8; 8] = hash_bytes.try_into().expect("Invalid hash bytes length");
+                let hash = u64::from_le_bytes(hash_array);
+                let plays: u16 = row.get("count")?;
+
+                Ok((hash, plays))
+            })?
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(rows)
     }
 }

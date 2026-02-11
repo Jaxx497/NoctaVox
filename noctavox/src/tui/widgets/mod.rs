@@ -9,7 +9,7 @@ mod tracklist;
 
 pub use buffer_line::BufferLine;
 pub use popup::PopupManager;
-pub use popups::{ErrorMsg, PlaylistPopup, RootManager, ThemeManager};
+pub use popups::{ErrorMsg, PlaylistPopup, RootManager, ThemeManager, UserStats};
 pub use progress::Progress;
 pub use search::SearchBar;
 pub use sidebar::SideBarHandler;

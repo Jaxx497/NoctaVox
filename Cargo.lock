@@ -25,9 +25,9 @@ checksum = "683d7910e743518b0e34f1186f92494becacb047c7b6bf616c96772180fef923"
 
 [[package]]
 name = "alsa"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c88dbbce13b232b26250e1e2e6ac18b6a891a646b8148285036ebce260ac5c3"
+checksum = "812947049edcd670a82cd5c73c3661d2e58468577ba8489de58e1a73c04cbd5d"
 dependencies = [
  "alsa-sys",
  "bitflags 2.10.0",
@@ -37,9 +37,9 @@ dependencies = [
 
 [[package]]
 name = "alsa-sys"
-version = "0.3.1"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db8fee663d06c4e303404ef5f40488a53e062f89ba8bfed81f42325aafad1527"
+checksum = "ad7569085a265dd3f607ebecce7458eaab2132a84393534c95b18dcbc3f31e04"
 dependencies = [
  "libc",
  "pkg-config",
@@ -269,11 +269,11 @@ dependencies = [
 
 [[package]]
 name = "coreaudio-rs"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1aae284fbaf7d27aa0e292f7677dfbe26503b0d555026f702940805a630eac17"
+checksum = "d15c3c3cee7c087938f7ad1c3098840b3ef1f1bdc7f6e496336c3b1e7a6f3914"
 dependencies = [
- "bitflags 1.3.2",
+ "bitflags 2.10.0",
  "libc",
  "objc2-audio-toolbox",
  "objc2-core-audio",
@@ -283,9 +283,8 @@ dependencies = [
 
 [[package]]
 name = "cpal"
-version = "0.17.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5b1f9c7312f19fc2fa12fd7acaf38de54e8320ba10d1a02dcbe21038def51ccb"
+version = "0.17.2"
+source = "git+https://github.com/RustAudio/cpal#5cceb49054b46a3a4f1c6a38785bf6fd95203031"
 dependencies = [
  "alsa",
  "coreaudio-rs",
@@ -1125,7 +1124,7 @@ dependencies = [
 
 [[package]]
 name = "noctavox"
-version = "0.2.1"
+version = "0.2.2"
 dependencies = [
  "anyhow",
  "crossbeam",
@@ -1142,6 +1141,7 @@ dependencies = [
  "toml",
  "tui-textarea",
  "unicode-normalization",
+ "unicode-width",
  "voxio",
  "walkdir",
  "xxhash-rust",
@@ -2633,7 +2633,7 @@ dependencies = [
 
 [[package]]
 name = "voxio"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "audioadapter",
  "audioadapter-buffers",

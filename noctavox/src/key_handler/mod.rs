@@ -67,6 +67,7 @@ pub enum Action {
     ChangePane(Pane),
     GoToTrack(usize),
     GoToAlbum,
+    GoToNowPlaying,
     Scroll(Director),
 
     MultiSelect(usize),
@@ -103,6 +104,7 @@ pub enum Action {
     PopupScrollUp,
     PopupScrollDown,
     PopupInput(KeyEvent),
+    ShowStats,
 
     ClosePopup,
 

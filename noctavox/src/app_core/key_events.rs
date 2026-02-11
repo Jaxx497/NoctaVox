@@ -20,6 +20,7 @@ impl NoctaVox {
             Action::Scroll(s)       => self.ui.scroll(s),
             Action::GoToTrack(c)    => self.ui.go_to_track(c)?,
             Action::GoToAlbum       => self.ui.go_to_album()?,
+            Action::GoToNowPlaying  => self.ui.go_to_now_playing()?,
             Action::ChangeMode(m)   => self.ui.set_mode(m),
             Action::ChangePane(p)   => self.ui.set_pane(p),
             Action::SortColumnsNext => self.ui.next_song_column(),
@@ -70,6 +71,8 @@ impl NoctaVox {
             Action::CycleTheme(dir) => self.ui.cycle_theme(dir),
 
             // Ops
+
+            Action::ShowStats       => self.ui.show_stats_popup()?,
             Action::PopupInput(key) => self.ui.process_popup_input(&key),
             Action::ClosePopup      => self.ui.close_popup(),
             Action::SoftReset       => self.ui.soft_reset(),

@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## Current Development Changes
+
+
+User statistics can now be displayed
+Oscilloscope is more optimized
+Voxio sample and tap no longer push on a per sample basis, but rather in chunks
+
+New maps:
+ - `=` Go to album-view of the currently playing track
+ - `?` View library and listening statistics
+
 ## Version 0.2.2
 Licensing added
 

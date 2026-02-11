@@ -51,8 +51,4 @@ impl UiState {
         self.metrics
             .drain_into(&mut self.oscillo, OSCILLO_BUFFER_CAPACITY);
     }
-
-    pub fn get_oscillo_samples(&self) -> Vec<f32> {
-        Vec::from(self.oscillo.clone())
-    }
 }

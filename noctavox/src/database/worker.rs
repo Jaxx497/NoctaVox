@@ -2,7 +2,7 @@ use crate::{
     SongMap,
     database::{DB_BOUND, Database},
     library::SimpleSong,
-    ui_state::UiSnapshot,
+    ui_state::{LibraryStats, UiSnapshot},
 };
 use anyhow::{Result, anyhow};
 use indexmap::IndexMap;
@@ -166,6 +166,14 @@ impl DbWorker {
         self.execute(move |db| {
             let _ = db.set_waveform(song_id, &waveform);
         });
+    }
+
+    pub fn get_stats(&self) -> Result<LibraryStats> {
+        self.execute_sync(move |db| db.get_stats())
+    }
+
+    pub fn get_most_played(&self, count: u16) -> Result<Vec<(u64, u16)>> {
+        self.execute_sync(move |db| db.get_most_played(count))
     }
 }
 

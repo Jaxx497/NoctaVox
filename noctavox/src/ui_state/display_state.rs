@@ -272,6 +272,26 @@ impl UiState {
         };
     }
 
+    pub(crate) fn go_to_now_playing(&mut self) -> Result<()> {
+        if let Some(np) = &self.get_now_playing() {
+            let np = Arc::clone(&np);
+            let album_id = np.album_id;
+
+            let album_idx = self.albums.iter().position(|a| a.id == album_id);
+
+            self.display_state.album_pos.select(album_idx);
+            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_pane(Pane::TrackList);
+            self.set_legal_songs();
+
+            let idx = self.legal_songs.iter().position(|s| s.id == np.id);
+
+            self.display_state.table_pos.select(idx);
+        }
+
+        Ok(())
+    }
+
     pub(crate) fn go_to_track(&mut self, count: usize) -> Result<()> {
         let range = self.legal_songs.len();
         if (count > range) || (count < 1) {

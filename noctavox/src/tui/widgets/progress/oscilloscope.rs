@@ -18,8 +18,9 @@ impl StatefulWidget for Oscilloscope {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = &state.theme_manager.get_display_theme(true);
-        let samples = state.get_oscillo_samples();
+        let theme = state.theme_manager.get_display_theme(true);
+        let elapsed = state.get_playback_elapsed_f32();
+        let samples = state.oscillo.make_contiguous();
 
         if samples.is_empty() {
             return;
@@ -29,8 +30,6 @@ impl StatefulWidget for Oscilloscope {
             true => ((area.height as f32) * 0.25) as u16,
             false => 0,
         };
-
-        let elapsed = state.get_playback_elapsed_f32();
 
         Canvas::default()
             .x_bounds([0.0, samples.len() as f64])

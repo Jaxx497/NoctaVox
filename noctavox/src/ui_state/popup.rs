@@ -9,6 +9,7 @@ use crate::{
 #[derive(PartialEq, Clone)]
 pub enum PopupType {
     None,
+    Stats,
     Error(String),
     Settings(SettingsMode),
     Playlist(PlaylistAction),

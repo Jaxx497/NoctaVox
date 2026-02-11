@@ -10,6 +10,7 @@ use crate::{
         LibraryView, Mode, Pane, PlaylistAction, ProgressDisplay, SettingsMode, ThemeManager,
         UiState, WaveformManager,
         popup::{PopupState, PopupType},
+        stats::VoxStats,
     },
 };
 use anyhow::{Error, Result};
@@ -29,6 +30,7 @@ impl UiState {
             waveform: WaveformManager::new(),
             oscillo: VecDeque::with_capacity(OSCILLO_BUFFER_CAPACITY),
             progress_display: ProgressDisplay::Oscilloscope,
+            stats: VoxStats::default(),
 
             popup: PopupState::new(),
             theme_manager: ThemeManager::new(),
