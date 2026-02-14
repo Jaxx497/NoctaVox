@@ -21,7 +21,6 @@ use crate::ui_state::ProgressDisplay;
 static ILLEGAL_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| HashSet::from([';']));
 
 const X: KeyModifiers = KeyModifiers::NONE;
-const A: KeyModifiers = KeyModifiers::ALT;
 const S: KeyModifiers = KeyModifiers::SHIFT;
 const C: KeyModifiers = KeyModifiers::CONTROL;
 

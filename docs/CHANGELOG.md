@@ -2,14 +2,16 @@
 
 ## Current Development Changes
 
-
-User statistics can now be displayed
+User statistics can now be displayed via `?`
 Oscilloscope is more optimized
 Voxio sample and tap no longer push on a per sample basis, but rather in chunks
+Voxio should have less data races
 
 New maps:
  - `=` Go to album-view of the currently playing track
  - `?` View library and listening statistics
+
+Switched `Alt`+`1`, `Alt`+`2`, `Alt`+`3` to be `Ctrl`+`1`, `Ctrl`+`2`, `Ctrl`+`3`
 
 ## Version 0.2.2
 Licensing added

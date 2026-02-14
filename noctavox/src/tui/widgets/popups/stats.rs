@@ -159,7 +159,7 @@ fn get_most_played(
 
     let header = Line::from_iter([
         Span::from(format!("{:>5}", "#")), // right-align to match the numbers
-        Span::from("    "),                // same gap as between plays and title
+        Span::from("   "),                 // same gap as between plays and title
         Span::from(format!("{:<title_cutoff$}", "Title")),
         Span::raw(" "),
         Span::from(format!("{:>remainder$}", "Artist  ",)),
@@ -173,7 +173,7 @@ fn get_most_played(
 
         Line::from_iter([
             Span::from(format!("{plays:>5}")).fg(theme.text_secondary),
-            Span::raw("    "),
+            Span::raw("   "),
             Span::from(pad_to_width(&title, title_cutoff)).fg(theme.text_primary),
             Span::raw(" "),
             Span::from(pad_to_width_right(&artist, remainder)).fg(theme.text_muted),

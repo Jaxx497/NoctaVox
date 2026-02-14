@@ -44,6 +44,7 @@ struct VoxWorker {
     resampler: Option<VoxResampler>,
     pending: Vec<f32>,
     input_channels: usize,
+    deferred_next: Option<String>,
 }
 
 pub fn spawn(
@@ -81,6 +82,7 @@ impl VoxWorker {
             resampler: None,
             pending: Vec::with_capacity(PENDING_CAPACITY),
             input_channels: 2,
+            deferred_next: None,
         }
     }
 
@@ -114,6 +116,11 @@ impl VoxWorker {
     }
 
     fn poll_commands(&mut self) -> Result<()> {
+        // Process any deferred queue_next from a previous play cycle
+        if let Some(path) = self.deferred_next.take() {
+            self.queue_next(path)?;
+        }
+
         let mut pending_seek: Option<f64> = None;
         let mut pending_next: Option<String> = None;
         let mut pending_play: Option<String> = None;
@@ -160,6 +167,12 @@ impl VoxWorker {
         // Execute final coalesced operations
         if let Some(path) = pending_play {
             self.handle_play(path)?;
+            // Defer queue_next so it doesn't block the play path.
+            // It will be processed on the next poll_commands iteration,
+            // after decode has already started producing samples.
+            if let Some(path) = pending_next.take() {
+                self.deferred_next = Some(path);
+            }
         }
         if let Some(target) = pending_seek {
             self.handle_seek(target)?;
@@ -302,6 +315,10 @@ impl VoxWorker {
 
                 self.state.set_active(true);
                 self.state.set_paused(false);
+
+                // Prefill the ring buffer before unblocking the audio callback
+                let current_generation = self.state.seek_generation();
+                self.prefill_after_seek(current_generation)?;
             }
             Err(e) => {
                 eprintln!("Failed to open {}: {}", path, e);

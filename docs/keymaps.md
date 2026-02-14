@@ -24,9 +24,9 @@ with the exception of searching as not to affect a user's search query.
 #### Views
 | Action      | Keymap |
 | ----------- | ----------- |
-| Album View |  `1` \| `Ctrl` + `a`|
-| Playlist View|  `2` \| `Ctrl` + `t`|
-| Queue View | `3` \| `Ctrl` + `q`|
+| Album View |  `Ctrl` + `1` \| `Ctrl` + `a`|
+| Playlist View| `Ctrl` + `2` \| `Ctrl` + `t`|
+| Queue View | `Ctrl` + `3` \| `Ctrl` + `q`|
 | Change Sidebar Size | `[` `]` |
 | Smooth Waveform | `{` `}` |
 | Fullscreen Progress View | `f` |

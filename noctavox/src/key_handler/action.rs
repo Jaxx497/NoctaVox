@@ -86,10 +86,10 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (X, Char('=')) => Some(Action::GoToNowPlaying),
             (S, Char('?')) => Some(Action::ShowStats),
 
-            (A, Char('1')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
-            (A, Char('2')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
-            (A, Char('3')) => Some(Action::ChangeMode(Mode::Queue)),
-            (A, Char('0')) => Some(Action::ChangeMode(Mode::Power)),
+            (C, Char('1')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
+            (C, Char('2')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
+            (C, Char('3')) => Some(Action::ChangeMode(Mode::Queue)),
+            (C, Char('0')) => Some(Action::ChangeMode(Mode::Power)),
 
             // SCROLLING
             (X, Char('j')) | (X, Down) => Some(Action::Scroll(Director::Down(buf_count))),

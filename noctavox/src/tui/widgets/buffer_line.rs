@@ -31,11 +31,10 @@ impl StatefulWidget for BufferLine {
             .filter(|p| *p > 1 && *p < 100)
         {
             let desc = state.get_library_refresh_detail().unwrap_or_default();
-            let label = format!("{desc} | {progress}%");
+            let label = format!("{desc} | {progress}%").fg(theme.text_muted);
             let guage = Gauge::default()
                 .block(Block::new().borders(Borders::NONE))
                 .gauge_style(theme.selection)
-                .fg(theme.text_selected)
                 .label(label)
                 .percent(progress as u16 - 1);
 
