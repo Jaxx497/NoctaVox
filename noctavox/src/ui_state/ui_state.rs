@@ -30,6 +30,7 @@ impl UiState {
             waveform: WaveformManager::new(),
             sample_tap: VecDeque::with_capacity(TAP_BUFFER_CAP),
             spectrum_bars: Vec::new(),
+            spectrum_peaks: Vec::new(),
             progress_display: ProgressDisplay::Oscilloscope,
             stats: VoxStats::default(),
 

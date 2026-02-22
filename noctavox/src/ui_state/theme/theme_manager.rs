@@ -98,7 +98,7 @@ impl ThemeManager {
         let bar_active = theme.bar_active.to_string();
         let bar_inactive = theme.bar_inactive.to_string();
         let waveform_style = theme.waveform_style;
-        let spectrum_style = ratatui::symbols::Marker::HalfBlock;
+        let spectrum_style = theme.waveform_style;
         let oscilloscope_style = theme.oscilloscope_style;
 
         match focused {
