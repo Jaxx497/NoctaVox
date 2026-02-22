@@ -2,7 +2,7 @@ use crate::ui_state::UiState;
 use ratatui::{
     style::Stylize,
     widgets::{
-        canvas::{Canvas, Context, Rectangle},
+        canvas::{Canvas, Context, Line},
         Block, Padding, StatefulWidget, Widget,
     },
 };
@@ -152,22 +152,22 @@ fn draw_spectrum(ctx: &mut Context, bars: &[f32], peaks: &[f32], time: f32, them
 
         // Draw the main bar
         if height > 0.05 {
-            ctx.draw(&Rectangle {
-                x,
-                y: 0.0,
-                width: bar_width,
-                height,
+            ctx.draw(&Line {
+                x1: x,
+                y1: 0.0,
+                x2: x,
+                y2: height,
                 color,
             });
         }
         
         // Draw the peak indicator
         if peak_height > 0.05 {
-            ctx.draw(&Rectangle {
-                x,
-                y: peak_height.min(0.99), // Prevent drawing outsidebounds slightly
-                width: bar_width,
-                height: 0.02, // Just a tiny slice
+            ctx.draw(&Line {
+                x1: x,
+                y1: peak_height.min(0.99),
+                x2: x + bar_width,
+                y2: peak_height.min(0.99),
                 color: peak_color,
             });
         }
