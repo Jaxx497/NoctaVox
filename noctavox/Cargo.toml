@@ -30,6 +30,7 @@ unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
 voxio = {verison = "0.1.0", path = "../voxio/" }
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
+rustfft = "6.2"
 
 [[bin]]
 name = "vox"
