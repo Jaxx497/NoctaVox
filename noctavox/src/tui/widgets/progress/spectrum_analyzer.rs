@@ -2,7 +2,7 @@ use crate::ui_state::UiState;
 use ratatui::{
     style::Stylize,
     widgets::{
-        canvas::{Canvas, Context, Line},
+        canvas::{Canvas, Context, Line, Rectangle},
         Block, Padding, StatefulWidget, Widget,
     },
 };
@@ -55,35 +55,40 @@ impl StatefulWidget for SpectrumAnalyzer {
             Ok(spectrum_data) => {
                 let freqs = spectrum_data.data();
                 
-                let max_freq_idx = freqs.len();
+                let num_bars = 120; // Exact number of discrete visual columns
                 
-                // We keep track of the smoothed bars directly, one for each computed frequency output
-                if state.spectrum_bars.len() != max_freq_idx {
-                    state.spectrum_bars = vec![0.0; max_freq_idx];
+                // We keep track of the smoothed bars directly, one for each column
+                if state.spectrum_bars.len() != num_bars {
+                    state.spectrum_bars = vec![0.0; num_bars];
                 }
 
-                if max_freq_idx > 0 {
-                    for i in 0..max_freq_idx {
-                        // Artificially stretch the lower frequencies logarithmically across the canvas array
-                        let start_freq = (i as f32 / max_freq_idx as f32).powf(3.0) * max_freq_idx as f32;
-                        let end_freq = ((i + 1) as f32 / max_freq_idx as f32).powf(3.0) * max_freq_idx as f32;
+                if !freqs.is_empty() {
+                    let max_freq_idx = freqs.len();
+
+                    for i in 0..num_bars {
+                        // Artificially stretch the lower frequencies logarithmically across discrete columns
+                        let fraction_start = i as f32 / num_bars as f32;
+                        let fraction_end = (i + 1) as f32 / num_bars as f32;
+
+                        let mut start_idx = (fraction_start.powf(3.0) * max_freq_idx as f32).max(1.0) as usize;
+                        let mut end_idx = (fraction_end.powf(3.0) * max_freq_idx as f32).max(1.0) as usize;
                         
-                        let mut start_idx = start_freq.floor().max(1.0) as usize; // skip DC offset
-                        let end_idx = end_freq.ceil().min((max_freq_idx - 1) as f32) as usize;
-            
-                        if start_idx > end_idx {
-                            start_idx = end_idx;
+                        // Prevent empty buckets to ensure NO empty visual column spaces!
+                        if end_idx <= start_idx {
+                            end_idx = start_idx + 1;
+                        }
+                        end_idx = end_idx.min(max_freq_idx);
+                        if start_idx >= max_freq_idx {
+                            start_idx = max_freq_idx.saturating_sub(1);
                         }
                         
                         let mut sum = 0.0;
                         let mut count = 0;
                         
-                        for j in start_idx..=end_idx {
-                            if j < max_freq_idx {
-                                let mag = freqs[j].1.val();
-                                sum += mag;
-                                count += 1;
-                            }
+                        for j in start_idx..end_idx {
+                            let mag = freqs[j].1.val();
+                            sum += mag;
+                            count += 1;
                         }
                         
                         let mut normalized = 0.0;
@@ -118,8 +123,9 @@ impl StatefulWidget for SpectrumAnalyzer {
             .x_bounds([0.0, bars.len() as f64])
             .y_bounds([0.0, 1.0])
             .marker(theme.spectrum_style)
-            .paint(|ctx| {
-                draw_spectrum(ctx, &bars, elapsed, &theme);
+            .paint(move |ctx| {
+                let width = area.width;
+                draw_spectrum(ctx, &bars, elapsed, &theme, width);
             })
             .background_color(theme.bg_global)
             .block(Block::new().bg(theme.bg_global).padding(Padding {
@@ -132,7 +138,7 @@ impl StatefulWidget for SpectrumAnalyzer {
     }
 }
 
-fn draw_spectrum(ctx: &mut Context, bars: &[f32], time: f32, theme: &crate::ui_state::DisplayTheme) {
+fn draw_spectrum(ctx: &mut Context, bars: &[f32], time: f32, theme: &crate::ui_state::DisplayTheme, area_width: u16) {
     let num_bars = bars.len();
     
     for i in 0..num_bars {
@@ -144,18 +150,28 @@ fn draw_spectrum(ctx: &mut Context, bars: &[f32], time: f32, theme: &crate::ui_s
             continue;
         }
 
-        // We apply a logarithmic visible scaling so low-freq lines are drawn over more x-space linearly
-        // To match ratatui perfectly, we just map 1:1 and let the sub-pixel rendering handle visual density
-        
         let progress = i as f32 / num_bars as f32;
         let color = theme.get_focused_color(progress, time / 2.0);
 
-        ctx.draw(&Line {
-            x1: x,
-            y1: 0.0,
-            x2: x,
-            y2: height,
-            color,
-        });
+        if area_width < 100 {
+            // Lines create a more detailed and cleaner look on small screens
+            ctx.draw(&Line {
+                x1: x,
+                y1: 0.0,
+                x2: x,
+                y2: height,
+                color,
+            });
+        } else {
+            // Rectangles cleanly extend the column shapes in wider views
+            // Width of 0.5 adds Winamp-style gap spacing between vertical bars seamlessly
+            ctx.draw(&Rectangle {
+                x,
+                y: 0.0,
+                width: 0.5,
+                height,
+                color,
+            });
+        }
     }
 }
