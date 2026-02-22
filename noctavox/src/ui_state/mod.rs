@@ -48,7 +48,6 @@ pub struct UiState {
 
     pub(crate) sample_tap: VecDeque<f32>,
     pub(crate) spectrum_bars: Vec<f32>,
-    pub(crate) spectrum_peaks: Vec<f32>,
     waveform: WaveformManager,
     progress_display: ProgressDisplay,
     stats: VoxStats,
