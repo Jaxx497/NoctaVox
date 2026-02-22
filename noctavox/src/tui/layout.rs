@@ -13,7 +13,12 @@ impl AppLayout {
     pub fn new(area: Rect, state: &mut UiState) -> Self {
         let prog_height = match state.display_progress() {
             true => match (state.get_progress_display(), area.height > 20) {
-                (ProgressDisplay::Waveform | ProgressDisplay::Oscilloscope, true) => 6,
+                (
+                    ProgressDisplay::Waveform
+                    | ProgressDisplay::Oscilloscope
+                    | ProgressDisplay::SpectrumAnalyzer,
+                    true,
+                ) => 6,
                 _ => 3,
             },
             false => 0,

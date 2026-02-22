@@ -38,6 +38,7 @@ pub struct DisplayTheme {
     pub bar_active: String,
     pub bar_inactive: String,
     pub waveform_style: Marker,
+    pub spectrum_style: Marker,
     pub oscilloscope_style: Marker,
 }
 

@@ -1,11 +1,13 @@
 mod oscilloscope;
 mod progress_bar;
+mod spectrum_analyzer;
 mod timer;
 mod waveform;
 
 use crate::{
     tui::widgets::progress::{
-        oscilloscope::Oscilloscope, progress_bar::ProgressBar, timer::Timer, waveform::Waveform,
+        oscilloscope::Oscilloscope, progress_bar::ProgressBar, spectrum_analyzer::SpectrumAnalyzer,
+        timer::Timer, waveform::Waveform,
     },
     ui_state::{ProgressDisplay, UiState},
 };
@@ -31,6 +33,7 @@ impl StatefulWidget for Progress {
                     true => Waveform.render(area, buf, state),
                     false => Oscilloscope.render(area, buf, state),
                 },
+                ProgressDisplay::SpectrumAnalyzer => SpectrumAnalyzer.render(area, buf, state),
                 ProgressDisplay::Oscilloscope => Oscilloscope.render(area, buf, state),
             }
         }

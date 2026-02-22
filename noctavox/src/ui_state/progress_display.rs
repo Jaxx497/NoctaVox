@@ -3,6 +3,7 @@ use crate::{FFMPEG_AVAILABLE, TAP_BUFFER_CAP, player::PlaybackState, ui_state::U
 #[derive(Clone, Default, PartialEq, Eq)]
 pub enum ProgressDisplay {
     Waveform,
+    SpectrumAnalyzer,
     Oscilloscope,
     #[default]
     ProgressBar,
@@ -13,6 +14,7 @@ impl ProgressDisplay {
         match s {
             "oscilloscope" => Self::Oscilloscope,
             "waveform" => Self::Waveform,
+            "spectrum_analyzer" => Self::SpectrumAnalyzer,
             _ => Self::ProgressBar,
         }
     }
@@ -22,6 +24,7 @@ impl std::fmt::Display for ProgressDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ProgressDisplay::Waveform => write!(f, "waveform"),
+            ProgressDisplay::SpectrumAnalyzer => write!(f, "spectrum_analyzer"),
             ProgressDisplay::ProgressBar => write!(f, "progress_bar"),
             ProgressDisplay::Oscilloscope => write!(f, "oscilloscope"),
         }
