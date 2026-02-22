@@ -10,8 +10,8 @@ use rustfft::{num_complex::Complex, FftPlanner};
 
 pub struct SpectrumAnalyzer;
 
-const NUM_BARS: usize = 32;
-const FFT_SIZE: usize = 512;
+const NUM_BARS: usize = 120;
+const FFT_SIZE: usize = 1024;
 const FALLOFF_RATE: f32 = 0.05;
 
 impl StatefulWidget for SpectrumAnalyzer {
@@ -58,8 +58,12 @@ impl StatefulWidget for SpectrumAnalyzer {
             let start_freq = (i as f32 / NUM_BARS as f32).powf(1.5) * (FFT_SIZE / 2) as f32;
             let end_freq = ((i + 1) as f32 / NUM_BARS as f32).powf(1.5) * (FFT_SIZE / 2) as f32;
             
-            let start_idx = start_freq.floor().max(1.0) as usize; // skip DC offset (index 0)
+            let mut start_idx = start_freq.floor().max(1.0) as usize; // skip DC offset (index 0)
             let end_idx = end_freq.ceil().min((FFT_SIZE / 2) as f32) as usize;
+
+            if start_idx > end_idx {
+                start_idx = end_idx;
+            }
             
             let mut sum = 0.0;
             let mut count = 0;
@@ -135,7 +139,7 @@ fn draw_spectrum(ctx: &mut Context, bars: &[f32], peaks: &[f32], time: f32, them
     let num_bars = bars.len();
     
     // Width of each bar
-    let bar_width = 0.8;
+    let bar_width = 0.6;
     
     for i in 0..num_bars {
         let x = i as f64 + (1.0 - bar_width) / 2.0;
