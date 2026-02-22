@@ -64,9 +64,34 @@ impl StatefulWidget for SpectrumAnalyzer {
 
                 if max_freq_idx > 0 {
                     for i in 0..max_freq_idx {
-                        let mag = freqs[i].1.val();
-                        let log_mag = (mag * 10.0).log10() / 2.0;
-                        let normalized = log_mag.clamp(0.0, 1.0);
+                        // Artificially stretch the lower frequencies logarithmically across the canvas array
+                        let start_freq = (i as f32 / max_freq_idx as f32).powf(3.0) * max_freq_idx as f32;
+                        let end_freq = ((i + 1) as f32 / max_freq_idx as f32).powf(3.0) * max_freq_idx as f32;
+                        
+                        let mut start_idx = start_freq.floor().max(1.0) as usize; // skip DC offset
+                        let end_idx = end_freq.ceil().min((max_freq_idx - 1) as f32) as usize;
+            
+                        if start_idx > end_idx {
+                            start_idx = end_idx;
+                        }
+                        
+                        let mut sum = 0.0;
+                        let mut count = 0;
+                        
+                        for j in start_idx..=end_idx {
+                            if j < max_freq_idx {
+                                let mag = freqs[j].1.val();
+                                sum += mag;
+                                count += 1;
+                            }
+                        }
+                        
+                        let mut normalized = 0.0;
+                        if count > 0 {
+                            let mag = sum / count as f32;
+                            let log_mag = (mag * 10.0).log10() / 2.0;
+                            normalized = log_mag.clamp(0.0, 1.0);
+                        }
                         
                         // Apply smoothing and decay
                         if normalized > state.spectrum_bars[i] {
