@@ -23,8 +23,7 @@ rayon = "1.11.0"
 rusqlite = { version = "0.38.0", features = ["bundled"] }
 serde = { version = "1.0.228", features = ["derive"]}
 toml = "0.9.10"
-ratatui-textarea = { git = "https://github.com/dotdash/ratatui-textarea", rev = "a31abb7b" }
-# tui-textarea = {git = "https://github.com/rhysd/tui-textarea/", rev = "a5086767ee0831e319aec9432aaef495d8f280c4"}
+ratatui-textarea = "0.8.0"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
