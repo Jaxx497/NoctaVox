@@ -12,10 +12,10 @@ categories = ["multimedia::audio"]
 [dependencies]
 audioadapter = "2.0.0"
 audioadapter-buffers = "2.0.0"
-cpal = "0.17.1"
+cpal = "0.17.3"
 crossbeam = "0.8.4"
 rtrb = "0.3.2"
-rubato = "1.0.0"
+rubato = "1.0.1"
 symphonia = { version = "0.5.5", features = ["aac", "alac", "isomp4", "mp3" ] }
 symphonia-adapter-libopus = "0.2.6"
-thiserror = "2.0.17"
+thiserror = "2.0.18"

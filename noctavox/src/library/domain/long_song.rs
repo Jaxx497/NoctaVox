@@ -83,7 +83,7 @@ impl LongSong {
                 .unwrap_or("[NO ARTIST!]".into());
 
             let album_artist = tag
-                .get_string(&ItemKey::AlbumArtist)
+                .get_string(ItemKey::AlbumArtist)
                 .map(|s| nms(&s))
                 .filter(|s| !s.is_empty())
                 .unwrap_or_else(|| artist.to_string());
@@ -91,10 +91,10 @@ impl LongSong {
             song_info.artist = Arc::new(artist);
             song_info.album_artist = Arc::new(album_artist);
 
-            song_info.year = tag.year().or_else(|| {
-                tag.get_string(&ItemKey::Year)
+            song_info.year = tag.date().map(|ts| ts.year as u32).or_else(|| {
+                tag.get_string(ItemKey::Year)
                     .and_then(|s| {
-                        nms(&s)
+                        nms(s)
                             .split_once('-')
                             .map(|(y, _)| y.to_string())
                             .or_else(|| Some(s.to_string()))
