@@ -108,6 +108,7 @@ impl PlayerCore {
 
         self.current = Some(song.clone());
         self.metrics.set_playback_state(PlaybackState::Playing);
+        self.metrics.set_channels(self.backend.channels() as u8);
         self.emit(PlayerEvent::TrackStarted((song, false)));
     }
 

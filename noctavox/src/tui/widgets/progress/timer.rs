@@ -24,6 +24,7 @@ impl StatefulWidget for Timer {
         let x_pos = area.width - 8;
         let y_pos = match state.get_progress_display() {
             ProgressDisplay::Waveform => area.y + (area.height / 2),
+            ProgressDisplay::Spectrum => area.y + 1,
             _ => area.y + area.height.saturating_sub(1),
         };
 

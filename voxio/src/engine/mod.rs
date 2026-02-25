@@ -31,6 +31,7 @@ pub struct Vox {
     commands: channel::Sender<VoxCommand>,
     sps: f64,
     output_rate: u32,
+    output_channels: usize,
     tap: TapReader,
     _stream: Stream,
     _decoder_thread: JoinHandle<()>,
@@ -146,6 +147,7 @@ impl Vox {
             commands: tx,
             sps: output_rate as f64 * output_channels as f64,
             output_rate: output_rate as u32,
+            output_channels,
             _stream: stream,
             _decoder_thread: decoder_thread,
             tap: tap_reader,
@@ -276,6 +278,11 @@ impl Vox {
     /// Returns the output sample rate of the audio device in Hz
     pub fn sample_rate(&self) -> u32 {
         self.output_rate
+    }
+
+    /// Returns the number of interleaved channels in the audio output
+    pub fn channels(&self) -> usize {
+        self.output_channels
     }
 
     pub fn track_ended(&self) -> bool {

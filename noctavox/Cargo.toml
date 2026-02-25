@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.2.2"
+version = "0.2.3"
 edition = "2024"
 authors = ["Jaxx497"]
 description = "A lightweight TUI music player for local files"
@@ -22,12 +22,13 @@ ratatui = {version = "0.30.0", features = ["serde"]}
 rayon = "1.11.0"
 rusqlite = { version = "0.38.0", features = ["bundled"] }
 serde = { version = "1.0.228", features = ["derive"]}
+spectrum-analyzer = "1.7.0"
 toml = "1.0.3"
 ratatui-textarea = "0.8.0"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
-voxio = {verison = "0.1.0", path = "../voxio/" }
+voxio = {verison = "0.1.1", path = "../voxio/" }
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 
 [[bin]]

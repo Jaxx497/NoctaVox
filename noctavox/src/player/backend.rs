@@ -32,4 +32,8 @@ pub(super) trait PlayerBackend: Send + 'static {
     fn sample_rate(&self) -> u32 {
         48000
     }
+
+    fn channels(&self) -> usize {
+        2
+    }
 }

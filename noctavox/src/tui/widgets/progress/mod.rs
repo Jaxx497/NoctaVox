@@ -1,14 +1,16 @@
 mod oscilloscope;
 mod progress_bar;
+mod spectrum;
 mod timer;
 mod waveform;
 
-use crate::{
-    tui::widgets::progress::{
-        oscilloscope::Oscilloscope, progress_bar::ProgressBar, timer::Timer, waveform::Waveform,
-    },
-    ui_state::{ProgressDisplay, UiState},
-};
+pub use oscilloscope::Oscilloscope;
+pub use progress_bar::ProgressBar;
+pub use spectrum::SpectrumAnalyzer;
+pub use timer::Timer;
+pub use waveform::Waveform;
+
+use crate::ui_state::{ProgressDisplay, UiState};
 use ratatui::widgets::StatefulWidget;
 
 pub(crate) const DEFAULT_AMP: f32 = 1.0;
@@ -23,8 +25,7 @@ impl StatefulWidget for Progress {
         state: &mut Self::State,
     ) {
         if state.player_is_active() {
-            state.fill_oscillo();
-            Timer.render(area, buf, state);
+            state.fill_tap();
             match &state.get_progress_display() {
                 ProgressDisplay::ProgressBar => ProgressBar.render(area, buf, state),
                 ProgressDisplay::Waveform => match !state.get_waveform_as_slice().is_empty() {
@@ -32,7 +33,9 @@ impl StatefulWidget for Progress {
                     false => Oscilloscope.render(area, buf, state),
                 },
                 ProgressDisplay::Oscilloscope => Oscilloscope.render(area, buf, state),
+                ProgressDisplay::Spectrum => SpectrumAnalyzer.render(area, buf, state),
             }
+            Timer.render(area, buf, state);
         }
     }
 }

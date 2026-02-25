@@ -6,6 +6,7 @@ mod popup;
 mod progress_display;
 mod search_state;
 mod settings;
+mod spectrum;
 mod stats;
 mod theme;
 mod ui_snapshot;
@@ -31,7 +32,9 @@ use crate::{
     database::DbWorker,
     library::{Album, Playlist, SimpleSong},
     player::PlaybackMetrics,
-    ui_state::{popup::PopupState, search_state::SearchState, stats::VoxStats},
+    ui_state::{
+        popup::PopupState, search_state::SearchState, spectrum::SpectrumState, stats::VoxStats,
+    },
 };
 
 pub struct UiState {
@@ -47,6 +50,8 @@ pub struct UiState {
     pub(crate) display_state: DisplayState,
 
     pub(crate) sample_tap: VecDeque<f32>,
+    pub(crate) spectrum: SpectrumState,
+
     waveform: WaveformManager,
     progress_display: ProgressDisplay,
     stats: VoxStats,

@@ -1,3 +1,4 @@
+use crate::TAP_BUFFER_CAPACITY;
 use crate::player::PlaybackState;
 use crossbeam::queue::ArrayQueue;
 use std::sync::atomic::AtomicU32;
@@ -12,6 +13,7 @@ use std::{
 
 pub struct PlaybackMetrics {
     state: AtomicU8,
+    channels: AtomicU8,
     sample_rate: AtomicU32,
     elapsed_ms: AtomicU64,
     pub(crate) audio_tap: ArrayQueue<f32>,
@@ -21,9 +23,10 @@ impl PlaybackMetrics {
     pub fn new() -> Arc<Self> {
         Arc::new(PlaybackMetrics {
             state: AtomicU8::new(0),
+            channels: AtomicU8::new(0),
             sample_rate: AtomicU32::new(0),
             elapsed_ms: AtomicU64::new(0),
-            audio_tap: ArrayQueue::new(2048),
+            audio_tap: ArrayQueue::new(TAP_BUFFER_CAPACITY),
         })
     }
 
@@ -61,6 +64,14 @@ impl PlaybackMetrics {
 
     pub fn sample_rate(&self) -> u32 {
         self.sample_rate.load(Ordering::Relaxed)
+    }
+
+    pub fn set_channels(&self, channels: u8) {
+        self.channels.store(channels, Ordering::Relaxed);
+    }
+
+    pub fn channels(&self) -> u8 {
+        self.channels.load(Ordering::Relaxed)
     }
 
     pub fn reset(&self) {

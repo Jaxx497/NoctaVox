@@ -1,4 +1,4 @@
-use crate::{TAP_BUFFER_CAP, player::PlayerBackend};
+use crate::{TAP_BUFFER_CAPACITY, player::PlayerBackend};
 use anyhow::Result;
 use std::{path::Path, time::Duration};
 
@@ -69,10 +69,14 @@ impl PlayerBackend for VoxEngine {
     }
 
     fn drain_samples(&mut self) -> Vec<f32> {
-        self.engine.get_latest_samples(TAP_BUFFER_CAP)
+        self.engine.get_latest_samples(TAP_BUFFER_CAPACITY)
     }
 
     fn sample_rate(&self) -> u32 {
         self.engine.sample_rate()
+    }
+
+    fn channels(&self) -> usize {
+        self.engine.channels()
     }
 }

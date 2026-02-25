@@ -1,7 +1,7 @@
 use super::{DisplayState, search_state::SearchState};
 
 use crate::{
-    Library, PlaybackSession, TAP_BUFFER_CAP,
+    Library, PlaybackSession, TAP_BUFFER_CAPACITY,
     database::DbWorker,
     key_handler::InputContext,
     library::SimpleSong,
@@ -10,6 +10,7 @@ use crate::{
         LibraryView, Mode, Pane, PlaylistAction, ProgressDisplay, SettingsMode, ThemeManager,
         UiState, WaveformManager,
         popup::{PopupState, PopupType},
+        spectrum::SpectrumState,
         stats::VoxStats,
     },
 };
@@ -28,7 +29,8 @@ impl UiState {
             playback: PlaybackSession::init(),
 
             waveform: WaveformManager::new(),
-            sample_tap: VecDeque::with_capacity(TAP_BUFFER_CAP),
+            spectrum: SpectrumState::default(),
+            sample_tap: VecDeque::with_capacity(TAP_BUFFER_CAPACITY),
             progress_display: ProgressDisplay::Oscilloscope,
             stats: VoxStats::default(),
 

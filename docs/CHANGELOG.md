@@ -1,15 +1,19 @@
 # CHANGELOG
 
-## Current Development Changes
+## Version 0.2.3
+
+Added spectrum-analyzer widget
 
 User statistics can now be displayed via `?`
-Oscilloscope is more optimized
 Voxio sample and tap no longer push on a per sample basis, but rather in chunks
 Voxio should have less data races
+Voxio exposes channels and sample_rate via public API
 
 New maps:
  - `=` Go to album-view of the currently playing track
  - `?` View library and listening statistics
+ - `s` Spectrum view
+ - `S` Spectrum view [full screen]
 
 Switched `Alt`+`1`, `Alt`+`2`, `Alt`+`3` to be `Ctrl`+`1`, `Ctrl`+`2`, `Ctrl`+`3`
 

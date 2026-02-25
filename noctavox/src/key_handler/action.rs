@@ -112,9 +112,11 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (_, Char('f') | Char('F')) => Some(Action::ChangeMode(Mode::Fullscreen)),
             (X, Char('w')) => Some(Action::SetProgressDisplay(ProgressDisplay::Waveform)),
             (X, Char('o')) => Some(Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)),
+            (X, Char('s')) => Some(Action::SetProgressDisplay(ProgressDisplay::Spectrum)),
             (X, Char('b')) => Some(Action::SetProgressDisplay(ProgressDisplay::ProgressBar)),
             (S, Char('W')) => Some(Action::SetFullscreen(ProgressDisplay::Waveform)),
             (S, Char('O')) => Some(Action::SetFullscreen(ProgressDisplay::Oscilloscope)),
+            (S, Char('S')) => Some(Action::SetFullscreen(ProgressDisplay::Spectrum)),
             (S, Char('B')) => Some(Action::SetFullscreen(ProgressDisplay::ProgressBar)),
             (C, Char('u')) | (X, F(5)) => Some(Action::UpdateLibrary),
 
@@ -264,6 +266,7 @@ fn handle_fullscreen(key: &KeyEvent) -> Option<Action> {
         (X, Char('o')) | (S, Char('O')) => {
             Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)
         }
+        (X, Char('s')) | (S, Char('S')) => Action::SetProgressDisplay(ProgressDisplay::Spectrum),
         (X, Char('b')) | (S, Char('B')) => Action::SetProgressDisplay(ProgressDisplay::ProgressBar),
 
         (S, Char('{')) => Action::IncrementWFSmoothness(Incrementor::Down),

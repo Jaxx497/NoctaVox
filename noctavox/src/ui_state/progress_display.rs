@@ -1,9 +1,10 @@
-use crate::{FFMPEG_AVAILABLE, TAP_BUFFER_CAP, player::PlaybackState, ui_state::UiState};
+use crate::{FFMPEG_AVAILABLE, TAP_BUFFER_CAPACITY, player::PlaybackState, ui_state::UiState};
 
 #[derive(Clone, Default, PartialEq, Eq)]
 pub enum ProgressDisplay {
     Waveform,
     Oscilloscope,
+    Spectrum,
     #[default]
     ProgressBar,
 }
@@ -11,8 +12,9 @@ pub enum ProgressDisplay {
 impl ProgressDisplay {
     pub fn from_str(s: &str) -> Self {
         match s {
-            "oscilloscope" => Self::Oscilloscope,
+            "spectrum" => Self::Spectrum,
             "waveform" => Self::Waveform,
+            "oscilloscope" => Self::Oscilloscope,
             _ => Self::ProgressBar,
         }
     }
@@ -22,6 +24,7 @@ impl std::fmt::Display for ProgressDisplay {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ProgressDisplay::Waveform => write!(f, "waveform"),
+            ProgressDisplay::Spectrum => write!(f, "spectrum"),
             ProgressDisplay::ProgressBar => write!(f, "progress_bar"),
             ProgressDisplay::Oscilloscope => write!(f, "oscilloscope"),
         }
@@ -47,8 +50,8 @@ impl UiState {
         }
     }
 
-    pub fn fill_oscillo(&mut self) {
+    pub fn fill_tap(&mut self) {
         self.metrics
-            .drain_into(&mut self.sample_tap, TAP_BUFFER_CAP);
+            .drain_into(&mut self.sample_tap, TAP_BUFFER_CAPACITY);
     }
 }
