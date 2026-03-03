@@ -3,18 +3,19 @@
 [![Built With Ratatui](https://ratatui.rs/built-with-ratatui/badge.svg)](https://ratatui.rs/)
 </h1>
 
-NoctaVox is a lightweight, plug and play, TUI music player for local music.
+NoctaVox is a lightweight, plug and play, TUI audio player for local files, written in Rust.
 
 ![noctavox.gif](./docs/header.gif)
 
 ## Features
 
-- Gapless playback with queue support
+- Gapless playback
+- Queue support
 - Multi-format audio (mp3, m4a, wav, flac, ogg, opus)
 - Live library reloading
 - Custom themeing with hot reload
-- Vim-like keybindings
-- Waveform and oscilloscope visualiztion
+- Vim-like key-bindings
+- Waveform, oscilloscope, and spectrum visualizations
 - Playlist management
 
 ## Installation
@@ -56,11 +57,11 @@ specification](./docs/themes.md).
 ## Notes
 
 Supported formats: `mp3`, `m4a`, `wav`, `flac`, `ogg`, `opus` \
-Container formats are not currently supported: (e.g. `webm`, `mkv`, etc.)
+Container formats are **not** currently supported: (e.g. `webm`, `mkv`, etc.)
 
 FFmpeg is an optional dependency which enables the waveform visualization
-functionality. Without ffmpeg installed, the functionality will simply fallback
-onto a different visualization method.
+functionality. Without ffmpeg, the functionality will simply fallback onto a
+different visualization method.
 
 NoctaVox never writes to user files and does not have any online capabilities.
 The program does however rely on accurate tagging, but does not supply a method

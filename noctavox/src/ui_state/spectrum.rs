@@ -4,10 +4,13 @@ use crate::TAP_BUFFER_CAPACITY;
 
 pub struct SpectrumState {
     pub bins: Vec<f32>,
+    pub display_bins: Vec<f32>,
     pub decay_factor: f32,
     bands: Vec<(f32, f32)>,
     band_peaks: Vec<f32>,
     sample_rate: u32,
+    last_display_width: usize,
+    bins_dirty: bool,
 }
 
 impl SpectrumState {
@@ -101,6 +104,34 @@ impl SpectrumState {
                 self.bins[i] *= self.decay_factor;
             }
         }
+
+        self.bins_dirty = true;
+    }
+
+    pub fn decay(&mut self) {
+        for bin in self.bins.iter_mut() {
+            *bin *= 0.92;
+        }
+        self.bins_dirty = true;
+    }
+
+    pub fn remap_display(&mut self, width: usize) {
+        if self.bins.is_empty() || (!self.bins_dirty && self.last_display_width == width) {
+            return;
+        }
+        let num_bins = self.bins.len();
+        self.display_bins = (0..width)
+            .map(|i| {
+                let t = i as f32 / (width - 1).max(1) as f32;
+                let src = t * (num_bins - 1) as f32;
+                let lo = src.floor() as usize;
+                let hi = (lo + 1).min(num_bins - 1);
+                let frac = src - lo as f32;
+                self.bins[lo] * (1.0 - frac) + self.bins[hi] * frac
+            })
+            .collect();
+        self.last_display_width = width;
+        self.bins_dirty = false;
     }
 }
 
@@ -108,10 +139,13 @@ impl Default for SpectrumState {
     fn default() -> Self {
         SpectrumState {
             bins: Vec::new(),
+            display_bins: Vec::new(),
             band_peaks: Vec::new(),
             bands: Vec::new(),
             decay_factor: 0.85,
             sample_rate: 0,
+            last_display_width: 0,
+            bins_dirty: false,
         }
     }
 }

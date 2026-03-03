@@ -54,4 +54,18 @@ impl UiState {
         self.metrics
             .drain_into(&mut self.sample_tap, TAP_BUFFER_CAPACITY);
     }
+
+    pub fn update_spectrum(&mut self) {
+        if self.sample_tap.is_empty() {
+            return;
+        }
+        if self.metrics.is_paused() || self.metrics.is_stopped() {
+            self.spectrum.decay();
+        } else {
+            let samples = self.sample_tap.make_contiguous();
+            let channels = self.metrics.channels();
+            let sample_rate = self.metrics.sample_rate();
+            self.spectrum.update(samples, channels, sample_rate);
+        }
+    }
 }

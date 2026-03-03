@@ -6,13 +6,14 @@ use crate::{
 };
 use anyhow::Result;
 use queries::*;
-use rusqlite::{Connection, params};
+use rusqlite::{Connection, OptionalExtension, params};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fs::{self},
     path::PathBuf,
     sync::Arc,
     time::{Duration, UNIX_EPOCH},
+    u64,
 };
 
 mod playlists;
@@ -124,9 +125,7 @@ impl Database {
 
         let songs = stmt
             .query_map([], |row| {
-                let hash_bytes: Vec<u8> = row.get("id")?;
-                let hash_array: [u8; 8] = hash_bytes.try_into().expect("Invalid hash bytes length");
-                let hash = u64::from_le_bytes(hash_array);
+                let hash = convert_from_bytes(row.get("id")?);
 
                 let artist_id = row.get("artist_id")?;
                 let album_artist_id = row.get("album_artist")?;
@@ -199,13 +198,7 @@ impl Database {
         let map = self
             .conn
             .prepare(GET_HASHES)?
-            .query_map([], |row| {
-                let hash_bytes: Vec<u8> = row.get("id")?;
-                let hash_array: [u8; 8] = hash_bytes
-                    .try_into()
-                    .expect("Failed to convert hash bytes to array");
-                Ok(u64::from_le_bytes(hash_array))
-            })?
+            .query_map([], |row| Ok(convert_from_bytes(row.get("id")?)))?
             .filter_map(Result::ok)
             .collect::<HashSet<u64>>();
 
@@ -372,13 +365,7 @@ impl Database {
         let mut history = VecDeque::new();
 
         let mut stmt = self.conn.prepare(LOAD_HISTORY)?;
-        let rows = stmt.query_map([], |row| {
-            let song_id_bytes: Vec<u8> = row.get("song_id")?;
-            let song_id_array: [u8; 8] =
-                song_id_bytes.try_into().expect("Invalid hash bytes length");
-            let song_id = u64::from_le_bytes(song_id_array);
-            Ok(song_id)
-        })?;
+        let rows = stmt.query_map([], |row| Ok(convert_from_bytes(row.get("song_id")?)))?;
 
         for row in rows {
             if let Ok(song_id) = row {
@@ -465,4 +452,25 @@ impl Database {
 
         Ok(rows)
     }
+
+    pub fn get_last_scan(&self) -> Result<Option<u64>> {
+        self.conn
+            .query_row(GET_LAST_SCAN, params![], |row| {
+                Ok(convert_from_bytes(row.get(0)?))
+            })
+            .optional()
+            .map_err(Into::into)
+    }
+
+    pub fn set_last_scan(&self, timestamp: u64) -> Result<()> {
+        self.conn
+            .execute(SET_LATEST_SCAN, params![timestamp.to_le_bytes()])?;
+        Ok(())
+    }
+}
+
+#[inline]
+fn convert_from_bytes(raw_bytes: Vec<u8>) -> u64 {
+    let hash_array: [u8; 8] = raw_bytes.try_into().expect("Invalid hash bytes length");
+    u64::from_le_bytes(hash_array)
 }

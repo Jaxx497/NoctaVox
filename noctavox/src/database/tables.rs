@@ -74,4 +74,9 @@ pub const CREATE_TABLES: &str = r"
         FOREIGN KEY (playlist_id) REFERENCES playlists(id) ON DELETE CASCADE,
         UNIQUE(playlist_id, position)
     );
+
+    CREATE TABLE IF NOT EXISTS scan_cache(
+        key TEXT PRIMARY KEY,
+        value BLOB NOT NULL
+    )
 ";

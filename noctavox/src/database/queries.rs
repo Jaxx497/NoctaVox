@@ -235,3 +235,12 @@ pub const GET_TOP_SONGS: &str = "
     ORDER BY p.count DESC
     LIMIT ?
 ";
+
+pub const GET_LAST_SCAN: &str = "
+    SELECT value FROM scan_cache WHERE key = 'last_scan'
+";
+
+pub const SET_LATEST_SCAN: &str = "
+    INSERT OR REPLACE INTO scan_cache
+    (key, value) VALUES ('last_scan', ?)
+";

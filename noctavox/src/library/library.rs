@@ -19,6 +19,7 @@ use std::{
         Arc,
         atomic::{AtomicUsize, Ordering},
     },
+    time::{SystemTime, UNIX_EPOCH},
 };
 use walkdir::WalkDir;
 
@@ -81,10 +82,20 @@ impl Library {
 
     /// Build the library based on the current state of the database.
     pub fn build_library(&mut self) -> Result<()> {
-        if !self.roots.is_empty() {
+        if self.roots.is_empty() {
+            return Ok(());
+        }
+
+        if !self.any_root_modified()? {
+            self.collect_songs()?;
+            self.build_albums()?;
+        } else {
             self.update_db_by_root()?;
             self.collect_songs()?;
             self.build_albums()?;
+
+            let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+            self.db.set_last_scan(timestamp)?;
         }
 
         Ok(())
@@ -258,6 +269,36 @@ impl Library {
 
     pub fn get_all_songs(&self) -> Vec<Arc<SimpleSong>> {
         self.songs.values().cloned().collect()
+    }
+
+    fn any_root_modified(&self) -> Result<bool> {
+        let last_scan = match self.db.get_last_scan()? {
+            None => return Ok(true),
+            Some(t) => t,
+        };
+
+        for root in &self.roots {
+            let modified = WalkDir::new(root)
+                .into_iter()
+                .filter_map(Result::ok)
+                .filter(|e| e.file_type().is_dir())
+                .any(|e| {
+                    let check_modified = || -> Option<bool> {
+                        let m = e.metadata().ok()?;
+                        let t = m.modified().ok()?;
+                        let d = t.duration_since(UNIX_EPOCH).ok()?;
+                        Some(d.as_secs() > last_scan)
+                    };
+
+                    check_modified().unwrap_or(true)
+                });
+
+            if modified {
+                return Ok(true);
+            }
+        }
+
+        Ok(false)
     }
 }
 
