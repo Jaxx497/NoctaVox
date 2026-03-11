@@ -30,9 +30,10 @@ with the exception of searching as not to affect a user's search query.
 | Change Sidebar Size | `[` `]` |
 | Smooth Waveform | `{` `}` |
 | Fullscreen Progress View | `f` |
-| Oscilloscope View | `o` `O` |
-| Waveform View | `w` `W` |
 | ProgressBar View | `b` `B` |
+| Oscilloscope View | `o` `O` |
+| Spectrum-Analyzer View | `s` `S` |
+| Waveform View | `w` `W` |
 
 #### General
 | Action      | Keymap |

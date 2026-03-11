@@ -47,12 +47,12 @@ impl StatefulWidget for Waveform {
                             true => theme.waveform.active_color.color_at(
                                 position,
                                 elapsed,
-                                theme.progress_speed,
+                                theme.waveform.speed,
                             ),
                             false => theme.waveform.inactive_color.color_at(
                                 position,
                                 elapsed,
-                                theme.progress_speed,
+                                theme.waveform.speed,
                                 theme.dark,
                                 *amp,
                                 &theme.waveform.active_color,
@@ -70,7 +70,7 @@ impl StatefulWidget for Waveform {
                     left: 10,
                     right: 10,
                     top: padding_vertical + 1,
-                    bottom: padding_vertical,
+                    bottom: padding_vertical + 1,
                 }))
                 .render(area, buf)
         }

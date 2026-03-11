@@ -15,11 +15,11 @@ use crate::{
     DurationStyle, get_readable_duration,
     library::{SimpleSong, SongInfo},
     truncate_at_last_space,
-    tui::widgets::{MUSIC_NOTE, QUEUED},
+    tui::widgets::{MUSIC_NOTE, QUEUED, SELECTED},
     ui_state::{DisplayTheme, LibraryView, Mode, Pane, UiState},
 };
 use ratatui::{
-    layout::{Alignment, Constraint, Flex, Rect},
+    layout::{Constraint, Flex, HorizontalAlignment, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
     widgets::{Block, Cell, Padding, Row, Table},
@@ -85,13 +85,18 @@ pub fn create_standard_table<'a>(
         _ => String::default(),
     };
 
+    let ms_count = match state.get_multi_select_indices().len() {
+        0 => Line::default(),
+        x => format!("{x:>3} {} ", SELECTED).fg(theme.border).into(),
+    };
+
     let block = Block::bordered()
         .borders(theme.border_display)
         .border_type(theme.border_type)
         .border_style(theme.border)
-        .title_top(Line::from(title).alignment(Alignment::Center))
-        .title_bottom(Line::from(keymaps.fg(theme.text_muted)))
-        .title_alignment(Alignment::Center)
+        .title_top(Line::from(title).centered())
+        .title_bottom(Line::from(keymaps.fg(theme.text_muted)).centered())
+        .title_bottom(ms_count.left_aligned())
         .padding(PADDING)
         .bg(theme.bg);
 
@@ -113,7 +118,7 @@ pub fn create_empty_block(theme: &DisplayTheme, title: &str) -> Block<'static> {
         .border_type(theme.border_type)
         .border_style(theme.border)
         .title_top(format!(" {} ", title))
-        .title_alignment(Alignment::Center)
+        .title_alignment(HorizontalAlignment::Center)
         .padding(PADDING)
         .bg(theme.bg)
 }

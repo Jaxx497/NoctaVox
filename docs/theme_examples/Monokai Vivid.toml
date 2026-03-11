@@ -13,23 +13,19 @@ text_muted          = "#888888"
 border_active       = "#00ff41"
 border_inactive     = "#6e8e5c"
 
-selection           = "#00ff41"
-selection_inactive  = "#00a329"
-
 accent              = "#00ff41"
 accent_inactive     = "#00a329"
 
-[borders]
-border_display      = "all"
-border_type         = "Plain"
-
 [progress]
-elapsed             =  [ "#ffffff",
-                         "#00ff41",
-                         "#ffffff" ]
+color               =  ["#ffffff", "#00ff41"]
 
-bar_elapsed         = "▰"
-bar_unplayed        = "▱"
+[progress.waveform]
+color_unplayed      = "still"
+
+[progress.bar]
+color               = "#00ff41"
+symbol_played       = "▰"
+symbol_unplayed     = "▱"
 
 [extras]
 decorator           = ""

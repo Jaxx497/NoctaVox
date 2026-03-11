@@ -6,7 +6,6 @@ pub struct AppLayout {
     pub search_bar: Rect,
     pub song_window: Rect,
     pub progress_bar: Rect,
-    pub buffer_line: Rect,
 }
 
 impl AppLayout {
@@ -15,7 +14,7 @@ impl AppLayout {
             false => 0,
             true => match (state.get_progress_display(), area.height > 20) {
                 (ProgressDisplay::ProgressBar, _) | (_, false) => 3,
-                _ => 6,
+                _ => (area.height as f32 * 0.15).ceil() as u16,
             },
         };
 
@@ -24,25 +23,12 @@ impl AppLayout {
             false => 0,
         };
 
-        let buffer_line_height = match state.player_is_active()
-            || !state.multi_select_empty()
-            || state.get_library_refresh_progress().is_some()
-            || state.get_buffer_count().is_some()
-        {
-            true => 1,
-            false => 0,
-        };
+        let [upper_block, progress_bar] =
+            Layout::vertical([Constraint::Min(16), Constraint::Length(prog_height)]).areas(area);
 
-        let [upper_block, progress_bar, buffer_line] = Layout::vertical([
-            Constraint::Min(16),
-            Constraint::Length(prog_height),
-            Constraint::Length(buffer_line_height),
-        ])
-        .areas(area);
-
-        let [sidebar, _, upper_block] = Layout::horizontal([
+        let [sidebar, upper_block] = Layout::horizontal([
             Constraint::Percentage(state.display_state.sidebar_percent),
-            Constraint::Length(0),
+            // Constraint::Length(0),
             Constraint::Fill(1),
         ])
         .areas(upper_block);
@@ -56,7 +42,6 @@ impl AppLayout {
             search_bar,
             song_window,
             progress_bar,
-            buffer_line,
         }
     }
 }

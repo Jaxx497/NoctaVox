@@ -1,7 +1,7 @@
 use crate::{
     library::SongInfo,
     truncate_at_last_space,
-    tui::widgets::{PAUSE_ICON, QUEUE_ICON, SELECTED},
+    tui::widgets::{PAUSE_ICON, QUEUE_ICON},
     ui_state::{DisplayTheme, UiState},
 };
 use ratatui::{
@@ -23,8 +23,6 @@ impl StatefulWidget for BufferLine {
         state: &mut Self::State,
     ) {
         let theme = state.theme_manager.get_display_theme(true);
-
-        Block::new().bg(theme.bg_global).render(area, buf);
 
         if let Some(progress) = state
             .get_library_refresh_progress()
@@ -51,10 +49,8 @@ impl StatefulWidget for BufferLine {
             ])
             .areas(area);
 
-        let selection_count = state.get_multi_select_indices().len();
         let buffer = state.get_buffer_count();
 
-        get_multi_selection(selection_count, &theme).render(left, buf);
         get_buffer_count(buffer, &theme).render(left, buf);
         playing_title(state, &theme, center.width as usize).render(center, buf);
         queue_display(state, &theme, right.width as usize).render(right, buf);
@@ -85,9 +81,11 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
     if width >= title_len + SEPARATOR_LEN + artist_len {
         Some(
             Line::from_iter([
+                " ".into(),
                 Span::from(title).fg(theme.text_secondary),
                 Span::from(separator),
                 Span::from(artist).fg(theme.text_muted),
+                " ".into(),
             ])
             .centered(),
         )
@@ -101,9 +99,11 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
 
         Some(
             Line::from_iter([
+                " ".into(),
                 Span::from(truncated_title).fg(theme.text_secondary),
                 separator,
                 Span::from(truncated_artist).fg(theme.text_muted),
+                " ".into(),
             ])
             .centered(),
         )
@@ -113,8 +113,10 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
                 let truncated_title = truncate_at_last_space(&title, title_len - SEPARATOR_LEN);
                 Some(
                     Line::from_iter([
+                        " ".into(),
                         separator,
                         Span::from(truncated_title).fg(theme.text_secondary),
+                        " ".into(),
                     ])
                     .centered(),
                 )
@@ -125,17 +127,6 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
             }
         }
     }
-}
-
-fn get_multi_selection(size: usize, theme: &DisplayTheme) -> Option<Line<'static>> {
-    let output = match size {
-        0 => return None,
-        x => format!("{x:>3} {} ", SELECTED)
-            .fg(theme.accent)
-            .into_left_aligned_line(),
-    };
-
-    Some(output)
 }
 
 fn get_buffer_count(size: Option<usize>, theme: &DisplayTheme) -> Option<Line<'static>> {

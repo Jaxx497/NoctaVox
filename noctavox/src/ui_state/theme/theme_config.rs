@@ -1,5 +1,5 @@
 use crate::ui_state::{
-    ParsedBar, ParsedOscilloscope, ParsedSpectrum, ParsedWaveform, ThemeImport,
+    ParsedBar, ParsedOscillo, ParsedSpectrum, ParsedWaveform, ProgressGradient, ThemeImport,
     theme::theme_utils::{parse_borders, parse_display},
 };
 use anyhow::{Result, anyhow};
@@ -44,10 +44,9 @@ pub struct ThemeConfig {
     pub bar: ParsedBar,
     pub waveform: ParsedWaveform,
     pub spectrum: ParsedSpectrum,
-    pub oscillo: ParsedOscilloscope,
+    pub oscillo: ParsedOscillo,
 
     pub progress_style: Marker,
-    pub progress_speed: f32,
 
     pub decorator: Rc<String>,
 }
@@ -76,6 +75,15 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
         let colors = &config.colors;
         let progress = config.progress.as_ref();
 
+        let accent = *colors.accent;
+        let pcolor = progress
+            .and_then(|p| p.color.as_ref())
+            .map(|raw| ProgressGradient::from_raw(raw))
+            .transpose()?
+            .unwrap_or(ProgressGradient::Static(accent));
+
+        let speed = progress.and_then(|p| p.speed);
+
         Ok(ThemeConfig {
             name: String::new(),
 
@@ -93,7 +101,7 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
             border_active: *colors.border_active,
             border_inactive: *colors.border_inactive,
 
-            accent: *colors.accent,
+            accent: accent,
             accent_inactive: *colors.accent_inactive,
 
             border_display: parse_borders(
@@ -109,28 +117,24 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
                 .and_then(|b| b.style)
                 .unwrap_or(BorderType::Rounded),
 
-            bar: ParsedBar::parse(progress.and_then(|p| p.bar.as_ref()), *colors.accent)?,
+            progress_style: parse_display(progress.and_then(|p| p.style.as_deref())),
 
-            oscillo: ParsedOscilloscope::parse(
+            bar: ParsedBar::parse(progress.and_then(|p| p.bar.as_ref()), &pcolor, speed)?,
+            oscillo: ParsedOscillo::parse(
                 progress.and_then(|p| p.oscilloscope.as_ref()),
-                *colors.accent,
+                &pcolor,
+                speed,
             )?,
-
             spectrum: ParsedSpectrum::parse(
-                progress.and_then(|s| s.spectrum.as_ref()),
-                *colors.accent,
+                progress.and_then(|p| p.spectrum.as_ref()),
+                &pcolor,
+                speed,
             )?,
-
             waveform: ParsedWaveform::parse(
                 progress.and_then(|p| p.waveform.as_ref()),
-                *colors.accent,
+                &pcolor,
+                speed,
             )?,
-
-            progress_speed: progress
-                .and_then(|p| p.speed)
-                .unwrap_or(super::PROGRESS_SPEED)
-                / 10.0,
-            progress_style: parse_display(progress.and_then(|p| p.style.as_deref())),
 
             decorator: Rc::from(
                 config
@@ -179,16 +183,17 @@ impl Default for ThemeConfig {
             border_type: BorderType::Rounded,
 
             progress_style: Marker::Braille,
-            progress_speed: PROGRESS_SPEED / 10.0,
 
-            bar: ParsedBar::parse(None, GOLD).expect("If you see this, what have you done?"),
+            bar: ParsedBar::parse(None, &ProgressGradient::Static(GOLD), None)
+                .expect("If you see this, what have you done?"),
 
-            oscillo: ParsedOscilloscope {
+            oscillo: ParsedOscillo {
                 color: ProgressGradient::Gradient(Arc::from([
                     DARK_WHITE,
                     GOOD_RED_DARK,
                     DARK_GRAY,
                 ])),
+                speed: NONWAVEFORM_SPEED,
             },
 
             spectrum: ParsedSpectrum {
@@ -199,6 +204,7 @@ impl Default for ThemeConfig {
                 ])),
                 mirror: SPECTRUM_MIRROR,
                 decay: SPECTRUM_DECAY,
+                speed: NONWAVEFORM_SPEED,
             },
 
             waveform: ParsedWaveform {
@@ -208,6 +214,7 @@ impl Default for ThemeConfig {
                     DARK_GRAY,
                 ])),
                 inactive_color: InactiveGradient::Dimmed,
+                speed: WAVEFORM_SPEED / 10.0,
             },
 
             decorator: Rc::from("✧".to_string()),

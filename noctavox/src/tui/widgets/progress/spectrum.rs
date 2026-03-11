@@ -54,7 +54,7 @@ impl StatefulWidget for SpectrumAnalyzer {
                         theme
                             .spectrum
                             .colors
-                            .color_at(progress, elapsed, theme.progress_speed);
+                            .color_at(progress, elapsed, theme.spectrum.speed);
                     let color = fade_color(theme.dark, base, mag.clamp(0.25, 1.0));
 
                     for x in [i * 2, i * 2 + 1] {

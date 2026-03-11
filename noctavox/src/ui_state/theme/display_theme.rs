@@ -1,7 +1,7 @@
 use std::rc::Rc;
 
 use crate::ui_state::{
-    ParsedOscilloscope, UiState,
+    ParsedOscillo, UiState,
     theme::parsed::{ParsedBar, ParsedSpectrum, ParsedWaveform},
 };
 use ratatui::{
@@ -27,13 +27,12 @@ pub struct DisplayTheme {
     pub border_display: Borders,
     pub border_type: BorderType,
 
-    pub progress_speed: f32,
     pub progress_style: Marker,
 
     pub progress_bar: ParsedBar,
     pub waveform: ParsedWaveform,
     pub spectrum: ParsedSpectrum,
-    pub oscilloscope: ParsedOscilloscope,
+    pub oscilloscope: ParsedOscillo,
 }
 
 impl UiState {

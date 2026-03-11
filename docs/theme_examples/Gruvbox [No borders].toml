@@ -13,26 +13,29 @@ text_muted          = "#928374"
 border_active       = "#b8bb26"
 border_inactive     = "#504945"
 
-selection           = "#b8bb26"
-selection_inactive  = "#7c6f64"
-
-accent              = "#83a598"
-accent_inactive     = "#6a7d76"
+accent              = "#b8bb26"
+accent_inactive     = "#98971a"
 
 [borders]
-border_display      = "none"
-border_type         = "rounded"
+display             = false
 
 [progress]
-elapsed             = ["#fabd2f", "#fb4934", "#fdf6f8"]
-unplayed            = "dimmed"
-speed               = 6
+color               = ["#fabd2f", "#fb4934", "#fdf6f8"]
+style               = "block8"
+speed               = 4
 
-bar_elapsed         = "▰"
-bar_unplayed        = "▱"
+[progress.bar]
+color_unplayed      = "dimmed"
+symbol_played       = "▰"
+symbol_unplayed     = "▱"
+speed               = 0
 
-waveform_style      = "block8"
-oscilloscope_style  = "block8"
+[progress.spectrum]
+mirror              = true
+decay               = 0.83
+
+[progress.waveform]
+speed               = -4
 
 [extras]
 decorator           = "󰯆"

@@ -6,7 +6,7 @@ use anyhow::Result;
 use ratatui::style::Color;
 use std::sync::Arc;
 
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum ProgressGradient {
     Static(Color),
     Gradient(Arc<[Color]>),

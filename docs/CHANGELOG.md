@@ -1,15 +1,21 @@
 # CHANGELOG
 
-## Current Development Changes
+## version 0.2.4
+
+NEW THEME SPECIFICATION* v0.8
 
 Optimized startup logic (skip disk read if no changes detected)
 Close fullscreen when queue and playback are empty
+Non-bar widgets responsive sizing depending on window height
 
-Custom themeing has been overhauled, again
+*Theme info
   - All fields outside of the [colors] section are completely optional
   - Selection field merged into `accent`
     - (Respective `inactive` field also merged)
-  - Progress widgets will default to accent color if no color is supplied
+  - Progress section overrides default values
+  - Fine tune specific widgets with `progress.[identifier]` tag
+
+Added theme installation scripts
 
 ## Version 0.2.3
 

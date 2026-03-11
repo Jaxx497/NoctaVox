@@ -69,7 +69,7 @@ fn draw_oscilloscope(ctx: &mut Context, samples: &[f32], time: f32, theme: &Disp
         let color = theme
             .oscilloscope
             .color
-            .color_at(progress, time, theme.progress_speed);
+            .color_at(progress, time, theme.oscilloscope.speed);
 
         ctx.draw(&Line {
             x1,

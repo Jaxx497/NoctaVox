@@ -18,8 +18,9 @@ pub use theme_manager::ThemeManager;
 use ratatui::style::Color;
 
 const BAR_SYMBOL_PLAYED: &'static str = "━";
-const BAR_SYMBOL_UNPLAYED: &'static str = "━";
-const PROGRESS_SPEED: f32 = 6.0;
+const BAR_SYMBOL_UNPLAYED: &'static str = "─";
+const NONWAVEFORM_SPEED: f32 = 0.0;
+const WAVEFORM_SPEED: f32 = 4.0;
 const SPECTRUM_MIRROR: bool = false;
 const SPECTRUM_DECAY: f32 = 0.85;
 

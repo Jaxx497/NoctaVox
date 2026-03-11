@@ -86,7 +86,6 @@ impl ThemeManager {
     fn set_display_theme(theme: &ThemeConfig, focused: bool) -> DisplayTheme {
         let is_dark = theme.is_dark;
 
-        let progress_speed = theme.progress_speed;
         let progress_style = theme.progress_style;
 
         let progress_bar = theme.bar.clone();
@@ -111,7 +110,6 @@ impl ThemeManager {
                 border_display: theme.border_display,
                 border_type: theme.border_type,
 
-                progress_speed,
                 progress_style,
 
                 progress_bar,
@@ -136,7 +134,6 @@ impl ThemeManager {
                 border_display: theme.border_display,
                 border_type: theme.border_type,
 
-                progress_speed,
                 progress_style,
 
                 progress_bar,

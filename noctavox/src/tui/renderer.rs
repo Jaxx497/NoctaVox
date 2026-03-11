@@ -1,16 +1,16 @@
-use super::{widgets::SongTable, AppLayout, Progress, SearchBar, SideBar};
+use super::{AppLayout, Progress, SearchBar, SideBar, widgets::SongTable};
 use crate::{
+    UiState,
     tui::{
         render_bg,
         widgets::{BufferLine, PopupManager},
     },
     ui_state::Mode,
-    UiState,
 };
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     widgets::StatefulWidget,
-    Frame,
 };
 
 pub fn render(f: &mut Frame, state: &mut UiState) {
@@ -26,11 +26,17 @@ pub fn render(f: &mut Frame, state: &mut UiState) {
     let layout = AppLayout::new(f.area(), state);
     render_bg(state, f);
 
+    let bf_area = Rect {
+        y: layout.progress_bar.bottom().saturating_sub(1),
+        height: 1,
+        ..layout.progress_bar
+    };
+
     SearchBar.render(layout.search_bar, f.buffer_mut(), state);
     SideBar.render(layout.sidebar, f.buffer_mut(), state);
     SongTable.render(layout.song_window, f.buffer_mut(), state);
     Progress.render(layout.progress_bar, f.buffer_mut(), state);
-    BufferLine.render(layout.buffer_line, f.buffer_mut(), state);
+    BufferLine.render(bf_area, f.buffer_mut(), state);
 
     if state.popup.is_open() {
         PopupManager.render(f.area(), f.buffer_mut(), state);

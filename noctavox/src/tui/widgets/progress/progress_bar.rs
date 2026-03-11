@@ -23,14 +23,21 @@ impl StatefulWidget for ProgressBar {
             // Prevent crash
             let ratio = (elapsed / duration).min(0.9999);
 
-            let fg = theme
-                .progress_bar
-                .active_color
-                .color_at(ratio, elapsed, theme.progress_speed);
+            let pos = if theme.progress_bar.speed == 0.0 {
+                0.0
+            } else {
+                ratio
+            };
+
+            let fg =
+                theme
+                    .progress_bar
+                    .active_color
+                    .color_at(pos, elapsed, theme.progress_bar.speed);
             let bg = theme.progress_bar.inactive_color.color_at(
                 ratio,
                 elapsed,
-                theme.progress_speed,
+                theme.progress_bar.speed,
                 theme.dark,
                 super::DEFAULT_AMP,
                 &theme.progress_bar.active_color,

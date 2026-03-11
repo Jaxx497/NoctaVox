@@ -42,7 +42,7 @@ pub(super) fn parse_display(s: Option<&str>) -> Marker {
         "block2" | "halfblock" => HalfBlock,
         "block4" | "quadrant" => Quadrant,
         "block6" | "sextant" => Sextant,
-        "blocks" | "blocky" | "block8" | "octant" => Octant,
+        "block8" | "octant" | "blocky" | "blocks" | "block" => Octant,
         _ => Braille,
     }
 }

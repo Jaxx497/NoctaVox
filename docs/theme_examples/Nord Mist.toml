@@ -1,0 +1,23 @@
+[colors]
+surface_global      = "#2E3440"
+surface_active      = "#3B4252"
+surface_inactive    = "#2E3440"
+surface_error       = "#BF616A"
+
+text_primary        = "#ECEFF4"
+text_secondary      = "#88C0D0"
+text_secondary_in   = "#5E81AC"
+text_selection      = "#2E3440"
+text_muted          = "#616E87"
+
+border_active       = "#81A1C1"
+border_inactive     = "#4C566A"
+
+accent              = "#88C0D0"
+accent_inactive     = "#5E81AC"
+
+[borders]
+display             = false
+
+[extras]
+decorator           = ""

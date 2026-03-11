@@ -13,23 +13,19 @@ text_muted          = "#666669"
 border_active       = "#dcdc64"
 border_inactive     = "#343438"
 
-selection           = ""
-selection_inactive  = ""
-
-accent              = "#dcdc64"
-accent_inactive     = "#82823C"
+accent              = ""
+accent_inactive     = ""
 
 [progress]
-elapsed             = [ "#444446",
-                        "#ff4646", 
-                        "#FFFFFF" ]
-
+color               = [ "#ff4646", 
+                        "#FFFFFF",
+                        "#444446" ]
 unplayed            = "dimmed"
 speed               = 2
 
 [borders]
-border_display      = "all"
-border_type         = "rounded"
+display             = true
+style               = "rounded"
 
 [extras]
 decorator           = ""
