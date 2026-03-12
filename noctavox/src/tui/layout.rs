@@ -5,7 +5,7 @@ pub struct AppLayout {
     pub sidebar: Rect,
     pub search_bar: Rect,
     pub song_window: Rect,
-    pub progress_bar: Rect,
+    pub display_widget: Rect,
 }
 
 impl AppLayout {
@@ -23,7 +23,7 @@ impl AppLayout {
             false => 0,
         };
 
-        let [upper_block, progress_bar] =
+        let [upper_block, display_widget] =
             Layout::vertical([Constraint::Min(16), Constraint::Length(prog_height)]).areas(area);
 
         let [sidebar, upper_block] = Layout::horizontal([
@@ -41,7 +41,7 @@ impl AppLayout {
             sidebar,
             search_bar,
             song_window,
-            progress_bar,
+            display_widget,
         }
     }
 }

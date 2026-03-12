@@ -43,9 +43,9 @@ impl StatefulWidget for BufferLine {
         let [left, center, right] = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Percentage(30),
-                Constraint::Percentage(40),
-                Constraint::Percentage(30),
+                Constraint::Percentage(20),
+                Constraint::Percentage(60),
+                Constraint::Percentage(20),
             ])
             .areas(area);
 
