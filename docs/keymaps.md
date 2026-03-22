@@ -29,6 +29,7 @@ with the exception of searching as not to affect a user's search query.
 | Queue View | `Ctrl` + `3` \| `Ctrl` + `q`|
 | Change Sidebar Size | `[` `]` |
 | Smooth Waveform | `{` `}` |
+| Minimal Mode | `m` |
 | Fullscreen Progress View | `f` |
 | ProgressBar View | `b` `B` |
 | Oscilloscope View | `o` `O` |

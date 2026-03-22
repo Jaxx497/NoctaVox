@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.2.4"
+version = "0.2.5"
 edition = "2024"
 authors = ["Jaxx497"]
 description = "A lightweight TUI music player for local files"

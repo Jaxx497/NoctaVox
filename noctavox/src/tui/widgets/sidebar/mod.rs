@@ -12,7 +12,7 @@ use ratatui::{
     widgets::{Block, HighlightSpacing, List, ListItem, Padding},
 };
 
-use crate::ui_state::{LibraryView, Pane, UiState};
+use crate::ui_state::{LayoutStyle, LibraryView, Pane, UiState, fade_color};
 
 const PADDING: Padding = Padding {
     left: 3,
@@ -47,15 +47,28 @@ pub fn create_standard_list<'a>(
         Line::default()
     };
 
-    let block = Block::bordered()
-        .borders(theme.border_display)
-        .border_type(theme.border_type)
-        .border_style(theme.border)
-        .bg(theme.bg)
-        .title_top(titles.0)
-        .title_top(titles.1)
-        .title_bottom(Line::from(keymaps).centered().fg(theme.text_muted))
-        .padding(PADDING);
+    let block = match state.get_layout() {
+        LayoutStyle::Traditional => Block::bordered()
+            .borders(theme.border_display)
+            .border_type(theme.border_type)
+            .border_style(theme.border)
+            .bg(theme.bg)
+            .title_top(titles.0)
+            .title_top(titles.1)
+            .title_bottom(Line::from(keymaps).centered().fg(theme.text_muted))
+            .padding(PADDING),
+        LayoutStyle::Minimal => Block::bordered()
+            .borders(theme.border_display)
+            .border_type(theme.border_type)
+            .border_style(theme.border)
+            .bg(theme.bg_global)
+            .title_top(
+                Line::from(titles.0)
+                    .fg(fade_color(theme.dark, theme.accent, 0.8))
+                    .centered(),
+            )
+            .padding(PADDING),
+    };
 
     List::new(list_items)
         .block(block)

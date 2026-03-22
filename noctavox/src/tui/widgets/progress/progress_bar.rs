@@ -1,4 +1,7 @@
-use crate::{library::SongInfo, ui_state::UiState};
+use crate::{
+    library::SongInfo,
+    ui_state::{LayoutStyle, UiState},
+};
 use ratatui::{
     style::Stylize,
     widgets::{Block, LineGauge, Padding, StatefulWidget, Widget},
@@ -43,10 +46,15 @@ impl StatefulWidget for ProgressBar {
                 &theme.progress_bar.active_color,
             );
 
+            let w_pad = match state.get_layout() {
+                LayoutStyle::Traditional => 2,
+                LayoutStyle::Minimal => 0,
+            };
+
             let guage = LineGauge::default()
                 .block(Block::new().bg(theme.bg_global).padding(Padding {
-                    left: 2,
-                    right: 3,
+                    left: w_pad,
+                    right: w_pad + 1,
                     top: (area.height / 2),
                     bottom: 0,
                 }))

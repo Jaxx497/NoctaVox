@@ -2,7 +2,7 @@ use crate::{
     library::SongInfo,
     truncate_at_last_space,
     tui::widgets::tracklist::{CellFactory, create_empty_block, create_standard_table},
-    ui_state::{Pane, UiState},
+    ui_state::{LayoutStyle, Pane, UiState},
 };
 use ratatui::{
     style::Stylize,
@@ -40,17 +40,29 @@ impl StatefulWidget for AlbumView {
             .map(|(idx, song)| {
                 let is_m_selected = state.get_multi_select_indices().contains(&idx);
 
-                let track_no = CellFactory::get_track_discs(theme, song, idx, is_m_selected);
+                let track_no = CellFactory::track_cell(theme, song, idx, is_m_selected);
+                let track_disc_no = CellFactory::track_disc_cell(theme, song, idx, is_m_selected);
                 let icon = CellFactory::status_cell(song, state, is_m_selected);
                 let title = CellFactory::title_cell(theme, song.get_title(), is_m_selected);
                 let artist = CellFactory::artist_cell(theme, song, is_m_selected);
                 let format = CellFactory::filetype_cell(theme, song, is_m_selected);
-                let duration = CellFactory::duration_cell(theme, song, is_m_selected);
+                let duration = CellFactory::duration_cell_clean(theme, song, is_m_selected);
 
-                match is_m_selected {
-                    true => Row::new([track_no, icon, title.into(), artist, format, duration])
-                        .bg(state.theme_manager.active.accent_inactive),
-                    false => Row::new([track_no, icon, title.into(), artist, format, duration]),
+                match state.get_layout() {
+                    LayoutStyle::Traditional => match is_m_selected {
+                        true => {
+                            Row::new([track_disc_no, icon, title.into(), artist, format, duration])
+                                .bg(state.theme_manager.active.accent_inactive)
+                        }
+                        false => {
+                            Row::new([track_disc_no, icon, title.into(), artist, format, duration])
+                        }
+                    },
+                    LayoutStyle::Minimal => match is_m_selected {
+                        true => Row::new([track_no, icon, title.into(), duration])
+                            .bg(state.theme_manager.active.accent_inactive),
+                        false => Row::new([track_no, icon, title.into(), duration]),
+                    },
                 }
             })
             .collect::<Vec<Row>>();
@@ -62,15 +74,24 @@ impl StatefulWidget for AlbumView {
             .filter(|y| *y != 0)
             .map_or(String::new(), |y| format!(" [{y}]"));
 
-        let title = Line::from_iter([
-            Span::from(format!(" {}", album_title))
-                .fg(theme.text_secondary)
-                .italic(),
-            Span::from(year_str).fg(theme.text_muted),
-            Span::from(format!(" {decorator} ")).fg(theme.text_muted),
-            Span::from(album.artist.to_string()).fg(theme.accent),
-            Span::from(format!(" [{} Songs] ", album.tracklist.len())).fg(theme.text_muted),
-        ]);
+        let title = match state.get_layout() {
+            LayoutStyle::Traditional => Line::from_iter([
+                Span::from(format!(" {}", album_title))
+                    .fg(theme.text_secondary)
+                    .italic(),
+                Span::from(year_str).fg(theme.text_muted),
+                Span::from(format!(" {decorator} ")).fg(theme.text_muted),
+                Span::from(album.artist.to_string()).fg(theme.accent),
+                Span::from(format!(" [{} Songs] ", album.tracklist.len())).fg(theme.text_muted),
+            ]),
+
+            LayoutStyle::Minimal => Line::from_iter([
+                Span::from(format!(" {}", album_title)).fg(theme.text_secondary),
+                Span::from(format!(" {decorator} ")).fg(theme.text_muted),
+                Span::from(album.artist.to_string()).fg(theme.text_muted),
+                Span::from(" "),
+            ]),
+        };
 
         let table = create_standard_table(rows, title, state, theme);
         StatefulWidget::render(table, area, buf, &mut state.display_state.table_pos);

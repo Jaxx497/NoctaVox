@@ -37,6 +37,7 @@ use crate::{
     },
 };
 
+#[derive(PartialEq)]
 pub enum LayoutStyle {
     Traditional,
     Minimal,

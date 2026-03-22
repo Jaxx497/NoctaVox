@@ -1,9 +1,11 @@
 # CHANGELOG
 
-## Current Development Changes
+## Version 0.2.5
 
-EXPERIEMNTING WITH MINIMAL MODE, test functionality with 'm' keybind
+MINIMAL MODE BETA
 
+ - Timer re-enabled
+ - Enter minimal mode with `m` keybinding
  - Multi-select count now in border of main window
  - Spectrum widget freezes on pause instead of slowly draining
  - Oscilloscope operates at a lower resolution, making it visually cleaner

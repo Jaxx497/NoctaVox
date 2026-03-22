@@ -36,10 +36,10 @@ impl StatefulWidget for Waveform {
                 bottom: padding_vertical + 1,
             },
             LayoutStyle::Minimal => Padding {
-                left: 1,
-                right: 1,
-                top: padding_vertical + 1,
-                bottom: padding_vertical,
+                left: 0,
+                right: 0,
+                top: 0,
+                bottom: 0,
             },
         };
 

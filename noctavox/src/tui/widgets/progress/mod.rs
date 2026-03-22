@@ -10,7 +10,7 @@ pub use spectrum::SpectrumAnalyzer;
 pub use timer::Timer;
 pub use waveform::Waveform;
 
-use crate::ui_state::{ProgressDisplay, UiState};
+use crate::ui_state::{LayoutStyle, ProgressDisplay, UiState};
 use ratatui::widgets::StatefulWidget;
 
 pub(crate) const OSCILLO_LIMITER: usize = 1024;
@@ -36,7 +36,9 @@ impl StatefulWidget for Progress {
                 ProgressDisplay::Oscilloscope => Oscilloscope.render(area, buf, state),
                 ProgressDisplay::Spectrum => SpectrumAnalyzer.render(area, buf, state),
             }
-            // Timer.render(area, buf, state);
+            if state.get_layout() == &LayoutStyle::Traditional {
+                Timer.render(area, buf, state);
+            }
         }
     }
 }

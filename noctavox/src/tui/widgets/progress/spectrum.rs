@@ -2,7 +2,7 @@ use crate::ui_state::{UiState, fade_color};
 use ratatui::{
     style::{Color, Stylize},
     widgets::{
-        Block, Padding, StatefulWidget, Widget,
+        Block, StatefulWidget, Widget,
         canvas::{Canvas, Line},
     },
 };
@@ -65,13 +65,8 @@ impl StatefulWidget for SpectrumAnalyzer {
                 }
             })
             .background_color(theme.bg_global)
-            .block(Block::new().bg(theme.bg_global).padding(Padding {
-                left: LEFT_MARG,
-                right: RIGHT_MARG,
-                top: 0,
-                bottom: 0,
-            }))
-            .render(area, buf);
+            .block(Block::new().bg(theme.bg_global))
+            .render(area, buf)
     }
 }
 

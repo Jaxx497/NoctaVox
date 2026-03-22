@@ -16,26 +16,19 @@ use crate::{
     library::{SimpleSong, SongInfo},
     truncate_at_last_space,
     tui::widgets::{MUSIC_NOTE, QUEUED, SELECTED},
-    ui_state::{DisplayTheme, LibraryView, Mode, Pane, UiState},
+    ui_state::{DisplayTheme, LayoutStyle, LibraryView, Mode, Pane, UiState, fade_color},
 };
 use ratatui::{
     layout::{Constraint, Flex, HorizontalAlignment, Rect},
     style::{Color, Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Cell, Padding, Row, Table},
+    widgets::{Block, Borders, Cell, Padding, Row, Table},
 };
 
 const COLUMN_SPACING: u16 = 2;
 
-const PADDING: Padding = Padding {
-    left: 4,
-    right: 4,
-    top: 2,
-    bottom: 1,
-};
-
-pub(super) fn get_widths(mode: &Mode) -> Vec<Constraint> {
-    match mode {
+pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
+    match state.get_mode() {
         Mode::Power | Mode::Search => {
             vec![
                 Constraint::Length(3),
@@ -46,16 +39,22 @@ pub(super) fn get_widths(mode: &Mode) -> Vec<Constraint> {
                 Constraint::Length(8),
             ]
         }
-        Mode::Library(_) | Mode::Queue => {
-            vec![
+        Mode::Library(_) | Mode::Queue => match state.get_layout() {
+            LayoutStyle::Traditional => vec![
                 Constraint::Length(6),
                 Constraint::Length(1),
                 Constraint::Min(25),
                 Constraint::Max(20),
                 Constraint::Length(4),
                 Constraint::Length(7),
-            ]
-        }
+            ],
+            LayoutStyle::Minimal => vec![
+                Constraint::Length(3),
+                Constraint::Length(1),
+                Constraint::Fill(1),
+                Constraint::Length(7),
+            ],
+        },
         _ => Vec::new(),
     }
 }
@@ -79,7 +78,7 @@ pub fn create_standard_table<'a>(
     let pane = state.get_pane();
     let decorator = &state.get_decorator();
 
-    let widths = get_widths(mode);
+    let widths = get_widths(state);
     let keymaps = match pane {
         Pane::TrackList => get_keymaps(mode, &decorator),
         _ => String::default(),
@@ -90,15 +89,25 @@ pub fn create_standard_table<'a>(
         x => format!("{x:>3} {} ", SELECTED).fg(theme.border).into(),
     };
 
-    let block = Block::bordered()
-        .borders(theme.border_display)
-        .border_type(theme.border_type)
-        .border_style(theme.border)
-        .title_top(Line::from(title).centered())
-        .title_bottom(Line::from(keymaps.fg(theme.text_muted)).centered())
-        .title_bottom(ms_count.left_aligned())
-        .padding(PADDING)
-        .bg(theme.bg);
+    let block = match state.get_layout() {
+        LayoutStyle::Traditional => Block::bordered()
+            .borders(theme.border_display)
+            .border_type(theme.border_type)
+            .border_style(theme.border)
+            .title_top(Line::from(title).centered())
+            .title_bottom(Line::from(keymaps.fg(theme.text_muted)).centered())
+            .title_bottom(ms_count.left_aligned())
+            .padding(get_padding(state.get_layout(), theme.border_display))
+            .bg(theme.bg),
+
+        LayoutStyle::Minimal => Block::bordered()
+            .borders(theme.border_display)
+            .border_type(theme.border_type)
+            .border_style(theme.border)
+            .title_top(Line::from(title).centered())
+            .padding(get_padding(state.get_layout(), theme.border_display))
+            .bg(theme.bg_global),
+    };
 
     let highlight_style = match state.get_pane() {
         Pane::TrackList => Style::new().fg(theme.text_selected).bg(theme.accent),
@@ -119,7 +128,6 @@ pub fn create_empty_block(theme: &DisplayTheme, title: &str) -> Block<'static> {
         .border_style(theme.border)
         .title_top(format!(" {} ", title))
         .title_alignment(HorizontalAlignment::Center)
-        .padding(PADDING)
         .bg(theme.bg)
 }
 
@@ -166,7 +174,11 @@ impl CellFactory {
         })
     }
 
-    pub fn duration_cell(theme: &DisplayTheme, song: &Arc<SimpleSong>, ms: bool) -> Cell<'static> {
+    pub fn duration_cell_clean(
+        theme: &DisplayTheme,
+        song: &Arc<SimpleSong>,
+        ms: bool,
+    ) -> Cell<'static> {
         let duration_str = get_readable_duration(song.get_duration(), DurationStyle::Clean);
         Cell::from(Text::from(duration_str).right_aligned()).fg(match ms {
             true => theme.text_selected,
@@ -174,11 +186,44 @@ impl CellFactory {
         })
     }
 
-    pub fn index_cell(theme: &DisplayTheme, index: usize, ms: bool) -> Cell<'static> {
-        Cell::from(format!("{:>2}", index + 1)).fg(set_color_selection(ms, theme))
+    pub fn index_cell(
+        theme: &DisplayTheme,
+        layout: &LayoutStyle,
+        index: usize,
+        ms: bool,
+    ) -> Cell<'static> {
+        let mut track_no = format!("{:>2}", index + 1).fg(match layout {
+            LayoutStyle::Traditional => theme.text_secondary,
+            LayoutStyle::Minimal => fade_color(theme.dark, theme.text_secondary, 0.7),
+        });
+
+        if ms {
+            track_no = track_no.fg(theme.text_selected)
+        };
+
+        Cell::from(track_no)
     }
 
-    pub fn get_track_discs(
+    pub fn track_cell(
+        theme: &DisplayTheme,
+        song: &Arc<SimpleSong>,
+        idx: usize,
+        ms: bool,
+    ) -> Cell<'static> {
+        let c = fade_color(theme.dark, theme.text_secondary, 0.7);
+        let mut track_no = Span::from(match song.track_no {
+            Some(t) => format!("{t:>2}").fg(c),
+            None => format!("{:>2}", idx + 1).fg(c),
+        });
+
+        if ms {
+            track_no = track_no.fg(theme.text_selected)
+        };
+
+        Cell::from(track_no)
+    }
+
+    pub fn track_disc_cell(
         theme: &DisplayTheme,
         song: &Arc<SimpleSong>,
         idx: usize,
@@ -279,5 +324,26 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
             ])
         }
         _ => Line::default(),
+    }
+}
+
+fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {
+    let v_pad = match borders {
+        Borders::NONE => 0,
+        _ => 1,
+    };
+    match layout {
+        LayoutStyle::Traditional => Padding {
+            left: 4,
+            right: 4,
+            top: v_pad + 1,
+            bottom: v_pad,
+        },
+        LayoutStyle::Minimal => Padding {
+            left: 2,
+            right: 2,
+            top: 1,
+            bottom: v_pad,
+        },
     }
 }
