@@ -123,19 +123,15 @@ impl UiState {
     }
 
     pub fn restore_state(&mut self) -> Result<()> {
-        // The order of these function calls is particularly important
         if let Some(snapshot) = self.db_worker.load_ui_snapshot()? {
             self.display_state.album_sort = AlbumSort::from_str(&snapshot.album_sort);
-
-            self.sort_albums();
+            self.set_layout(LayoutStyle::from_str(&snapshot.layout));
 
             if !snapshot.theme_name.is_empty() {
                 if let Some(theme) = self.theme_manager.find_theme_by_name(&snapshot.theme_name) {
                     self.set_theme(theme.clone());
                 }
             }
-
-            self.set_layout(LayoutStyle::from_str(&snapshot.layout));
 
             if let Some(pos) = snapshot.album_selection {
                 if pos < self.albums.len() {
@@ -151,7 +147,6 @@ impl UiState {
                 }
             }
 
-            // Do not restore to queue or search mode
             let mode_to_restore = match snapshot.mode.as_str() {
                 "search" | "queue" => "library_album",
                 _ => &snapshot.mode,

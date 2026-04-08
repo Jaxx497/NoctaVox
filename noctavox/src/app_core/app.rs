@@ -33,9 +33,9 @@ impl NoctaVox {
 
     pub fn run(&mut self) {
         match ratatui::run(|t| -> anyhow::Result<()> {
+            self.preload_lib();
             self.initialize_ui();
             t.draw(|f| tui::render(f, &mut self.ui))?;
-            self.preload_lib();
 
             if self.library.roots.is_empty() {
                 self.ui

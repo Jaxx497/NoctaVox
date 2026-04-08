@@ -1,4 +1,4 @@
-use crate::ui_state::{Pane, UiState, fade_color};
+use crate::ui_state::{LayoutStyle, Pane, UiState, fade_color};
 use ratatui::{
     style::Stylize,
     widgets::{Block, Borders, Padding, StatefulWidget, Widget},
@@ -26,8 +26,13 @@ impl StatefulWidget for SearchBar {
             )
         };
 
+        let x = match state.layout {
+            LayoutStyle::Traditional => 1,
+            LayoutStyle::Minimal => 0,
+        };
+
         let (pd_v, pd_h) = match theme.border_display {
-            Borders::NONE => (1, 3),
+            Borders::NONE => (1 + x, 3),
             _ => (1, 2),
         };
 

@@ -1,4 +1,4 @@
-use audioadapter_buffers::direct::InterleavedSlice;
+use rubato::audioadapter_buffers::direct::InterleavedSlice;
 use rubato::{Fft, FixedSync, Resampler};
 
 use crate::{RESAMPLER_CHUNK_SIZE, RESAMPLER_SUBCHUNK_SIZE, error::VoxError};
