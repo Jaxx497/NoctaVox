@@ -208,6 +208,13 @@ pub fn get_random_playlist_idea() -> &'static str {
     }
 }
 
+pub fn strip_diacritics(s: &str) -> String {
+    s.nfd()
+        .filter(|c| !unicode_normalization::char::is_combining_mark(*c))
+        .collect::<String>()
+        .to_lowercase()
+}
+
 const PLAYLIST_IDEAS: [&str; 46] = [
     "A Lantern in the Dark",
     "A Map Without Places",

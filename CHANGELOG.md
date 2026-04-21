@@ -3,8 +3,13 @@
 ## [Unreleased]
 
 ### Fixed:
+ - Enhanced search engine to handle combining marks  
+    - (Ex: `í` and `i` are treated the same)
  - `<`/`>` & `{`/`}` keybinds work on all platforms
  - `./install-themes.sh` has proper line endings
+
+### Other: 
+ - Updated docs
 
 ## [0.2.6] - 2026-04-15
 

@@ -1,10 +1,13 @@
-<h1 style="text-align: center"> NoctaVox [v0.2.6]
-
-[![Built With Ratatui](https://ratatui.rs/built-with-ratatui/badge.svg)](https://ratatui.rs/)
+<div align="center">
+<h1>NoctaVox
 </h1>
 
-NoctaVox is a lightweight, plug and play, TUI audio player for local files,
-written in Rust.
+![Crates.io Version](https://img.shields.io/crates/v/noctavox?labelColor=444&color=5555ff)
+![](https://img.shields.io/badge/Built_With-Ratatui-000?logo=ratatui&logoColor=fff&labelColor=444&color=fff)
+
+**A lightweight, Rust-powered music player designed for local libraries and terminal workflows** </div>
+
+-----
 
 ![noctavox.gif](./docs/header.gif)
 

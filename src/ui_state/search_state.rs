@@ -1,5 +1,8 @@
 use super::{Pane, UiState, new_textarea};
-use crate::library::{SimpleSong, SongInfo};
+use crate::{
+    library::{SimpleSong, SongInfo},
+    strip_diacritics,
+};
 use fuzzy_matcher::{FuzzyMatcher, skim::SkimMatcherV2};
 use ratatui::crossterm::event::KeyEvent;
 use ratatui_textarea::TextArea;
@@ -38,7 +41,8 @@ impl UiState {
     // Assuming the score is higher than the threshold, the
     // result is valid. Results are ordered by score.
     pub(crate) fn filter_songs_by_search(&mut self) {
-        let query = self.read_search().to_lowercase();
+        let raw_search_str = self.read_search();
+        let query = strip_diacritics(raw_search_str);
 
         let mut scored_songs: Vec<(Arc<SimpleSong>, i64)> = self
             .library
@@ -48,21 +52,21 @@ impl UiState {
                 let title_score = self
                     .search
                     .matcher
-                    .fuzzy_match(&song.get_title().to_lowercase(), &query)
+                    .fuzzy_match(&strip_diacritics(&song.get_title()), &query)
                     .unwrap_or(0)
                     * 2;
 
                 let artist_score = (self
                     .search
                     .matcher
-                    .fuzzy_match(&song.get_artist().to_lowercase(), &query)
+                    .fuzzy_match(&strip_diacritics(&song.get_artist()), &query)
                     .unwrap_or(0) as f32
                     * 1.5) as i64;
 
                 let album_score = (self
                     .search
                     .matcher
-                    .fuzzy_match(&song.get_album().to_lowercase(), &query)
+                    .fuzzy_match(&strip_diacritics(&song.get_album().to_lowercase()), &query)
                     .unwrap_or(0) as f32
                     * 1.75) as i64;
 
