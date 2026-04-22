@@ -88,7 +88,7 @@ impl StatefulWidget for AlbumView {
             LayoutStyle::Minimal => Default::default(),
         };
 
-        let table = create_standard_table(rows, title, state, theme);
+        let table = create_standard_table(rows, title, state, theme, area);
         StatefulWidget::render(table, area, buf, &mut state.display_state.table_pos);
     }
 }

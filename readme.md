@@ -70,16 +70,19 @@ NoctaVox supports custom themes. The most recent specification for the
 theming engine can be found by refering to the [theme
 specification](./docs/themes.md). 
 
-Pre-made themes can be installed using the `install-theme` script.
+Pre-made themes can be installed with the `install-theme` script.
 
 **Linux**
 ```bash
+# from the repo root
 chmod +x ./install-themes.sh
 ./install-themes.sh
 ```
 
 **Windows Powershell**
+
 ```powershell
+# from the repo root
 ./install-themes.ps1
 ``` 
 

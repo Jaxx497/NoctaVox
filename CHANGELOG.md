@@ -1,12 +1,12 @@
 # CHANGELOG
 
-## [Unreleased]
+## [0.2.7]
 
 ### Added: 
  - New breadcrumb widget for minimal mode navigation
 
 ### Fixed:
- - More general formatting fixes
+ - Lots of formatting fixes, both in traditional and minimal views
  - Enhanced search engine to handle combining marks  
     - (Ex: `í` and `i` are treated the same)
  - `<`/`>` & `{`/`}` keybinds work on all platforms

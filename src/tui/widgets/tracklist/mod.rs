@@ -73,6 +73,7 @@ pub fn create_standard_table<'a>(
     title: Line<'static>,
     state: &UiState,
     theme: &DisplayTheme,
+    area: Rect,
 ) -> Table<'a> {
     let mode = state.get_mode();
     let pane = state.get_pane();
@@ -97,14 +98,14 @@ pub fn create_standard_table<'a>(
             .title_top(Line::from(title).centered())
             .title_bottom(Line::from(keymaps.fg(theme.text_muted)).centered())
             .title_bottom(ms_count.left_aligned())
-            .padding(get_padding(state.get_layout(), theme.border_display))
+            .padding(get_padding(&state, theme, area))
             .bg(theme.bg),
 
         LayoutStyle::Minimal => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
             .border_style(theme.border)
-            .padding(get_padding(state.get_layout(), theme.border_display))
+            .padding(get_padding(&state, theme, area))
             .bg(theme.bg_global),
     };
 
@@ -326,21 +327,28 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
     }
 }
 
-fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {
-    let v_pad = match borders {
-        Borders::NONE => 0,
-        _ => 1,
+fn get_padding(state: &UiState, theme: &DisplayTheme, area: Rect) -> Padding {
+    let layout = &state.get_layout();
+    let borders = theme.border_display;
+    let song_len = (state.get_legal_songs().len()) as u16;
+
+    let top = match song_len < area.height {
+        true => (area.height.saturating_sub(song_len as u16) / 2)
+            .saturating_sub(1)
+            .max(1),
+        false => 1,
     };
+
     match layout {
         LayoutStyle::Traditional => Padding {
             left: 4,
             right: 4,
-            top: 1,
-            bottom: v_pad,
+            top,
+            bottom: 1,
         },
         LayoutStyle::Minimal => Padding {
-            left: 2,
-            right: 2,
+            left: 3,
+            right: 3,
             top: match borders {
                 Borders::NONE => 1,
                 _ => 0,

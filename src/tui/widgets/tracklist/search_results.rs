@@ -58,7 +58,7 @@ impl StatefulWidget for StandardTable {
             })
             .collect::<Vec<Row>>();
 
-        let table = create_standard_table(rows, title.into(), state, theme);
+        let table = create_standard_table(rows, title.into(), state, theme, area);
 
         StatefulWidget::render(table, area, buf, &mut state.display_state.table_pos);
     }

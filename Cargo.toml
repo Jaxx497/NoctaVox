@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.2.6"
+version = "0.2.7-rc.1"
 edition = "2024"
 authors = ["Jaxx497"]
 description = "A lightweight TUI music player for local files"
@@ -54,3 +54,6 @@ opt-level = 3
 [profile.dist]
 inherits = "release"
 lto = "thin"
+
+[package.metadata.dist]
+include = []

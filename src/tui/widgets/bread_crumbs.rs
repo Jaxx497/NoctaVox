@@ -4,6 +4,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{StatefulWidget, Widget},
 };
+use unicode_width::UnicodeWidthStr;
 
 pub struct BreadCrumbs;
 
@@ -16,32 +17,33 @@ impl StatefulWidget for BreadCrumbs {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        if !matches!(state.get_mode(), Mode::Library(_)) {
+        let Mode::Library(_) = state.get_mode() else {
             return;
-        }
+        };
 
-        let theme = &state.theme_manager.get_display_theme(true);
+        let theme = state.theme_manager.get_display_theme(true);
         let top_level = state.get_sidebar_view();
         let sidebar = top_level.to_string();
-        let album_sort = state.get_album_sort_string();
 
         let bc_highlight = fade_color(theme.dark, theme.accent, 0.85);
+        let dimmed = fade_color(theme.dark, theme.text_muted, 0.75);
 
-        let n = area
-            .width
-            .saturating_sub(sidebar.len() as u16)
-            .saturating_sub(album_sort.len() as u16) as usize;
+        let right_label = match top_level {
+            LibraryView::Albums => state.get_album_sort_string(),
+            LibraryView::Playlists => format!("{} 󰲸", state.playlists.len()),
+        };
 
         let spans = match state.get_pane() {
             Pane::SideBar => {
+                let padding =
+                    area.width
+                        .saturating_sub(sidebar.width() as u16)
+                        .saturating_sub(right_label.width() as u16) as usize;
+
                 vec![
-                    Span::from(sidebar).fg(bc_highlight),
-                    Span::from(" ".repeat(n)),
-                    Span::from(format!("  {}", album_sort)).fg(fade_color(
-                        theme.dark,
-                        theme.text_muted,
-                        0.75,
-                    )),
+                    Span::from(&sidebar).fg(bc_highlight),
+                    Span::raw(" ".repeat(padding)),
+                    Span::from(right_label).fg(dimmed),
                 ]
             }
             Pane::TrackList => match top_level {
@@ -65,7 +67,7 @@ impl StatefulWidget for BreadCrumbs {
                     ])
                 }
             },
-            _ => vec![],
+            _ => return,
         };
 
         Line::from(spans).render(area, buf);

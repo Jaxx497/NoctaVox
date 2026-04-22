@@ -12,6 +12,11 @@ use ratatui::{
     widgets::{Block, Borders, HighlightSpacing, List, ListItem, Padding},
 };
 
+const KILL_WIDTH_ALBUM: u16 = 40;
+const KILL_WIDTH_PLAYLIST: u16 = 25;
+const PADDING_L: u16 = 3;
+const PADDING_R: u16 = 2;
+
 use crate::ui_state::{LayoutStyle, LibraryView, Pane, UiState};
 
 pub fn create_standard_list<'a>(
@@ -78,14 +83,14 @@ fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {
     };
     match layout {
         LayoutStyle::Traditional => Padding {
-            left: 3,
-            right: 2,
+            left: PADDING_L,
+            right: PADDING_R,
             top: 1,
             bottom: v_pad,
         },
         LayoutStyle::Minimal => Padding {
-            left: 3,
-            right: 2,
+            left: PADDING_L,
+            right: PADDING_R,
             top: match borders {
                 Borders::NONE => 1,
                 _ => 0,

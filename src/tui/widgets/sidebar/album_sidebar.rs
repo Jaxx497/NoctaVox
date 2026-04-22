@@ -1,12 +1,13 @@
 use crate::{
-    tui::widgets::sidebar::create_standard_list,
-    ui_state::{AlbumSort, Pane, UiState},
+    tui::widgets::sidebar::{KILL_WIDTH_ALBUM, PADDING_L, PADDING_R, create_standard_list},
+    ui_state::{AlbumSort, LayoutStyle, Pane, UiState, fade_color},
 };
 use ratatui::{
     style::{Style, Stylize},
     text::{Line, Span},
-    widgets::{ListItem, ListState, StatefulWidget},
+    widgets::{Borders, ListItem, ListState, StatefulWidget},
 };
+use unicode_width::UnicodeWidthStr;
 
 pub struct SideBarAlbum;
 impl StatefulWidget for SideBarAlbum {
@@ -36,7 +37,6 @@ impl StatefulWidget for SideBarAlbum {
 
         for (idx, album) in albums.iter().enumerate() {
             // Add header if artist changed (only for Artist sort)
-
             if album_sort == AlbumSort::Artist {
                 if current_artist.as_ref() != Some(&album.artist.as_str()) {
                     let artist_str = album.artist.as_str();
@@ -54,7 +54,7 @@ impl StatefulWidget for SideBarAlbum {
                 }
             }
 
-            let year = album.year.map_or("????".to_string(), |y| format!("{y}"));
+            let mut year = album.year.map_or("????".to_string(), |y| format!("{y}"));
             let year_color = match album_sort {
                 AlbumSort::Artist => theme.text_muted,
                 _ => theme.text_secondary,
@@ -76,11 +76,36 @@ impl StatefulWidget for SideBarAlbum {
                 false => album.title.to_string(),
             };
 
-            list_items.push(ListItem::new(Line::from_iter([
-                Span::from(format!("{}{: >4} ", indent, year)).fg(year_color),
-                Span::from(format!("{decorator} ")).fg(theme.text_muted),
-                Span::from(album_title).fg(theme.text_primary),
-            ])));
+            match state.layout {
+                LayoutStyle::Minimal => {
+                    let padding = PADDING_L
+                        + PADDING_R
+                        + match theme.border_display {
+                            Borders::NONE => 0,
+                            _ => 2,
+                        };
+
+                    if area.width < KILL_WIDTH_ALBUM {
+                        year.clear();
+                    }
+                    list_items.push(ListItem::new(Line::from_iter([
+                        Span::from(indent),
+                        Span::from(album_title.to_string()).fg(theme.text_primary),
+                        Span::from(" ".repeat(area.width.saturating_sub(
+                            (album_title.width() + year.width()) as u16
+                                + padding
+                                + indent.len() as u16,
+                        ) as usize)),
+                        Span::from(year).fg(fade_color(theme.dark, theme.accent, 0.7)),
+                    ])))
+                }
+
+                LayoutStyle::Traditional => list_items.push(ListItem::new(Line::from_iter([
+                    Span::from(format!("{}{: >4} ", indent, year)).fg(year_color),
+                    Span::from(format!("{decorator} ")).fg(theme.text_muted),
+                    Span::from(album_title).fg(theme.text_primary),
+                ]))),
+            };
 
             current_display_idx += 1;
         }
