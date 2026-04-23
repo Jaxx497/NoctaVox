@@ -3,16 +3,21 @@
 ## [0.2.7]
 
 ### Added: 
- - New breadcrumb widget for minimal mode navigation
+ - New breadcrumb widget for simplified minimal mode navigation
+ - Cycle through progress widgets with `w`
 
 ### Fixed:
- - Lots of formatting fixes, both in traditional and minimal views
  - Enhanced search engine to handle combining marks  
-    - (Ex: `í` and `i` are treated the same)
- - `<`/`>` & `{`/`}` keybinds work on all platforms
- - `./install-themes.sh` has proper line endings
+    - (Ex: `í` and `i` are not differentiated)
+ - Shuffle commands no longer overriden
+ - Fixed broken key binds on non-Windows platforms  
+    - `<`, `>`, `{`, `}`, `?` 
+ - Fixed conditional error in `./install-themes.sh`
 
 ### Other: 
+ - Playback widgets must be set with capitals: `B`, `W`, `O`, `S`
+ - Lots of formatting changes
+ - Search window cleaner in minimal mode
  - Updated docs
 
 ## [0.2.6] - 2026-04-15

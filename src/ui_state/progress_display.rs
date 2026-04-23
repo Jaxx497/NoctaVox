@@ -10,6 +10,15 @@ pub enum ProgressDisplay {
 }
 
 impl ProgressDisplay {
+    pub fn next(&self) -> Self {
+        match self {
+            Self::ProgressBar => Self::Waveform,
+            Self::Waveform => Self::Oscilloscope,
+            Self::Oscilloscope => Self::Spectrum,
+            Self::Spectrum => Self::ProgressBar,
+        }
+    }
+
     pub fn from_str(s: &str) -> Self {
         match s {
             "spectrum" => Self::Spectrum,
@@ -32,6 +41,10 @@ impl std::fmt::Display for ProgressDisplay {
 }
 
 impl UiState {
+    pub fn next_progress_display(&mut self) {
+        self.progress_display = self.progress_display.next()
+    }
+
     pub fn is_progress_display(&self) -> bool {
         self.metrics.get_state() != PlaybackState::Stopped || !self.queue_is_empty()
     }

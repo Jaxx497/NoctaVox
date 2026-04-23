@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.2.7-rc.1"
+version = "0.2.7-rc.2"
 edition = "2024"
 authors = ["Jaxx497"]
 description = "A lightweight TUI music player for local files"
@@ -48,6 +48,7 @@ path = "src/main.rs"
 
 [profile.release]
 lto = "thin"
+strip = true
 codegen-units = 4
 opt-level = 3
 

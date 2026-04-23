@@ -31,10 +31,11 @@ with the exception of searching as not to affect a user's search query.
 | Smooth Waveform | `{` `}` |
 | Minimal Mode | `m` |
 | Fullscreen Progress View | `f` |
-| ProgressBar View | `b` `B` |
-| Oscilloscope View | `o` `O` |
-| Spectrum-Analyzer View | `s` `S` |
-| Waveform View | `w` `W` |
+| Cycle display widget | `w` |
+| ProgressBar View | `B` |
+| Oscilloscope View | `O` |
+| Spectrum-Analyzer View | `S` |
+| Waveform View | `W` |
 
 #### General
 | Action      | Keymap |
@@ -45,7 +46,7 @@ with the exception of searching as not to affect a user's search query.
 | Update Library | `F5` \| `Ctrl` + `u` |
 | Hot Reload Current Theme | `F6` |
 | Open Theme Manager | `C`|
-| Cycle Themes | `<` `>`|
+| Cycle Theme | `<` `>`|
 | Quit | `Ctrl` + `c`|
 
  > **Note:** The update logic is currently handled in the main thread meaning

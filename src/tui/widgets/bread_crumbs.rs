@@ -17,9 +17,9 @@ impl StatefulWidget for BreadCrumbs {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let Mode::Library(_) = state.get_mode() else {
+        if !matches!(state.get_mode(), Mode::Queue | Mode::Library(_)) {
             return;
-        };
+        }
 
         let theme = state.theme_manager.get_display_theme(true);
         let top_level = state.get_sidebar_view();
@@ -46,8 +46,10 @@ impl StatefulWidget for BreadCrumbs {
                     Span::from(right_label).fg(dimmed),
                 ]
             }
-            Pane::TrackList => match top_level {
-                LibraryView::Albums => {
+            Pane::TrackList => match state.get_mode() {
+                Mode::Library(LibraryView::Albums) => {
+                    // match top_level {
+                    // LibraryView::Albums => {
                     let Some(album) = state.get_selected_album() else {
                         return;
                     };
@@ -57,7 +59,7 @@ impl StatefulWidget for BreadCrumbs {
                         Span::from(format!(" [{}]", album.artist)).fg(theme.text_muted),
                     ])
                 }
-                LibraryView::Playlists => {
+                Mode::Library(LibraryView::Playlists) => {
                     let Some(playlist) = state.get_selected_playlist() else {
                         return;
                     };
@@ -66,6 +68,14 @@ impl StatefulWidget for BreadCrumbs {
                         Span::from(format!("{}", playlist.name)).fg(bc_highlight),
                     ])
                 }
+                Mode::Queue => {
+                    let queue_len = state.playback.queue_len();
+                    Vec::from([
+                        Span::from(format!("Queue ")).fg(theme.text_muted),
+                        Span::from(format!("({queue_len})")).fg(theme.text_muted),
+                    ])
+                }
+                _ => return,
             },
             _ => return,
         };

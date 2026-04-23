@@ -54,7 +54,12 @@ impl StatefulWidget for StandardTable {
                     }
                 }
 
-                Row::new([idx, symbol, title_col, artist_col, album_col, dur_col])
+                match state.get_layout() {
+                    LayoutStyle::Traditional => {
+                        Row::new([idx, symbol, title_col, artist_col, album_col, dur_col])
+                    }
+                    LayoutStyle::Minimal => Row::new([title_col, artist_col, album_col]),
+                }
             })
             .collect::<Vec<Row>>();
 

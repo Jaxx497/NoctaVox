@@ -28,18 +28,27 @@ use ratatui::{
 const COLUMN_SPACING: u16 = 2;
 
 pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
+    let layout = state.get_layout();
+
     match state.get_mode() {
-        Mode::Power | Mode::Search => {
-            vec![
+        Mode::Power | Mode::Search => match layout {
+            LayoutStyle::Traditional => vec![
                 Constraint::Length(3),
                 Constraint::Length(1),
                 Constraint::Ratio(3, 9),
                 Constraint::Ratio(2, 9),
                 Constraint::Ratio(2, 9),
                 Constraint::Length(8),
-            ]
-        }
-        Mode::Library(_) | Mode::Queue => match state.get_layout() {
+            ],
+            LayoutStyle::Minimal => {
+                vec![
+                    Constraint::Percentage(40),
+                    Constraint::Percentage(30),
+                    Constraint::Percentage(30),
+                ]
+            }
+        },
+        Mode::Library(_) | Mode::Queue => match layout {
             LayoutStyle::Traditional => vec![
                 Constraint::Length(6),
                 Constraint::Length(1),
@@ -334,7 +343,7 @@ fn get_padding(state: &UiState, theme: &DisplayTheme, area: Rect) -> Padding {
 
     let top = match song_len < area.height {
         true => (area.height.saturating_sub(song_len as u16) / 2)
-            .saturating_sub(1)
+            .saturating_sub(2)
             .max(1),
         false => 1,
     };

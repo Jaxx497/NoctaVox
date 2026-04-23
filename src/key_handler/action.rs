@@ -86,7 +86,7 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             // NAVIGATION
             (X, Char('/')) => Some(Action::ChangeMode(Mode::Search)),
             (X, Char('=')) => Some(Action::GoToNowPlaying),
-            (S, Char('?')) => Some(Action::ShowStats),
+            (_, Char('?')) => Some(Action::ShowStats),
 
             (X, Char('m')) => Some(Action::SwapLayout),
 
@@ -114,14 +114,12 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (_, Char('>')) => Some(Action::CycleTheme(Incrementor::Down)),
 
             (_, Char('f') | Char('F')) => Some(Action::ChangeMode(Mode::Fullscreen)),
-            (X, Char('w')) => Some(Action::SetProgressDisplay(ProgressDisplay::Waveform)),
-            (X, Char('o')) => Some(Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)),
-            (X, Char('s')) => Some(Action::SetProgressDisplay(ProgressDisplay::Spectrum)),
-            (X, Char('b')) => Some(Action::SetProgressDisplay(ProgressDisplay::ProgressBar)),
-            (S, Char('W')) => Some(Action::SetFullscreen(ProgressDisplay::Waveform)),
-            (S, Char('O')) => Some(Action::SetFullscreen(ProgressDisplay::Oscilloscope)),
-            (S, Char('S')) => Some(Action::SetFullscreen(ProgressDisplay::Spectrum)),
-            (S, Char('B')) => Some(Action::SetFullscreen(ProgressDisplay::ProgressBar)),
+
+            (X, Char('w')) => Some(Action::NextProgressDisplay),
+            (_, Char('W')) => Some(Action::SetProgressDisplay(ProgressDisplay::Waveform)),
+            (_, Char('O')) => Some(Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)),
+            (_, Char('S')) => Some(Action::SetProgressDisplay(ProgressDisplay::Spectrum)),
+            (_, Char('B')) => Some(Action::SetProgressDisplay(ProgressDisplay::ProgressBar)),
             (C, Char('u')) | (X, F(5)) => Some(Action::UpdateLibrary),
 
             _ => None,

@@ -2,8 +2,7 @@
 <h1>NoctaVox
 </h1>
 
-![Crates.io Version](https://img.shields.io/crates/v/noctavox?labelColor=444&color=5555ff)
-![](https://img.shields.io/badge/Built_With-Ratatui-000?logo=ratatui&logoColor=fff&labelColor=444&color=fff)
+[![Crates.io Version](https://img.shields.io/crates/v/noctavox?labelColor=444&color=5555ff)](https://crates.io/crates/noctavox)  [![](https://img.shields.io/badge/Built_With-Ratatui-000?logo=ratatui&logoColor=fff&labelColor=444&color=fff)](https://ratatui.rs)
 
 **A lightweight, Rust-powered music player designed for local libraries and terminal workflows** </div>
 

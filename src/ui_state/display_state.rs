@@ -2,7 +2,7 @@ use super::{AlbumSort, LibraryView, Mode, Pane, TableSort, UiState};
 use crate::{
     key_handler::Director,
     library::{Album, Playlist, SimpleSong, SongInfo},
-    ui_state::{PopupType, ProgressDisplay},
+    ui_state::PopupType,
 };
 use anyhow::{Context, Result, anyhow, bail};
 use indexmap::IndexSet;
@@ -387,11 +387,6 @@ impl UiState {
         if !self.legal_songs.is_empty() && self.display_state.table_pos.selected().is_none() {
             self.display_state.table_pos.select(Some(0));
         }
-    }
-
-    pub fn set_fullscreen(&mut self, display: ProgressDisplay) {
-        self.set_progress_display(display);
-        self.set_mode(Mode::Fullscreen);
     }
 
     pub fn revert_fullscreen(&mut self) {

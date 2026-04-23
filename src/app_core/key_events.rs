@@ -62,8 +62,8 @@ impl NoctaVox {
             Action::IncrementWFSmoothness(direction) => self.ui.increment_wf_smoothness(direction),
             Action::IncrementSidebarSize(x) => self.ui.adjust_sidebar_size(x),
 
+            Action::NextProgressDisplay     => self.ui.next_progress_display(),
             Action::SetProgressDisplay(p)   => self.ui.set_progress_display(p),
-            Action::SetFullscreen(p)        => self.ui.set_fullscreen(p),
             Action::RevertFullscreen        => self.ui.revert_fullscreen(),
 
             Action::SwapLayout      => self.ui.swap_layout(),

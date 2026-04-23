@@ -98,8 +98,8 @@ pub enum Action {
     IncrementSidebarSize(isize),
 
     SetProgressDisplay(ProgressDisplay),
+    NextProgressDisplay,
     ToggleProgressDisplay,
-    SetFullscreen(ProgressDisplay),
     RevertFullscreen,
 
     PopupScrollUp,
