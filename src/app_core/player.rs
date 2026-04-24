@@ -1,4 +1,4 @@
-use anyhow::{Result, anyhow};
+use anyhow::{anyhow, Result};
 use std::{sync::Arc, time::Duration};
 
 use crate::{
@@ -89,9 +89,8 @@ impl NoctaVox {
             return self.queue_selection(SelectionType::Multi, false);
         }
 
-        let ss = match selection {
-            Some(s) => s,
-            None => self.ui.get_selected_song()?,
+        let Some(ss) = selection.or_else(|| self.ui.get_selected_song().ok()) else {
+            return Ok(());
         };
 
         match self.player.is_stopped() {

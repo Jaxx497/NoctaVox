@@ -11,7 +11,7 @@ text_selection      = "#0a0a0d"
 text_muted          = "#646468"
 
 border_active       = "#dcdc64"
-border_inactive     = "#444448"
+border_inactive     = "#0a0a0d"
 
 accent              = "#dcdc64"
 accent_inactive     = "#82823C"

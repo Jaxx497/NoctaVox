@@ -5,20 +5,22 @@
 ### Added: 
  - New breadcrumb widget for simplified minimal mode navigation
  - Cycle through progress widgets with `w`
+ - Search engine treats accented characters as equivalents
+   - (Ex: `í` and `i` are not differentiated)
 
 ### Fixed:
- - Enhanced search engine to handle combining marks  
-    - (Ex: `í` and `i` are not differentiated)
  - Shuffle commands no longer overriden
  - Fixed broken key binds on non-Windows platforms  
-    - `<`, `>`, `{`, `}`, `?` 
+    - `<`, `>`, `{`, `}`, `?`, `~`
  - Fixed conditional error in `./install-themes.sh`
 
 ### Other: 
  - Playback widgets must be set with capitals: `B`, `W`, `O`, `S`
+ - Indexing colors are more consistent
  - Lots of formatting changes
  - Search window cleaner in minimal mode
- - Updated docs
+ - Lots of reformatting to the readme
+ - Several clarifications in the theme specification
 
 ## [0.2.6] - 2026-04-15
 

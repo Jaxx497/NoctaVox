@@ -29,7 +29,7 @@ impl NoctaVox {
     }
 
     pub fn queue_selection(&mut self, sel_type: SelectionType, shuffle: bool) -> Result<()> {
-        let mut songs = self.ui.get_songs_by_selection(sel_type)?;
+        let mut songs = self.ui.get_songs_by_selection(sel_type).unwrap_or_default();
         if songs.is_empty() {
             return Ok(());
         }

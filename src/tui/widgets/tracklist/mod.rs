@@ -202,8 +202,8 @@ impl CellFactory {
         ms: bool,
     ) -> Cell<'static> {
         let mut track_no = format!("{:>2}", index + 1).fg(match layout {
-            LayoutStyle::Traditional => theme.text_secondary,
-            LayoutStyle::Minimal => fade_color(theme.dark, theme.text_secondary, 0.7),
+            LayoutStyle::Traditional => theme.accent,
+            LayoutStyle::Minimal => fade_color(theme.dark, theme.accent, 0.7),
         });
 
         if ms {
@@ -219,7 +219,7 @@ impl CellFactory {
         idx: usize,
         ms: bool,
     ) -> Cell<'static> {
-        let c = fade_color(theme.dark, theme.text_secondary, 0.7);
+        let c = fade_color(theme.dark, theme.accent, 0.7);
         let mut track_no = Span::from(match song.track_no {
             Some(t) => format!("{t:>2}").fg(c),
             None => format!("{:>2}", idx + 1).fg(c),

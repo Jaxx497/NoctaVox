@@ -50,7 +50,7 @@ impl UiState {
                 .get_tracklist(),
             SelectionType::Playlist => self
                 .get_selected_playlist()
-                .ok_or(anyhow!("Illegal album selection"))?
+                .ok_or(anyhow!("Illegal playlist selection"))?
                 .get_tracklist(),
         };
 

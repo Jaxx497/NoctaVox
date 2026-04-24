@@ -73,7 +73,7 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (C, Char('q')) => Some(Action::ChangeMode(Mode::Queue)),
             (C, Char('z')) => Some(Action::ChangeMode(Mode::Power)),
 
-            (X, Char('`')) => Some(Action::ViewSettings),
+            (_, Char('`') | Char('~')) => Some(Action::ViewSettings),
             (X, Char(' ')) => Some(Action::TogglePlayback),
             (C, Char('s')) => Some(Action::Stop),
 
@@ -298,7 +298,7 @@ fn root_manager(key: &KeyEvent, variant: &SettingsMode) -> Option<Action> {
             Char('d') => Some(Action::RootRemove),
             Up | Char('k') => Some(Action::PopupScrollUp),
             Down | Char('j') => Some(Action::PopupScrollDown),
-            Char('`') => Some(Action::ClosePopup),
+            Char('~') | Char('`') => Some(Action::ClosePopup),
             Esc => Some(Action::ClosePopup),
             _ => None,
         },

@@ -1,17 +1,18 @@
 # Noctavox Theming
 
-> Specification Version: v0.8
+> **Specification Version: v0.8**
 
-This document describes the full Noctavox theme specification. Fields not defined are ignored by the parser. Example themes can be found in: [theme examples](./theme_examples/)
+This document describes the full Noctavox theme specification.
 
+*Example themes can be found in the [theme examples](./theme_examples/)
+folder.*
 
 ### Quick Theme Example
 
-The smallest usable theme looks like this:
+Here's an example of a take on the Gruvbox Dark theme. This is the simplest
+example of a custom theme as all required fields have values. 
 
 ```toml
-# Minimal Gruvbox
-
 [colors]
 surface_global      = "#1e1e2e"
 surface_active      = "#282838"
@@ -30,11 +31,15 @@ border_inactive     = "#444444"
 accent              = "#f5c542"
 accent_inactive     = "#b38a2e"
 ```
+> Figure 1: `GruvboxDark.toml`
 
-Only the `[colors]` section is required.
-Everything else in this document describes optional customization.
+The above is not only the simplest theme, but it encompasses the entirety of
+the `[colors]` section. Each value laid out above is required and any omission
+will result in an illegal theme (not read in by the engine).
 
-### Hotkeys
+Everything that follows in this document describes optional customization.
+
+## Hotkeys
 
 Several shortcuts are available for working with themes while the
 application is running.
@@ -48,7 +53,7 @@ application is running.
 Note that cycling themes does not reload files that have changed on disk.
 After editing a theme, press **F6** to refresh them.
 
-### Theme Location & Properties
+## Theme Location & Properties
 
 Theme files should be placed in: `$CONFIG/noctavox/themes/`
 
@@ -56,7 +61,7 @@ This directory will be created automatically on first launch if it
 does not already exist.
 
 Theme files must be valid TOML and contain the `.toml` file extension. The
-theme name is derived from the filename (minus the extension).
+theme name is derived from the base of the filename.
 
 Themes that fail to parse are skipped silently. Common causes include:
 
@@ -64,36 +69,36 @@ Themes that fail to parse are skipped silently. Common causes include:
 - typos in field names
 - missing `#` in hex colors
 - using `:` instead of `=`
-- forgetting quotes around strings
+- forgetting quotes around strings (like hex values)
 
 The order of sections and fields is irrelevant
 
 --------------------------------------------------
 
-### Theme Structure
+## Theme Structure
 
 A theme file may contain the following sections:
+```toml
+# Required
+[colors] 
 
-    [colors]                (required)
+# Optional
+[borders]                   # Controls border type/visibility
+[progress]                  # Global settings for progress widgets
+[progress.bar]              # Settings for progress bar         (overrides [progress])
+[progress.waveform]         # Settings for waveform widget      (overrides [progress])
+[progress.oscilloscope]     # Settings for oscilloscope widget  (overrides [progress])
+[progress.spectrum]         # Settings for spectrum widget      (overrides [progress])
 
-    [borders]
-    [progress]              (optional)
-    [progress.bar]
-    [progress.waveform]
-    [progress.oscilloscope]
-    [progress.spectrum]
-
-    [extras]
-
-Only the `[colors]` section is mandatory. All other sections provide
-additional customization for specific UI components.
+[extras]                    # Miscellaneous settings
+```
 
 --------------------------------------------------
 
 #### [colors]
 
 This section defines the base color palette used throughout the
-application. All fields listed below must be provided.
+application. All fields must be provided.
 
 | Field | Type | Description |
 |---|---|---|
@@ -115,24 +120,16 @@ application. All fields listed below must be provided.
 
 ### Progress Widgets
 
-Provides defaults for playback visualizations.
-
-Widgets:
-
-    [progress.bar]
-    [progress.waveform]
-    [progress.oscilloscope]
-    [progress.spectrum]
-
-Widget attributes override values of the same name in `[progress]`. Missing
-values inherit from it.
+Progress widgets are those seen at the bottom of the NoctaVox window (toggled
+via the `w` key). The `[progress]` field provides defaults for playback
+visualization widgets. Individual widget attributes override these values
+whereas missing or omitted values will inherit from them.
 
 #### [progress]
-Global Fields
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| color | [Gradient](#colors-and-gradients) | accent | Color or gradient of widget |
+| color | [Gradient](#colors-and-gradients) | [colors].accent | Color or gradient of widget |
 | style | [ProgressStyle](#progress-styles) | dots | Canvas render style for spectrum, waveform, and oscilloscope widgets. |
 | speed | float | widget specific | Gradient animation speed |
 
@@ -144,6 +141,8 @@ Global Fields
 >- Negative values will reverse the direction of the gradient scroll.
 >- Multiples of `2.0` enable the smoothest visual effect when seeking with the
 >  waveform widget visible.
+>- The progress bar does not have a scrolling effect, but rather a strobing
+>  effect
 >
 
 Example:
@@ -181,6 +180,8 @@ symbol_unplayed = "▱"
 | color_unplayed | [InactiveColor](#inactive-color-values) | dimmed | Unplayed region |
 | speed | float | 4.0 | Gradient animation |
 
+> **Tip:** Definitions and examples for *Gradient* and *InactiveColor* are
+> discussed at the bottom of this document.
 
 #### [progress.oscilloscope]
 
@@ -209,6 +210,10 @@ symbol_unplayed = "▱"
 | display | bool | true | Enable borders |
 | style | [BorderStyle](#border-styles) | rounded | Border style |
 
+
+> **Tip:** Definition for *BorderStyle* is discussed at the bottom of this
+> document.
+
 --------------------------------------------------
 
 #### [extras]
@@ -218,32 +223,42 @@ symbol_unplayed = "▱"
 | is_dark | bool | true | Dark/light hint |
 | decorator | string | ✧ | Decorative glyph |
 
+> **Tip:** The `is_dark` field tells the engine if the theme is considered to be a dark
+theme or light theme. This affects how colors are dimmed.
+
 --------------------------------------------------
 
 #### Colors and Gradients
     
 Acceptable color formats include the following:
 
-    Hex: "#1a2b3c"
-    RGB: "rgb(255,50,120)"
-    Transparent: "" or "none"
+**Hex:** `"#1a2b3c"`  
+**RGB:** `"rgb(255,50,120)"`  
 
-> **Note:** Always remember quotation marks!
+> **Note: DON'T FORGET THE QUOTATION MARKS!**
 
-Any type that takes a gradient type will also allow a single color to be
-entered. Both of the following would be legal values:
+The gradient type enables users to use multiple colors to display a widget, put
+together into a gradient. Simply define the colors inside of a pair of
+brackets. Gradients are not required, and users can opt for individual colors:
 
 ```toml
-color = "#ff00ff"
+# Both of these are legal values for anything that expects the GRADIENT type
+color = "#ff00ff"   
 color = ["#ff0000","#ffffff","#0000ff"]
 ```
+
+#### Transparency 
+Noctavox supports transparent values for many fields. To set a color as
+transparent, simply provide an empty pair of quotation marks: `""` or fill them
+with the word `"none"`  
+As a general disclaimer, this won't work on every field and is
+somewhat dependent on your terminal emulator.
 
 --------------------------------------------------
 
 #### Inactive Color Values
 
-Used by `color_unplayed` fields. Controls how the unplayed portion of a
-widget is rendered.
+The `InactiveColor` type controls how unplayed portions of widget is colored. 
 
 | Value | Description |
 |---|---|
