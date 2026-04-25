@@ -11,12 +11,12 @@ impl LayoutMinimal {
     pub fn new(area: Rect, state: &mut UiState) -> Self {
         let is_progress_display = state.is_progress_display();
 
-        let search_height = match state.get_mode() == Mode::Search {
-            true => match state.borders_enabled() {
+        let search_height = match state.get_mode() {
+            Mode::Search => match state.borders_enabled() {
                 true => 5,
                 false => 3,
             },
-            false => 0,
+            _ => 0,
         };
 
         let widget_h = match is_progress_display {
@@ -27,21 +27,18 @@ impl LayoutMinimal {
             },
         };
 
-        let [_lpadding, main_area, _rpadding] = Layout::horizontal([
-            Constraint::Percentage(25),
-            Constraint::Fill(1),
-            Constraint::Percentage(25),
-        ])
-        .areas(area);
-
-        let legal_songs_len = state.get_legal_songs().len();
+        let main_area = {
+            let min_width = 60;
+            let width = (area.width / 2).max(min_width).min(area.width - 2);
+            area.centered_horizontally(Constraint::Length(width))
+        };
 
         let item_count = match state.get_pane() {
             Pane::SideBar => match state.get_sidebar_view() {
                 LibraryView::Albums => state.albums.len(),
                 LibraryView::Playlists => state.playlists.len(),
             },
-            _ => legal_songs_len,
+            _ => state.get_legal_songs().len(),
         };
 
         let max_h = (area.height as f64 * 0.5).ceil() as u16;
@@ -60,15 +57,10 @@ impl LayoutMinimal {
         .areas(main_area);
 
         let [search_bar, song_window] =
-            Layout::vertical([Constraint::Length(search_height), Constraint::Fill(100)])
+            Layout::vertical([Constraint::Length(search_height), Constraint::Fill(1)])
                 .areas(upper_block);
 
-        let [_, widget, _] = Layout::horizontal([
-            Constraint::Percentage(10),
-            Constraint::Fill(1),
-            Constraint::Percentage(10),
-        ])
-        .areas(widget_spacing);
+        let widget = widget_spacing.centered_horizontally(Constraint::Percentage(80));
 
         LayoutMinimal {
             search_bar,
