@@ -7,6 +7,9 @@ pub struct LayoutMinimal {
     pub widget: Rect,
 }
 
+const MIN_WINDOW_WIDTH: u16 = 50;
+const WIDGET_PERCENTAGE: f32 = 0.12;
+
 impl LayoutMinimal {
     pub fn new(area: Rect, state: &mut UiState) -> Self {
         let is_progress_display = state.is_progress_display();
@@ -23,13 +26,13 @@ impl LayoutMinimal {
             false => 0,
             true => match (state.get_progress_display(), area.height > 20) {
                 (ProgressDisplay::ProgressBar, _) | (_, false) => 3,
-                _ => (area.height as f32 * 0.12).ceil() as u16,
+                _ => (area.height as f32 * WIDGET_PERCENTAGE).ceil() as u16,
             },
         };
 
         let main_area = {
-            let min_width = 60;
-            let width = (area.width / 2).max(min_width).min(area.width - 2);
+            let max_width = area.width.saturating_sub(2).max(MIN_WINDOW_WIDTH);
+            let width = (area.width / 2).clamp(MIN_WINDOW_WIDTH, max_width);
             area.centered_horizontally(Constraint::Length(width))
         };
 
