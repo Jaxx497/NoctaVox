@@ -31,7 +31,7 @@ terminal workflows.**
 
 #### Cargo *(recommended)*
 ```bash
-cargo install NoctaVox --locked 
+cargo install noctavox --locked 
 ```
 
 #### Build Git Version
