@@ -25,7 +25,7 @@ const S: KeyModifiers = KeyModifiers::SHIFT;
 const C: KeyModifiers = KeyModifiers::CONTROL;
 
 const SEEK_SMALL: u64 = 5;
-const SEEK_LARGE: u64 = 300;
+const SEEK_LARGE: u64 = 30;
 const SCROLL_MID: usize = 5;
 const SCROLL_XTRA: usize = 20;
 const SIDEBAR_INCREMENT: isize = 1;

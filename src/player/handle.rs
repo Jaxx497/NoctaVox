@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{Result, anyhow};
 use crossbeam::channel::{Receiver, Sender};
 use std::{sync::Arc, time::Duration};
 
@@ -14,19 +14,20 @@ pub struct PlayerHandle {
 }
 
 impl PlayerHandle {
-    pub fn spawn() -> Self {
-        let backend = VoxEngine::new().expect("Failed to initialize backend");
+    pub fn spawn() -> Result<Self> {
+        let backend = VoxEngine::new()
+            .map_err(|e| anyhow!("\nFailed to initialize backend.\nVoxio {e}\n\nPossible fix: Install pipewire-alsa or an equivalent ALSA bridge for your audio server."))?;
         let (cmd_tx, cmd_rx) = crossbeam::channel::bounded(32);
         let (event_tx, event_rx) = crossbeam::channel::bounded(32);
         let metrics = PlaybackMetrics::new();
 
         PlayerCore::spawn(Box::new(backend), cmd_rx, event_tx, Arc::clone(&metrics));
 
-        Self {
+        Ok(Self {
             commands: cmd_tx,
             events: event_rx,
             metrics,
-        }
+        })
     }
 
     pub fn metrics(&self) -> Arc<PlaybackMetrics> {

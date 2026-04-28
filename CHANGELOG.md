@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Current Development
+
+### Fixed:
+ - Better error handling when Voxio backend fails to start
+
 ## [0.2.7] Polished Minimal Mode + Many Bug Fixes 
 
 > #### 2026-04-27

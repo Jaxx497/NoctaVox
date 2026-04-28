@@ -7,10 +7,11 @@ use crate::{
     tui,
     ui_state::{Mode, PopupType, SettingsMode, UiState},
 };
+use anyhow::Result;
 use std::sync::Arc;
 
 impl NoctaVox {
-    pub fn new() -> Self {
+    pub fn new() -> Result<Self> {
         let lib = Arc::new({
             let mut l = Library::init();
             let _ = l.build_library();
@@ -19,14 +20,14 @@ impl NoctaVox {
 
         let lib_clone = Arc::clone(&lib);
 
-        let player = PlayerHandle::spawn();
+        let player = PlayerHandle::spawn()?;
         let metrics = player.metrics();
 
         let media_controls = crate::media_controls::MediaControlsHandle::new()
             .map_err(|e| eprintln!("OS media controls unavailable: {e}"))
             .ok();
 
-        NoctaVox {
+        Ok(NoctaVox {
             library: lib,
             player,
             ui: UiState::new(lib_clone, metrics),
@@ -34,7 +35,7 @@ impl NoctaVox {
             key_buffer: KeyBuffer::new(),
             media_controls,
             media_sync_tick: 0,
-        }
+        })
     }
 
     pub fn run(&mut self) {
