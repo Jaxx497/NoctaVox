@@ -59,6 +59,16 @@ impl PlayerHandle {
         Ok(())
     }
 
+    pub fn resume(&self) -> Result<()> {
+        self.commands.send(PlayerCommand::Resume)?;
+        Ok(())
+    }
+
+    pub fn pause(&self) -> Result<()> {
+        self.commands.send(PlayerCommand::Pause)?;
+        Ok(())
+    }
+
     pub fn stop(&self) -> Result<()> {
         self.commands.send(PlayerCommand::Stop)?;
         Ok(())

@@ -55,16 +55,8 @@ impl NoctaVox {
 
     fn handle_media_control_event(&mut self, event: MediaControlEvent) -> anyhow::Result<()> {
         match event {
-            MediaControlEvent::Play => {
-                if self.player.is_paused() {
-                    self.player.toggle_playback()?;
-                }
-            }
-            MediaControlEvent::Pause => {
-                if !self.player.is_paused() && !self.player.is_stopped() {
-                    self.player.toggle_playback()?;
-                }
-            }
+            MediaControlEvent::Play => self.player.resume()?,
+            MediaControlEvent::Pause => self.player.pause()?,
             MediaControlEvent::Toggle => self.player.toggle_playback()?,
             MediaControlEvent::Next => self.play_next()?,
             MediaControlEvent::Previous => self.play_prev()?,

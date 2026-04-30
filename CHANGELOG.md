@@ -4,6 +4,8 @@
 
 ### Fixed:
  - Better error handling when Voxio backend fails to start
+ - [minimal mode] no longer crashes when terminal height < 3 
+ - Better pause/play logic, should enhance media control usability
 
 ## [0.2.7] Polished Minimal Mode + Many Bug Fixes 
 

@@ -60,6 +60,8 @@ impl PlayerCore {
                 PlayerCommand::SetNext(s) => self.set_next(s),
                 PlayerCommand::ClearNext => self.clear_next(),
                 PlayerCommand::TogglePlayback => self.toggle_playback(),
+                PlayerCommand::Resume => self.resume(),
+                PlayerCommand::Pause => self.pause(),
                 PlayerCommand::Stop => self.stop(),
                 PlayerCommand::SeekForward(x) => self.seek_forward(x),
                 PlayerCommand::SeekBack(x) => self.seek_back(x),
@@ -130,26 +132,31 @@ impl PlayerCore {
     }
 
     fn toggle_playback(&mut self) {
-        if self.backend.is_stopped() {
-            return;
-        }
         match self.backend.is_paused() {
-            true => {
-                self.backend.resume();
-                self.metrics.set_playback_state(PlaybackState::Playing);
-            }
+            true => self.resume(),
+            false => self.pause(),
+        }
+    }
 
-            false => {
-                self.backend.pause();
-                self.metrics.set_playback_state(PlaybackState::Paused);
-            }
+    fn resume(&mut self) {
+        if self.backend.is_paused() {
+            self.backend.resume();
+            self.metrics.set_playback_state(PlaybackState::Playing);
+            self.emit(PlayerEvent::StateChanged(PlaybackState::Playing));
+        }
+    }
+
+    fn pause(&mut self) {
+        if !self.backend.is_paused() && !self.backend.is_stopped() {
+            self.backend.pause();
+            self.metrics.set_playback_state(PlaybackState::Paused);
+            self.emit(PlayerEvent::StateChanged(PlaybackState::Paused));
         }
     }
 
     fn stop(&mut self) {
         self.backend.stop();
         self.current = None;
-        self.metrics.set_playback_state(PlaybackState::Stopped);
         self.metrics.reset();
         self.emit(PlayerEvent::PlaybackStopped);
     }

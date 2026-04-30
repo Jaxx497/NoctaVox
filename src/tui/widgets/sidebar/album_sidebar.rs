@@ -122,7 +122,7 @@ impl StatefulWidget for SideBarAlbum {
             if idx < current_offset {
                 *render_state.offset_mut() = idx;
             } else if idx >= current_offset + visible_height {
-                *render_state.offset_mut() = idx.saturating_sub(visible_height - 1);
+                *render_state.offset_mut() = idx.saturating_sub(visible_height.saturating_sub(1));
             } else {
                 *render_state.offset_mut() = current_offset;
             }

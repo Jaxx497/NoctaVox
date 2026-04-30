@@ -1,4 +1,4 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use std::{sync::Arc, time::Duration};
 
 use crate::{
@@ -6,7 +6,7 @@ use crate::{
     key_handler::SelectionType,
     library::{SimpleSong, SongDatabase, SongInfo},
     playback::ValidatedSong,
-    player::{NoctavoxTrack, PlayerEvent},
+    player::{NoctavoxTrack, PlaybackState, PlayerEvent},
     ui_state::{LibraryView, Mode},
 };
 
@@ -157,6 +157,17 @@ impl NoctaVox {
             }
             PlayerEvent::Error(e) => {
                 self.ui.set_error(anyhow!(e));
+                Ok(())
+            }
+            PlayerEvent::StateChanged(state) => {
+                if let Some(mc) = self.media_controls.as_mut() {
+                    let elapsed = self.player.elapsed();
+                    match state {
+                        PlaybackState::Playing => mc.set_playing(elapsed),
+                        PlaybackState::Paused => mc.set_paused(elapsed),
+                        PlaybackState::Stopped => mc.set_stopped(),
+                    }
+                }
                 Ok(())
             }
         }

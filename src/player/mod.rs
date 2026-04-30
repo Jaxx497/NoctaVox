@@ -12,6 +12,7 @@ pub use metrics::PlaybackMetrics;
 
 pub enum PlayerEvent {
     TrackStarted((NoctavoxTrack, bool)),
+    StateChanged(PlaybackState),
     PlaybackStopped,
     Error(String),
 }
@@ -21,6 +22,8 @@ pub enum PlayerCommand {
     SetNext(Option<NoctavoxTrack>),
     ClearNext,
     TogglePlayback,
+    Resume,
+    Pause,
     Stop,
     SeekForward(u64),
     SeekBack(u64),
