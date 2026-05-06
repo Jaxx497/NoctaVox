@@ -167,7 +167,7 @@ impl NoctaVox {
                     self.ui.revert_fullscreen();
                 }
 
-                self.ui.playback.set_now_playing(None);
+                self.ui.set_now_playing(None);
                 self.ui.clear_waveform();
                 self.ui.set_legal_songs();
 

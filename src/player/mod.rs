@@ -25,6 +25,7 @@ pub enum PlayerCommand {
     Resume,
     Pause,
     Stop,
+    SeekTo(f32),
     SeekForward(u64),
     SeekBack(u64),
 }

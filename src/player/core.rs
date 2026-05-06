@@ -63,6 +63,7 @@ impl PlayerCore {
                 PlayerCommand::Resume => self.resume(),
                 PlayerCommand::Pause => self.pause(),
                 PlayerCommand::Stop => self.stop(),
+                PlayerCommand::SeekTo(x) => self.seek_to(x),
                 PlayerCommand::SeekForward(x) => self.seek_forward(x),
                 PlayerCommand::SeekBack(x) => self.seek_back(x),
             }
@@ -159,6 +160,12 @@ impl PlayerCore {
         self.current = None;
         self.metrics.reset();
         self.emit(PlayerEvent::PlaybackStopped);
+    }
+
+    fn seek_to(&mut self, secs: f32) {
+        if !self.backend.is_stopped() {
+            let _ = self.backend.seek_to(secs);
+        }
     }
 
     fn seek_forward(&mut self, secs: u64) {

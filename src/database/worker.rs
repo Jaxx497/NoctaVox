@@ -179,6 +179,28 @@ impl DbWorker {
     pub fn get_most_played(&self, count: u16) -> Result<Vec<(u64, u16)>> {
         self.execute_sync(move |db| db.get_most_played(count))
     }
+
+    pub fn get_last_played(&self) -> Result<(u64, f32)> {
+        self.execute_sync(move |db| db.get_last_played())
+    }
+
+    pub fn set_now_playing_db(&self, id: u64) {
+        self.execute(move |db| {
+            let _ = db.set_now_playing(id);
+        });
+    }
+
+    pub fn update_now_playing(&self, secs: f32) {
+        self.execute(move |db| {
+            let _ = db.update_np_elapsed(secs);
+        });
+    }
+
+    pub fn clear_now_playing(&self) {
+        self.execute(move |db| {
+            let _ = db.clear_now_playing();
+        });
+    }
 }
 
 impl Drop for DbWorker {

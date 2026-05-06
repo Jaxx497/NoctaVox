@@ -33,6 +33,11 @@ impl PlayerBackend for VoxEngine {
         let _ = self.engine.stop();
     }
 
+    fn seek_to(&mut self, secs: f32) -> Result<()> {
+        self.engine.seek_to(secs as f64)?;
+        Ok(())
+    }
+
     fn seek_forward(&mut self, secs: u64) -> Result<()> {
         self.engine.seek_relative(secs as f64)?;
         Ok(())

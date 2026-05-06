@@ -2,7 +2,7 @@ use crossbeam::channel::{Receiver, select};
 use ratatui::crossterm::event::KeyEvent;
 use souvlaki::{MediaControlEvent, SeekDirection};
 
-use crate::{DEFAULT_TICK, REFRESH_RATE, app_core::NoctaVox, key_handler};
+use crate::{DB_TICK, MEDIA_TICK, REFRESH_RATE, app_core::NoctaVox, key_handler};
 
 impl NoctaVox {
     #[inline]
@@ -77,16 +77,19 @@ impl NoctaVox {
     /// Called on every default tick (8ms), so we rate-limit with a counter.
     fn sync_media_controls_position(&mut self) {
         self.media_sync_tick = self.media_sync_tick.wrapping_add(1);
-        if self.media_sync_tick % DEFAULT_TICK != 0 {
-            return;
+
+        if !self.player.is_stopped() && self.media_sync_tick % DB_TICK == 0 {
+            self.ui.update_now_playing_elapsed();
         }
 
-        if let Some(ref mut mc) = self.media_controls {
-            let elapsed = self.player.elapsed();
-            if self.player.is_paused() {
-                mc.set_paused(elapsed);
-            } else if !self.player.is_stopped() {
-                mc.set_playing(elapsed);
+        if self.media_sync_tick % MEDIA_TICK != 0 {
+            if let Some(ref mut mc) = self.media_controls {
+                let elapsed = self.player.elapsed();
+                if self.player.is_paused() {
+                    mc.set_paused(elapsed);
+                } else if !self.player.is_stopped() {
+                    mc.set_playing(elapsed);
+                }
             }
         }
     }

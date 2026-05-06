@@ -7,6 +7,7 @@ pub(super) trait PlayerBackend: Send + 'static {
     fn pause(&mut self);
     fn resume(&mut self);
 
+    fn seek_to(&mut self, secs: f32) -> Result<()>;
     fn seek_back(&mut self, secs: u64) -> Result<()>;
     fn seek_forward(&mut self, secs: u64) -> Result<()>;
 

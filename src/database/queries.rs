@@ -249,3 +249,24 @@ pub const SET_LATEST_SCAN: &str = "
     INSERT OR REPLACE INTO scan_cache
     (key, value) VALUES ('last_scan', ?)
 ";
+
+pub const SET_NOW_PLAYING: &str = "
+    INSERT OR REPLACE INTO now_playing 
+        (id, song_id, position_secs, started_at) 
+    VALUES (1, ?, 0, ?)
+";
+
+pub const UPDATE_NOW_PLAYING: &str = "
+    UPDATE now_playing 
+    SET position_secs = ?
+    WHERE id = 1
+";
+
+pub const GET_NOW_PLAYING: &str = "
+    SELECT song_id, position_secs
+    FROM now_playing WHERE id = 1
+";
+
+pub const CLEAR_NOW_PLAYING: &str = "
+    DELETE FROM now_playing
+";

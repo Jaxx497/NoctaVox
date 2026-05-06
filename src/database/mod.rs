@@ -441,8 +441,8 @@ impl Database {
         let rows = stmt
             .query_map(params![count], |row| {
                 let hash_bytes: Vec<u8> = row.get("id")?;
-                let hash_array: [u8; 8] = hash_bytes.try_into().expect("Invalid hash bytes length");
-                let hash = u64::from_le_bytes(hash_array);
+                let hash = convert_from_bytes(hash_bytes);
+
                 let plays: u16 = row.get("count")?;
 
                 Ok((hash, plays))
@@ -464,6 +464,38 @@ impl Database {
     pub fn set_last_scan(&self, timestamp: u64) -> Result<()> {
         self.conn
             .execute(SET_LATEST_SCAN, params![timestamp.to_le_bytes()])?;
+        Ok(())
+    }
+
+    pub fn get_last_played(&self) -> Result<(u64, f32)> {
+        Ok(self.conn.query_row(GET_NOW_PLAYING, [], |row| {
+            let raw_id = row.get(0)?;
+            let elapsed: f32 = row.get(1)?;
+            let id = convert_from_bytes(raw_id);
+
+            Ok((id, elapsed))
+        })?)
+    }
+
+    pub fn set_now_playing(&self, id: u64) -> Result<()> {
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() as i64;
+
+        self.conn
+            .execute(SET_NOW_PLAYING, params![id.to_le_bytes(), timestamp])?;
+
+        Ok(())
+    }
+
+    pub fn update_np_elapsed(&self, elapsed_secs: f32) -> Result<()> {
+        self.conn
+            .execute(UPDATE_NOW_PLAYING, params![elapsed_secs])?;
+
+        Ok(())
+    }
+
+    pub fn clear_now_playing(&self) -> Result<()> {
+        self.conn.execute(CLEAR_NOW_PLAYING, params![])?;
+
         Ok(())
     }
 }

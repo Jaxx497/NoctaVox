@@ -4,7 +4,7 @@ use crate::{
     Library, PlaybackSession, TAP_BUFFER_CAPACITY,
     database::DbWorker,
     key_handler::InputContext,
-    library::SimpleSong,
+    library::{SimpleSong, SongInfo},
     player::{PlaybackMetrics, PlaybackState},
     ui_state::{
         LayoutStyle, LibraryView, Mode, Pane, PlaylistAction, ProgressDisplay, SettingsMode,
@@ -165,6 +165,10 @@ impl UiState {
     }
 
     pub fn set_now_playing(&mut self, song: Option<Arc<SimpleSong>>) {
+        match &song {
+            Some(s) => self.db_worker.set_now_playing_db(s.get_id()),
+            None => self.db_worker.clear_now_playing(),
+        }
         self.playback.set_now_playing(song);
     }
 
@@ -205,5 +209,14 @@ impl UiState {
 
     pub fn delete_last_history_entry(&self) {
         self.db_worker.delete_history_latest();
+    }
+
+    pub fn restore_last_played(&self) -> Result<(u64, f32)> {
+        self.db_worker.get_last_played()
+    }
+
+    pub fn update_now_playing_elapsed(&self) {
+        let elapsed = self.metrics.get_elapsed().as_secs_f32();
+        self.db_worker.update_now_playing(elapsed);
     }
 }

@@ -2,6 +2,9 @@
 
 ## Current Development
 
+### Added:
+ - `Now Playing` persists between sessions
+
 ### Fixed:
  - Reworked database history tracking
  - Fixed bug where songs conditionally wouldn't be added to history

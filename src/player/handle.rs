@@ -74,6 +74,11 @@ impl PlayerHandle {
         Ok(())
     }
 
+    pub fn seek_to(&self, secs: f32) -> Result<()> {
+        self.commands.send(PlayerCommand::SeekTo(secs))?;
+        Ok(())
+    }
+
     pub fn seek_forward(&self, dur: u64) -> Result<()> {
         self.commands.send(PlayerCommand::SeekForward(dur))?;
         Ok(())

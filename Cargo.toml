@@ -29,7 +29,8 @@ toml = "1.0.3"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
-voxio = "0.1.3"
+# voxio = "0.1.3"
+voxio = {path = "../voxio/"}
 souvlaki = "0.7"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 

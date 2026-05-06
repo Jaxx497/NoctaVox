@@ -46,7 +46,8 @@ pub type SongMap = IndexMap<u64, Arc<SimpleSong>, BuildNoHashHasher<u64>>;
 
 // ~120fps
 pub const REFRESH_RATE: Duration = Duration::from_millis(8);
-pub const DEFAULT_TICK: u32 = 6;
+pub const MEDIA_TICK: u32 = 6;
+pub const DB_TICK: u32 = 75;
 pub const HISTORY_CAPACITY: usize = 64;
 pub const TAP_BUFFER_CAPACITY: usize = 2048;
 pub const THEME_DIRECTORY: &'static str = "themes";

@@ -78,5 +78,13 @@ pub const CREATE_TABLES: &str = r"
     CREATE TABLE IF NOT EXISTS scan_cache(
         key TEXT PRIMARY KEY,
         value BLOB NOT NULL
-    )
+    );
+
+    CREATE TABLE IF NOT EXISTS now_playing(
+        id INTEGER PRIMARY KEY CHECK(id = 1),
+        song_id BLOB NOT NULL,
+        position_secs REAL NOT NULL DEFAULT 0,
+        started_at INTEGER NOT NULL,
+        FOREIGN KEY(song_id) REFERENCES songs(id) ON DELETE CASCADE
+    );
 ";

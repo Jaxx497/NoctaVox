@@ -3,7 +3,7 @@ use crate::{
     app_core::{NoctaVox, key_loop},
     key_handler::KeyBuffer,
     overwrite_line,
-    player::PlayerHandle,
+    player::{NoctavoxTrack, PlayerHandle},
     tui,
     ui_state::{Mode, PopupType, SettingsMode, UiState},
 };
@@ -42,6 +42,7 @@ impl NoctaVox {
         match ratatui::run(|t| -> anyhow::Result<()> {
             self.preload_lib();
             self.initialize_ui();
+            let _ = self.restore_last_played();
             t.draw(|f| tui::render(f, &mut self.ui))?;
 
             if self.library.roots.is_empty() {
@@ -56,6 +57,7 @@ impl NoctaVox {
                 t.draw(|f| tui::render(f, &mut self.ui))?;
 
                 if self.ui.get_mode() == Mode::QUIT {
+                    self.ui.update_now_playing_elapsed();
                     self.player.stop()?;
                     if let Some(mc) = self.media_controls.as_mut() {
                         mc.set_stopped();
@@ -83,5 +85,16 @@ impl NoctaVox {
     pub fn initialize_ui(&mut self) {
         self.ui.soft_reset();
         let _ = self.ui.restore_state();
+    }
+
+    pub fn restore_last_played(&mut self) -> Result<()> {
+        if let Ok((song_id, elapsed_secs)) = self.ui.restore_last_played() {
+            if let Some(song) = self.library.get_song_by_id(song_id) {
+                let song = NoctavoxTrack::try_from(song.as_ref())?;
+                self.player.play(song)?;
+                self.player.seek_to(elapsed_secs)?;
+            }
+        }
+        Ok(())
     }
 }
