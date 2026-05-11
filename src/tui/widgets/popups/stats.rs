@@ -11,7 +11,7 @@ use unicode_width::UnicodeWidthStr;
 use crate::{
     SimpleSong,
     library::SongInfo,
-    ui_state::{DisplayTheme, LibraryStats, UiState, fade_color},
+    ui_state::{DisplayTheme, LayoutStyle, LibraryStats, UiState, fade_color},
 };
 
 pub struct UserStats;
@@ -31,12 +31,17 @@ impl StatefulWidget for UserStats {
             return;
         }
 
+        let bg = match state.get_layout() {
+            LayoutStyle::Traditional => theme.bg,
+            LayoutStyle::Minimal => theme.bg_global,
+        };
+
         let block = Block::bordered()
             .title(" Library Stats ")
             .title_bottom(" Press anything to close ")
             .title_alignment(HorizontalAlignment::Center)
             .border_style(theme.border)
-            .bg(theme.bg);
+            .bg(bg);
 
         let inner = block.inner(area);
         block.render(area, buf);

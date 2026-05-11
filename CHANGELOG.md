@@ -10,6 +10,7 @@
  - Fixed bug where songs conditionally wouldn't be added to history
  - Better error handling when Voxio backend fails to start
  - [minimal mode] no longer crashes when terminal height < 3 
+ - [minimal mode] stats window matches theme bg
  - Better pause/play logic, should enhance media control usability
 
 ## [0.2.7] Polished Minimal Mode + Many Bug Fixes 
