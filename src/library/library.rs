@@ -35,18 +35,18 @@ const PROCESSING_FINISHED: u8 = 70;
 const REMOVALS_FINISHED: u8 = 90;
 
 impl Library {
-    fn new() -> Self {
-        let db = Database::open().expect("Failed to connect to database!");
-        Library {
+    fn new() -> Result<Self> {
+        let db = Database::open()?;
+        Ok(Library {
             db,
             roots: HashSet::new(),
             songs: SongMap::default(),
             albums: IndexMap::new(),
-        }
+        })
     }
 
-    pub fn init() -> Self {
-        let mut lib = Self::new();
+    pub fn init() -> Result<Self> {
+        let mut lib = Self::new()?;
 
         {
             if let Ok(db_roots) = lib.db.get_roots() {
@@ -58,7 +58,7 @@ impl Library {
             }
         }
 
-        lib
+        Ok(lib)
     }
 
     pub fn add_root(&mut self, root: impl AsRef<Path>) -> Result<()> {

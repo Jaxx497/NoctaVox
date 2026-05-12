@@ -33,6 +33,9 @@ voxio = "0.1.4"
 souvlaki = "0.7"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 
+[dev-dependencies]
+tempfile = "3.15.0"
+
 [target.'cfg(windows)'.dependencies]
 windows = "0.56"
 windows-sys = { version = "0.61", features = [

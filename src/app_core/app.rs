@@ -18,7 +18,7 @@ impl NoctaVox {
         Self::init_timings();
 
         let lib = Arc::new({
-            let mut l = Library::init();
+            let mut l = Library::init()?;
             l.build_library()?;
             l
         });

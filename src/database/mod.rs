@@ -4,7 +4,7 @@ use crate::{
     library::{LongSong, SimpleSong, SongInfo},
     ui_state::LibraryStats,
 };
-use anyhow::Result;
+use anyhow::{Result, Context};
 use queries::*;
 use rusqlite::{Connection, OptionalExtension, params};
 use std::{
@@ -33,9 +33,16 @@ pub struct Database {
 
 impl Database {
     pub fn open() -> Result<Self> {
-        let conn = Connection::open(&*DB_PATH)?;
+        let conn = Connection::open(&*DB_PATH)
+            .with_context(|| format!("Failed to open database at {:?}", &*DB_PATH))?;
 
-        conn.pragma_update(None, "journal_mode", "WAL")?;
+        conn.pragma_update(None, "journal_mode", "WAL")
+            .with_context(|| {
+                format!(
+                    "Database file may be corrupted. Try deleting it and restarting: {:?}",
+                    &*DB_PATH
+                )
+            })?;
         conn.pragma_update(None, "foreign_keys", "ON")?;
         conn.pragma_update(None, "cache_size", "1000")?;
 
@@ -44,7 +51,13 @@ impl Database {
             artist_map: HashMap::new(),
             album_map: HashMap::new(),
         };
-        db.create_tables()?;
+        db.create_tables()
+            .with_context(|| {
+                format!(
+                    "Failed to create database tables. Database may be corrupted: {:?}",
+                    &*DB_PATH
+                )
+            })?;
 
         Ok(db)
     }

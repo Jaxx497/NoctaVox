@@ -18,7 +18,13 @@ impl NoctaVox {
 
         thread::spawn(move || {
             let _ = tx.send(LibraryRefreshProgress::Scanning { progress: 1 });
-            let mut updated_lib = Library::init();
+            let mut updated_lib = match Library::init() {
+                Ok(lib) => lib,
+                Err(e) => {
+                    let _ = tx.send(LibraryRefreshProgress::Error(e.to_string()));
+                    return;
+                }
+            };
 
             if updated_lib.roots.is_empty() {
                 let _ = tx.send(LibraryRefreshProgress::Complete(updated_lib));

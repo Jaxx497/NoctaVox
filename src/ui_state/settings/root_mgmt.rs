@@ -26,7 +26,7 @@ impl UiState {
     }
 
     pub fn add_root(&mut self, path: &str) -> Result<()> {
-        let mut lib = Library::init();
+        let mut lib = Library::init()?;
         lib.add_root(path)?;
         self.library = Arc::new(lib);
 
@@ -40,7 +40,7 @@ impl UiState {
                 bail!("Invalid root index!");
             }
 
-            let mut lib = Library::init();
+            let mut lib = Library::init()?;
 
             let bad_root = &roots[selected];
             lib.delete_root(&bad_root)?;
