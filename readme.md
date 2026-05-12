@@ -81,7 +81,10 @@ or if a field is missing/invalid. To adjust the configurations, create a
 framerate = 120     # accepts values between 20 and 240 
                     # default: 60
 
-auto_resume         # if a track was playing when shutdown, resume playback on startup
+auto_resume = true  # if a track was playing when shutdown, resume playback on startup
+                    # default: false
+
+broadcast = false   # enable broadcast features for scrobbling/Discord rich presence
                     # default: false
 ```
 

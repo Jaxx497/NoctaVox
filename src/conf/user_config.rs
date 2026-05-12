@@ -8,8 +8,12 @@ use crate::CONFIG_DIR;
 pub struct UserConfig {
     #[serde(default = "defaults::framerate")]
     pub framerate: u8,
+
     #[serde(default = "defaults::auto_resume")]
     pub auto_resume: bool,
+
+    #[serde(default = "defaults::broadcast")]
+    pub broadcast: bool,
 }
 
 mod defaults {
@@ -20,6 +24,10 @@ mod defaults {
     pub fn auto_resume() -> bool {
         false
     }
+
+    pub fn broadcast() -> bool {
+        false
+    }
 }
 
 impl Default for UserConfig {
@@ -27,6 +35,7 @@ impl Default for UserConfig {
         Self {
             framerate: defaults::framerate(),
             auto_resume: defaults::auto_resume(),
+            broadcast: defaults::broadcast(),
         }
     }
 }

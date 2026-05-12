@@ -19,7 +19,7 @@ impl NoctaVox {
 
         let lib = Arc::new({
             let mut l = Library::init();
-            let _ = l.build_library();
+            l.build_library()?;
             l
         });
 

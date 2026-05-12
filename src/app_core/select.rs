@@ -2,7 +2,7 @@ use crossbeam::channel::{Receiver, select};
 use ratatui::crossterm::event::KeyEvent;
 use souvlaki::{MediaControlEvent, SeekDirection};
 
-use crate::{app_core::NoctaVox, conf::timing, key_handler};
+use crate::{app_core::NoctaVox, conf::timing, key_handler, user_config};
 
 impl NoctaVox {
     #[inline]
@@ -78,7 +78,10 @@ impl NoctaVox {
     fn sync_media_controls_position(&mut self) {
         self.tick_sync = self.tick_sync.wrapping_add(1);
 
-        if !self.player.is_stopped() && self.tick_sync % timing().db_tick == 0 {
+        if user_config().broadcast
+            && !self.player.is_stopped()
+            && self.tick_sync % timing().db_tick == 0
+        {
             self.ui.update_now_playing_elapsed();
         }
 
