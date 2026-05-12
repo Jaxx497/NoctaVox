@@ -13,6 +13,7 @@
  - Reworked internal timing system
  - Fixed bug where songs conditionally wouldn't be added to history
  - Better error handling when Voxio backend fails to start
+ - Better error handling when database is corrupt
  - [minimal mode] no longer crashes when terminal height < 3 
  - [minimal mode] stats window matches theme bg
  - Better pause/play logic, should enhance media control usability

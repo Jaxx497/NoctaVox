@@ -9,6 +9,7 @@ use queries::*;
 use rusqlite::{Connection, OptionalExtension, params};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
+    fs,
     path::PathBuf,
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -33,8 +34,30 @@ pub struct Database {
 
 impl Database {
     pub fn open() -> Result<Self> {
-        let conn = Connection::open(&*DB_PATH)?;
+        match Self::_open() {
+            Ok(db) => Ok(db),
+            Err(_) => {
+                let backup = DB_PATH.with_file_name(format!(
+                    "noctavox.db.corrupt-{}",
+                    SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .unwrap_or_default()
+                        .as_secs()
+                ));
+                fs::rename(&*DB_PATH, &backup)?;
+                let _ = fs::remove_file(DB_PATH.with_extension("db-wal"));
+                let _ = fs::remove_file(DB_PATH.with_extension("db-shm"));
+                eprintln!(
+                    "Database was corrupted; backup saved to {}",
+                    backup.display()
+                );
+                Self::_open()
+            }
+        }
+    }
 
+    pub fn _open() -> Result<Self> {
+        let conn = Connection::open(&*DB_PATH)?;
         conn.pragma_update(None, "journal_mode", "WAL")?;
         conn.pragma_update(None, "foreign_keys", "ON")?;
         conn.pragma_update(None, "cache_size", "1000")?;
@@ -45,7 +68,6 @@ impl Database {
             album_map: HashMap::new(),
         };
         db.create_tables()?;
-
         Ok(db)
     }
 
@@ -495,6 +517,14 @@ impl Database {
 
 #[inline]
 fn convert_from_bytes(raw_bytes: Vec<u8>) -> u64 {
-    let hash_array: [u8; 8] = raw_bytes.try_into().expect("Invalid hash bytes length");
-    u64::from_le_bytes(hash_array)
+    match raw_bytes.try_into() {
+        Ok(arr) => u64::from_le_bytes(arr),
+        Err(a) => {
+            eprintln!(
+                "Warning: corrupted id in database (len {}, expected 8); skipping row",
+                a.len()
+            );
+            0
+        }
+    }
 }
