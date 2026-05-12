@@ -1,8 +1,5 @@
 use crate::{
-    Library,
-    key_handler::KeyBuffer,
-    media_controls::MediaControlsHandle,
-    player::PlayerHandle,
+    Library, key_handler::KeyBuffer, media_controls::MediaControlsHandle, player::PlayerHandle,
     ui_state::UiState,
 };
 use crossbeam::channel::Receiver;
@@ -24,7 +21,7 @@ pub struct NoctaVox {
     key_buffer: KeyBuffer,
     library_refresh_rec: Option<Receiver<LibraryRefreshProgress>>,
     media_controls: Option<MediaControlsHandle>,
-    media_sync_tick: u32,
+    tick_sync: u32,
 }
 
 pub enum LibraryRefreshProgress {

@@ -1,5 +1,5 @@
 use crate::{
-    CONFIG_DIRECTORY, DATABASE_FILENAME, HISTORY_CAPACITY, SongMap,
+    DB_PATH, HISTORY_CAPACITY, SongMap,
     database::tables::CREATE_TABLES,
     library::{LongSong, SimpleSong, SongInfo},
     ui_state::LibraryStats,
@@ -9,7 +9,6 @@ use queries::*;
 use rusqlite::{Connection, OptionalExtension, params};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
-    fs::{self},
     path::PathBuf,
     sync::Arc,
     time::{Duration, SystemTime, UNIX_EPOCH},
@@ -34,13 +33,7 @@ pub struct Database {
 
 impl Database {
     pub fn open() -> Result<Self> {
-        let db_path = dirs::config_dir()
-            .expect("Config folder not present on system!")
-            .join(CONFIG_DIRECTORY);
-
-        fs::create_dir_all(&db_path).expect("Failed to create or access config directory");
-
-        let conn = Connection::open(db_path.join(DATABASE_FILENAME))?;
+        let conn = Connection::open(&*DB_PATH)?;
 
         conn.pragma_update(None, "journal_mode", "WAL")?;
         conn.pragma_update(None, "foreign_keys", "ON")?;

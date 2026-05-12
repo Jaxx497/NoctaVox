@@ -3,15 +3,22 @@
 ## Current Development
 
 ### Added:
- - `Now Playing` persists between sessions
+ - User Configurations!
+   - Control framerate [default: 60fps] `20 <= FR <= 240`
+   - Auto-resume where last song left off [default: off]
+ - Remembers what was playing on last shutdown
 
 ### Fixed:
  - Reworked database history tracking
+ - Reworked internal timing system
  - Fixed bug where songs conditionally wouldn't be added to history
  - Better error handling when Voxio backend fails to start
  - [minimal mode] no longer crashes when terminal height < 3 
  - [minimal mode] stats window matches theme bg
  - Better pause/play logic, should enhance media control usability
+
+### Other: 
+ - Added config documentation to [README](./README.md) 
 
 ## [0.2.7] Polished Minimal Mode + Many Bug Fixes 
 

@@ -1,5 +1,5 @@
 use crate::{
-    REFRESH_RATE,
+    conf::timing,
     key_handler::{key_buffer::KeyBuffer, *},
     ui_state::{
         LibraryView, Mode, Pane, PlaylistAction, PopupType, ProgressDisplay, SettingsMode, UiState,
@@ -358,7 +358,7 @@ fn handle_themeing(key: &KeyEvent) -> Option<Action> {
 }
 
 pub fn next_event() -> Result<Option<Event>> {
-    match event::poll(REFRESH_RATE)? {
+    match event::poll(timing().refresh_rate)? {
         true => Ok(Some(event::read()?)),
         false => Ok(None),
     }

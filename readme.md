@@ -68,6 +68,23 @@ to scan. Roots can be added or removed from this menu at anytime via the `` `
 
 See the complete [keymap documentation](./docs/keymaps.md) for much more
 
+## Config
+
+> **Note:** This feature is currently only for the Git version.
+
+NoctaVox allows for global configuration adjustments. This is still an
+in-progress feature. Default values are supplied if no config file is present
+or if a field is missing/invalid. To adjust the configurations, create a
+`config.toml` file inside of the `$CONFIG/noctavox/` directory.
+
+```toml
+framerate = 120     # accepts values between 20 and 240 
+                    # default: 60
+
+auto_resume         # if a track was playing when shutdown, resume playback on startup
+                    # default: false
+```
+
 ## Theming
 
 ![themes.png](./docs/themes.png)

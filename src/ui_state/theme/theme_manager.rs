@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 
 use crate::{
-    CONFIG_DIRECTORY, THEME_DIRECTORY,
+    THEME_DIR,
     key_handler::Incrementor,
     ui_state::{DisplayTheme, PopupType, ThemeConfig, UiState, fade_color},
 };
@@ -62,20 +62,15 @@ impl ThemeManager {
 
     fn collect_themes() -> Vec<ThemeConfig> {
         let mut themes = vec![];
-        let theme_dir =
-            dirs::config_dir().map(|dir| dir.join(CONFIG_DIRECTORY).join(THEME_DIRECTORY));
+        let theme_path = &*THEME_DIR;
 
-        if let Some(ref theme_path) = theme_dir {
-            let _ = std::fs::create_dir_all(theme_path);
+        if let Ok(entries) = theme_path.read_dir() {
+            for entry in entries.flatten() {
+                let path = entry.path();
 
-            if let Ok(entries) = theme_path.read_dir() {
-                for entry in entries.flatten() {
-                    let path = entry.path();
-
-                    if path.extension().and_then(|s| s.to_str()) == Some("toml") {
-                        if let Ok(theme) = ThemeConfig::load_from_file(&path) {
-                            themes.push(theme);
-                        }
+                if path.extension().and_then(|s| s.to_str()) == Some("toml") {
+                    if let Ok(theme) = ThemeConfig::load_from_file(&path) {
+                        themes.push(theme);
                     }
                 }
             }

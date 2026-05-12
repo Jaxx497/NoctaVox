@@ -1,5 +1,5 @@
 use crate::{
-    REFRESH_RATE,
+    conf::timing,
     player::{
         PlaybackMetrics, PlaybackState, PlayerBackend, PlayerCommand, PlayerEvent,
         track::NoctavoxTrack,
@@ -49,7 +49,7 @@ impl PlayerCore {
             self.process_commands();
             self.check_track_end();
             self.update_metrics();
-            thread::sleep(REFRESH_RATE);
+            thread::sleep(timing().refresh_rate);
         }
     }
 

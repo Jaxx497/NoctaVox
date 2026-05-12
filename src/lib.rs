@@ -12,7 +12,7 @@ use std::{
     io::Write,
     path::{Path, PathBuf},
     process::{self, Command},
-    sync::{Arc, LazyLock},
+    sync::{Arc, LazyLock, OnceLock},
     time::{Duration, UNIX_EPOCH},
 };
 use ui_state::UiState;
@@ -20,6 +20,7 @@ use unicode_normalization::UnicodeNormalization;
 use xxhash_rust::xxh3::xxh3_64;
 
 pub mod app_core;
+pub mod conf;
 pub mod database;
 pub mod key_handler;
 pub mod library;
@@ -29,6 +30,7 @@ pub mod player;
 pub mod tui;
 pub mod ui_state;
 
+pub use conf::UserConfig;
 pub use database::Database;
 pub use library::{Library, SimpleSong};
 pub use playback::PlaybackSession;
@@ -44,15 +46,25 @@ pub static FFMPEG_AVAILABLE: LazyLock<bool> = LazyLock::new(|| {
 
 pub type SongMap = IndexMap<u64, Arc<SimpleSong>, BuildNoHashHasher<u64>>;
 
-// ~120fps
-pub const REFRESH_RATE: Duration = Duration::from_millis(8);
-pub const MEDIA_TICK: u32 = 6;
-pub const DB_TICK: u32 = 75;
+pub static USER_CONFIG: OnceLock<UserConfig> = OnceLock::new();
+
+pub fn user_config() -> &'static UserConfig {
+    USER_CONFIG.get().expect("Failed to initialize user config")
+}
+
+static CONFIG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {
+    let path = dirs::config_dir()
+        .expect("Config folder not present on system!")
+        .join("noctavox");
+    fs::create_dir_all(&path).expect("Failed to create config directory");
+    path
+});
+
+pub static THEME_DIR: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("themes"));
+pub static DB_PATH: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("noctavox.db"));
+
 pub const HISTORY_CAPACITY: usize = 64;
 pub const TAP_BUFFER_CAPACITY: usize = 2048;
-pub const THEME_DIRECTORY: &'static str = "themes";
-pub const CONFIG_DIRECTORY: &'static str = "noctavox";
-pub const DATABASE_FILENAME: &'static str = "noctavox.db";
 
 /// Create a hash based on...
 ///  - date of last modification (millis)
