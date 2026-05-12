@@ -3,6 +3,9 @@
   rustPlatform,
   cmake,
   ffmpeg,
+  pkg-config,
+  dbus,
+  alsa-lib
 }:
 let
   cargoToml = (lib.importTOML ../Cargo.toml);
@@ -16,10 +19,13 @@ rustPlatform.buildRustPackage {
 
   nativeBuildInputs = [
     cmake
+    pkg-config
   ];
 
   buildInputs = [
     ffmpeg
+    dbus
+    alsa-lib
   ];
 
   meta = with lib; {
