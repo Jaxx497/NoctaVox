@@ -1,0 +1,40 @@
+[colors]
+surface_global      = "#1f1f28"
+surface_active      = "#2a2a37"
+surface_inactive    = "#16161d"
+surface_error       = "#ff5d62"
+
+text_primary        = "#dcd7ba"
+text_secondary      = "#ffa066"
+text_secondary_in   = "#a36842"
+text_selection      = "#1f1f28"
+text_muted          = "#727169"
+
+border_active       = "#d27e99"
+border_inactive     = "#363646"
+
+accent              = "#d27e99"
+accent_inactive     = "#8a526a"
+
+[borders]
+display             = false
+
+[progress]
+color               = ["#ff5d62", "#ffa066", "#e6c384", "#98bb6c", "#d27e99"]
+peed               = 6
+
+[progress.bar]
+color               = ["#d27e99", "#ffa066", "#e6c384"]
+symbol_played       = "▰"
+symbol_unplayed     = "▱"
+
+[progress.waveform]
+color_unplayed      = "still"
+speed               = 4
+
+[progress.spectrum]
+mirror              = true
+decay               = 0.9
+
+[extras]
+decorator           = "波"

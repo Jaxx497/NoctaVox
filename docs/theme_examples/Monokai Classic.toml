@@ -1,0 +1,34 @@
+[colors]
+surface_global      = "#272822"
+surface_active      = "#3E3D32"
+surface_inactive    = "#2C2B26"
+surface_error       = "#F92672"
+
+text_primary        = "#F8F8F2"
+text_secondary      = "#FD971F"
+text_secondary_in   = "#C57B13"
+text_selection      = "#272822"
+text_muted          = "#95917E"
+
+border_active       = "#A6E22E"
+border_inactive     = "#49483E"
+
+accent              = "#A6E22E"
+accent_inactive     = "#75715E"
+
+[borders]
+display             = false
+style               = "rounded"
+
+[progress]            
+elapsed             = [ "#F8F8F2",
+                        "#FD971F",
+                        "#C57B13" ]
+
+unplayed            = "still"
+
+waveform_style      = "block8"
+oscilloscope_style  = "blocky"
+
+[extras]
+decorator           = "󰓏"

@@ -68,7 +68,6 @@ pub static DB_PATH: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("noctav
 
 pub const ADDON_TRANSPOSE: &str = "nv-transpose";
 
-pub const HISTORY_CAPACITY: usize = 64;
 pub const TAP_BUFFER_CAPACITY: usize = 2048;
 
 /// Create a hash based on...

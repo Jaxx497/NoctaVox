@@ -44,9 +44,9 @@ cd noctavox
 cargo run --release 
 
 # Or install globally
-cargo install --path noctavox
+cargo install --path .
 
-# and run with the following command:
+# and run with the vox command:
 vox
 ```
 
@@ -68,26 +68,6 @@ to scan. Roots can be added or removed from this menu at anytime via the `` `
 
 See the complete [keymap documentation](./docs/keymaps.md) for much more
 
-## Config
-
-> **Note:** This feature is currently only for the Git version.
-
-NoctaVox allows for global configuration adjustments. This is still an
-in-progress feature. Default values are supplied if no config file is present
-or if a field is missing/invalid. To adjust the configurations, create a
-`config.toml` file inside of the `$CONFIG/noctavox/` directory.
-
-```toml
-framerate = 120     # accepts values between 20 and 300 
-                    # default: 60
-
-auto_resume = true  # if a track was playing when shutdown, resume playback on startup
-                    # default: false
-
-broadcast = false   # enable broadcast features for scrobbling/Discord rich presence
-                    # default: false
-```
-
 ## Theming
 
 ![themes.png](./docs/themes.png)
@@ -96,27 +76,45 @@ NoctaVox contains a simple and easy to learn theming engine. The most recent
 specification for custom theming can be found by refering to the [theme
 specification](./docs/themes.md). 
 
-A set of pre-made themes can be installed with the `install-theme` script. 
+A set of pre-made themes can be installed with the `get-themes` script. No
+clone required — the script fetches the latest themes directly from GitHub.
 
-##### Linux
+##### Linux / macOS
 ```bash
-# from the repo root
-chmod +x ./install-themes.sh
-./install-themes.sh
+curl -fsSL https://raw.githubusercontent.com/Jaxx497/NoctaVox/master/scripts/get-themes.sh | sh
 ```
 
 ##### Windows Powershell
-
 ```powershell
-# from the repo root
-./install-themes.ps1
+irm https://raw.githubusercontent.com/Jaxx497/NoctaVox/master/scripts/get-themes.ps1 | iex
 ``` 
+
+## Config
+
+NoctaVox allows for global configuration adjustments. This is an in-progress
+feature. Default values are supplied if no config file is present or if a field
+is missing/invalid. To adjust the configurations, create a `config.toml` file
+inside of the `$CONFIG/noctavox/` directory. 
+
+```toml
+framerate = 120         # accepts values from 20 to 360 
+                        # default: 60 | recommended: monitor hz
+
+history_capacity = 64   # accepts values from 0 to 1024
+                        # default: 64
+
+auto_resume = true      # if a track was playing when shutdown, resume playback on startup
+                        # default: false
+
+broadcast = false       # enable broadcast features for scrobbling/Discord rich presence
+                        # default: false
+```
 
 ## About
 
 Supported formats: `mp3`, `m4a`, `wav`, `flac`, `ogg`, `opus` \
 Container formats are **not** currently supported (e.g. `webm`, `mkv`) but they
-will be at some point.
+will be implemented following the upcoming Voxio rewrite.
 
 FFmpeg is an ***optional*** dependency which enables the waveform visualization
 functionality. Without ffmpeg, the functionality will simply fallback onto a
@@ -144,11 +142,54 @@ As of version 0.2.6, Voxio has been moved into its own repository, feel free
 to view it here: \
 https://github.com/Jaxx497/Voxio/
 
+## FAQ
+
+#### My library looks like a mess, what's going on?
+
+If your files are not tagged properly, they will not display properly within
+NoctaVox. Look into a tagging solution.
+
+#### Can I edit tags within NoctaVox?
+
+No. NoctaVox's philosophy is based on a read-only basis (outside of it's own
+database). Such a functionality may exist in the future, but only as an
+*opt-in* function.
+
+#### Does NoctaVox collect user information?
+
+No, NoctaVox does not collect, record, or broadcast user information. The
+project contains no online capabilities nor does it write to user files. The
+only information that noctavox collects is stored within a client-side SQLite
+database which can be found in the users `$CONFIG/noctavox` directory
+(`./config/noctavox` on Linux and `C:/Users/{User}AppData/Roaming/noctavox` on
+Windows)
+
+#### Can I import and/or export my existing playlists?
+
+Yes! Place the the `nv-transpose` executable from the
+[NoctaVox-Plugins](https://github.com/Jaxx497/NoctaVox-Plugins) repository into
+the `$CONFIG/noctavox/addons` folder and try running `vox --import-playlist` or
+`vox --export-playlist`
+
+#### Does Noctavox support scrobbling or Discord Rich Presence?
+
+There is no official functionality for either of these as of now. However, the
+database contains a view which would enable anyone to create their own system
+which broadcasts the necessary information. Connect to the `noctavox.db`
+database in `$CONFIG/noctavox` and use the `SELECT * FROM now_playing_v1` to
+access all relevant info. Info is updated on a per second basis. At some point,
+official addons will be published (hopefully).
+
+> **IMPORTANT:** Make sure to enable `broadcast = true` in the config.toml file
+
 ## Roadmap 
 
-- Playlist import/export functionality
 - ReWrite Voxio
-    - Enable container formats!
+    - Enable container formats
+    - Use symphonia 0.6
+    - Fix device switch crashes
+- Write Scrobbling Addon
+- Write Discord Rich Presence Addon
 
 ## Other
 

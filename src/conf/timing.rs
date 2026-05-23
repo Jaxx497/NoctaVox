@@ -1,5 +1,4 @@
 use std::{sync::OnceLock, time::Duration};
-
 pub static TIMING: OnceLock<Timing> = OnceLock::new();
 
 pub struct Timing {
@@ -10,7 +9,6 @@ pub struct Timing {
 
 impl Timing {
     pub fn from_fps(fps: u16) -> Self {
-        let fps = fps.clamp(20, 360);
         Self {
             refresh_rate: frame_period(fps),
             media_tick: ticks_per(48, fps),

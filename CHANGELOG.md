@@ -11,6 +11,8 @@
    - Auto-resume where last song left off [default: off]
  - Remembers what was playing on last shutdown
     - Do not auto-increment play_count
+ - More custom themes
+ - Better theme installation script
 
 ### Fixed:
  - `Q` binding restored in library view

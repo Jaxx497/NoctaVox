@@ -1,8 +1,9 @@
 use crate::{
-    DB_PATH, HISTORY_CAPACITY, SongMap,
+    DB_PATH, SongMap,
     database::schema::CREATE_SCHEMA,
     library::{LongSong, SimpleSong, SongInfo},
     ui_state::LibraryStats,
+    user_config,
 };
 use anyhow::Result;
 use queries::*;
@@ -363,7 +364,10 @@ impl Database {
                 params![song_id.to_le_bytes(), timestamp],
             )?;
 
-            tx.execute(HISTORY_CLEANUP, params![HISTORY_CAPACITY as u16])?;
+            tx.execute(
+                HISTORY_CLEANUP,
+                params![user_config().history_capacity as u16],
+            )?;
         }
 
         tx.commit()?;

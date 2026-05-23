@@ -1,0 +1,39 @@
+[colors]
+surface_global      = "#16161e"
+surface_active      = "#24283b"
+surface_inactive    = "#101018"
+surface_error       = "#ff5874"
+
+text_primary        = "#c0caf5"
+text_secondary      = "#ff7ac6"
+text_secondary_in   = "#a04f80"
+text_selection      = "#16161e"
+text_muted          = "#565f89"
+
+border_active       = "#c099ff"
+border_inactive     = "#2a2f4a"
+
+accent              = "#c099ff"
+accent_inactive     = "#7a5fb8"
+
+[borders]
+display             = false
+
+[progress]
+color               = ["#ff007c", "#ff7ac6", "#c099ff", "#7aa2f7", "#73daca", "#9ece6a", "#ff9e64"]
+speed               = 6
+
+[progress.bar]
+color               = ["#ff007c", "#c099ff", "#73daca"]
+symbol_played       = "▰"
+symbol_unplayed     = "▱"
+
+[progress.waveform]
+speed               = 4
+
+[progress.spectrum]
+mirror              = true
+decay               = 0.88
+
+[extras]
+decorator           = "✺"

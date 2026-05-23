@@ -1,0 +1,32 @@
+[colors]
+surface_inactive    = "#e8e8e8"
+surface_active      = "#f0f0f0"
+surface_global      = "#f0f0f0"
+surface_error       = "#d73a49"
+
+text_primary        = "#2d2d2d"
+text_secondary      = "#d73a49"
+text_secondary_in   = "#b31d28"
+text_selection      = "#e8e8e8"
+text_muted          = "#6a737d"
+
+accent              = "#0077ff"
+accent_inactive     = "#009cf5"
+
+border_active       = "#f0f0f0"
+border_inactive     = "#e8e8e8"
+    
+[progress] 
+color               = ["#0077ff", "#c8c8d1"]
+style               = "block8"
+
+[progress.spectrum]
+mirror              = true
+
+[borders]
+display             = false
+style         = "rounded"
+
+[extras]
+is_dark = false
+

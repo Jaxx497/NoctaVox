@@ -1,4 +1,5 @@
 use anyhow::Context;
+use serde::Deserialize;
 use std::fs;
 
 use crate::CONFIG_DIR;
@@ -6,8 +7,17 @@ use crate::CONFIG_DIR;
 #[derive(serde::Deserialize)]
 #[serde(default, deny_unknown_fields)]
 pub struct UserConfig {
-    #[serde(default = "defaults::framerate")]
+    #[serde(
+        default = "defaults::framerate",
+        deserialize_with = "deserialize_framerate"
+    )]
     pub framerate: u16,
+
+    #[serde(
+        default = "defaults::history",
+        deserialize_with = "deserialize_history"
+    )]
+    pub history_capacity: usize,
 
     #[serde(default = "defaults::auto_resume")]
     pub auto_resume: bool,
@@ -21,6 +31,10 @@ mod defaults {
         60
     }
 
+    pub fn history() -> usize {
+        64
+    }
+
     pub fn auto_resume() -> bool {
         false
     }
@@ -30,10 +44,19 @@ mod defaults {
     }
 }
 
+fn deserialize_framerate<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16, D::Error> {
+    u16::deserialize(d).map(|v| v.clamp(20, 360))
+}
+
+fn deserialize_history<'de, D: serde::Deserializer<'de>>(d: D) -> Result<usize, D::Error> {
+    usize::deserialize(d).map(|v| v.max(1024))
+}
+
 impl Default for UserConfig {
     fn default() -> Self {
         Self {
             framerate: defaults::framerate(),
+            history_capacity: defaults::history(),
             auto_resume: defaults::auto_resume(),
             broadcast: defaults::broadcast(),
         }

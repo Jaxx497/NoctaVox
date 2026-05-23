@@ -1,7 +1,8 @@
 use crate::{
-    Database, HISTORY_CAPACITY, SongMap,
+    Database, SongMap,
     library::SimpleSong,
     playback::{QueueDelta, ValidatedSong},
+    user_config,
 };
 use anyhow::Result;
 use rand::seq::SliceRandom;
@@ -22,7 +23,7 @@ impl PlaybackSession {
     pub fn init() -> Self {
         PlaybackSession {
             queue: VecDeque::new(),
-            history: VecDeque::with_capacity(HISTORY_CAPACITY),
+            history: VecDeque::with_capacity(user_config().history_capacity as usize),
             queue_ids: HashSet::new(),
             now_playing: None,
         }
@@ -171,7 +172,7 @@ impl PlaybackSession {
 
     pub fn push_history(&mut self, song: &Arc<SimpleSong>) {
         self.history.push_front(Arc::clone(song));
-        if self.history.len() > HISTORY_CAPACITY {
+        if self.history.len() > user_config().history_capacity {
             self.history.pop_back();
         }
     }
