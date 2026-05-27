@@ -1,4 +1,4 @@
-use crate::{ADDON_DIR, ADDON_TRANSPOSE};
+use crate::{ADDON_DIR, ADDON_TRANSPOSE, reset_noctavox};
 use anyhow::Result;
 use clap::{ArgGroup, Parser};
 use std::{path::PathBuf, process::Command};
@@ -11,7 +11,7 @@ use std::{path::PathBuf, process::Command};
 )]
 #[command(group(
       ArgGroup::new("mode")
-          .args(["import_playlist", "export_playlist", "list"]),
+          .args(["import_playlist", "export_playlist", "list", "reset"]),
   ))]
 
 struct Cli {
@@ -26,31 +26,69 @@ struct Cli {
     /// List playlists in the library
     #[arg(long)]
     list: bool,
+
+    /// Destroy database completely
+    #[arg(long)]
+    reset: bool,
 }
 
 pub fn parse_args() {
     let cli = Cli::parse();
 
-    let _ = if cli.import_playlist {
-        run_addon(ADDON_TRANSPOSE, &["--import"])
+    if cli.import_playlist {
+        let _ = run_addon(ADDON_TRANSPOSE, &["--import"]);
     } else if cli.export_playlist {
-        run_addon(ADDON_TRANSPOSE, &["--export"])
+        let _ = run_addon(ADDON_TRANSPOSE, &["--export"]);
     } else if cli.list {
-        run_addon(ADDON_TRANSPOSE, &["--list"])
+        let _ = run_addon(ADDON_TRANSPOSE, &["--list"]);
+    } else if cli.reset {
+        let _ = reset_noctavox();
     } else {
         return;
     };
 }
 
 fn addon_path(name: &str) -> PathBuf {
-    let filename = format!("{name}{}", std::env::consts::EXE_SUFFIX);
-    ADDON_DIR.join(filename)
+    if let Ok(entries) = std::fs::read_dir(&*ADDON_DIR) {
+        let mut matches: Vec<PathBuf> = entries
+            .filter_map(|e| e.ok())
+            .filter(|e| {
+                e.file_name()
+                    .to_str()
+                    .map(|s| s.starts_with(name))
+                    .unwrap_or(false)
+            })
+            .map(|e| e.path())
+            .collect();
+
+        match matches.len() {
+            1 => return matches.remove(0),
+            n if n > 1 => {
+                eprintln!(
+                    "Multiple matches for addon `{name}` in {}:",
+                    ADDON_DIR.display()
+                );
+                for m in &matches {
+                    eprintln!("  {}", m.display());
+                }
+                eprintln!("Keep only one, or rename the correct one to `{name}`.");
+                std::process::exit(1);
+            }
+            _ => {}
+        }
+    }
+
+    let exact = ADDON_DIR.join(format!("{name}{}", std::env::consts::EXE_SUFFIX));
+    exact
 }
 
 fn run_addon(name: &str, params: &[&str]) -> Result<i32> {
     let bin = addon_path(name);
     if !bin.exists() {
-        eprintln!("Addon `{name}` not found.\nExpected at: {}", bin.display());
+        eprintln!(
+            "Addon `{name}` not found.\nExpected addon in: {}/\n\nDownload `{name}` at https://github.com/Jaxx497/NoctaVox-Plugins/releases/latest/\n",
+            ADDON_DIR.display()
+        );
         std::process::exit(1)
     }
 

@@ -19,6 +19,9 @@ pub struct UserConfig {
     )]
     pub history_capacity: usize,
 
+    #[serde(default = "defaults::update_on_start")]
+    pub update_on_start: bool,
+
     #[serde(default = "defaults::auto_resume")]
     pub auto_resume: bool,
 
@@ -33,6 +36,10 @@ mod defaults {
 
     pub fn history() -> usize {
         64
+    }
+
+    pub fn update_on_start() -> bool {
+        true
     }
 
     pub fn auto_resume() -> bool {
@@ -57,6 +64,7 @@ impl Default for UserConfig {
         Self {
             framerate: defaults::framerate(),
             history_capacity: defaults::history(),
+            update_on_start: defaults::update_on_start(),
             auto_resume: defaults::auto_resume(),
             broadcast: defaults::broadcast(),
         }

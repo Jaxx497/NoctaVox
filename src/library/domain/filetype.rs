@@ -6,11 +6,11 @@ use std::fmt::Display;
 
 pub static LEGAL_EXTENSION: std::sync::LazyLock<std::collections::HashSet<&'static str>> =
     std::sync::LazyLock::new(|| {
-        std::collections::HashSet::from(["mp3", "m4a", "flac", "ogg", "wav", "opus"])
+        std::collections::HashSet::from(["mp3", "m4a", "flac", "ogg", "wav", "opus", "webm"])
     });
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Default, Eq, PartialEq, Copy, Clone, Hash)]
+#[derive(Default, Eq, PartialEq, Copy, Clone, Hash, Debug)]
 pub enum FileType {
     MP3 = 1,
     M4A = 2,
@@ -18,6 +18,7 @@ pub enum FileType {
     WAV = 4,
     FLAC = 5,
     OPUS = 6,
+    WEBM = 7,
     #[default]
     ERR = 0,
 }
@@ -31,7 +32,23 @@ impl From<&str> for FileType {
             "wav" => Self::WAV,
             "flac" => Self::FLAC,
             "opus" => Self::OPUS,
+            "webm" => Self::WEBM,
             _ => Self::ERR,
+        }
+    }
+}
+
+impl FileType {
+    pub fn to_str(&self) -> &str {
+        match self {
+            FileType::MP3 => "mp3",
+            FileType::M4A => "m4a",
+            FileType::OGG => "ogg",
+            FileType::WAV => "wav",
+            FileType::FLAC => "flac",
+            FileType::OPUS => "opus",
+            FileType::WEBM => "webm",
+            FileType::ERR => "ERR",
         }
     }
 }
@@ -60,6 +77,7 @@ impl Display for FileType {
             FileType::OPUS => write!(f, "ᵒᵖᵘˢ"),
             FileType::WAV => write!(f, "ʷᵃᵛ"),
             FileType::FLAC => write!(f, "ᶠˡᵃᶜ"),
+            FileType::WEBM => write!(f, "ʷᵉᵇᵐ"),
             FileType::ERR => write!(f, "ERR"),
         }
     }
@@ -74,6 +92,7 @@ impl FileType {
             4 => Self::WAV,
             5 => Self::FLAC,
             6 => Self::OPUS,
+            7 => Self::WEBM,
             _ => Self::ERR,
         }
     }

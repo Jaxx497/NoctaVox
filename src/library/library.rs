@@ -186,7 +186,8 @@ impl Library {
     fn process_songs(paths: Vec<PathBuf>) -> Vec<LongSong> {
         paths
             .into_par_iter()
-            .filter_map(|path| LongSong::build_song_lofty(&path).ok())
+            .filter_map(|path| LongSong::build_song_symphonia(&path).ok())
+            // .filter_map(|path| LongSong::build_song_lofty(&path).ok())
             .collect::<Vec<LongSong>>()
     }
 
@@ -212,7 +213,7 @@ impl Library {
         Ok(())
     }
 
-    fn collect_songs(&mut self) -> Result<()> {
+    pub fn collect_songs(&mut self) -> Result<()> {
         self.songs = self.db.get_all_songs()?;
         Ok(())
     }
@@ -225,7 +226,7 @@ impl Library {
         self.songs.get(&id)
     }
 
-    fn build_albums(&mut self) -> Result<()> {
+    pub fn build_albums(&mut self) -> Result<()> {
         let aa_cache = self.db.get_album_map()?;
         self.albums = IndexMap::with_capacity(aa_cache.len());
 
@@ -409,7 +410,8 @@ impl Library {
         let songs: Vec<LongSong> = new_files
             .into_par_iter()
             .filter_map(|path| {
-                let result = LongSong::build_song_lofty(&path).ok();
+                // let result = LongSong::build_song_lofty(&path).ok();
+                let result = LongSong::build_song_symphonia(&path).ok();
 
                 let count = processed.fetch_add(1, Ordering::Relaxed) + 1;
 

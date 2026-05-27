@@ -27,10 +27,6 @@ impl StatefulWidget for UserStats {
         let stats = state.get_lib_stats();
         let most_played = state.get_most_played().to_vec();
 
-        if most_played.is_empty() {
-            return;
-        }
-
         let bg = match state.get_layout() {
             LayoutStyle::Traditional => theme.bg,
             LayoutStyle::Minimal => theme.bg_global,
@@ -70,7 +66,6 @@ impl StatefulWidget for UserStats {
 
         let library_stats = library_column(stats, theme);
         let playback_stats = listening_column(stats, theme);
-        let most_played_vec = get_most_played(most_played, theme, &area);
 
         let horiz_padding = area.width / 10;
 
@@ -91,15 +86,18 @@ impl StatefulWidget for UserStats {
             .centered()
             .render(top_play_title, buf);
 
-        Paragraph::new(most_played_vec)
-            .block(Block::default().padding(Padding {
-                left: horiz_padding,
-                right: horiz_padding,
-                top: 1,
-                bottom: 3,
-            }))
-            .centered()
-            .render(top_played_buf, buf);
+        if !most_played.is_empty() {
+            let most_played_vec = get_most_played(&most_played, theme, &area);
+            Paragraph::new(most_played_vec)
+                .block(Block::default().padding(Padding {
+                    left: horiz_padding,
+                    right: horiz_padding,
+                    top: 1,
+                    bottom: 3,
+                }))
+                .centered()
+                .render(top_played_buf, buf);
+        }
     }
 }
 
@@ -141,7 +139,7 @@ fn stat_line_right(value: String, label: &str, theme: &DisplayTheme) -> Line<'st
 }
 
 fn get_most_played(
-    most_played: Vec<(Arc<SimpleSong>, u16)>,
+    most_played: &[(Arc<SimpleSong>, u16)],
     theme: &DisplayTheme,
     area: &Rect,
 ) -> Vec<Line<'static>> {

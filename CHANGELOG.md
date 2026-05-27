@@ -1,34 +1,55 @@
 # CHANGELOG
 
-## Current Development
+## Current Development Changes
+
+### BREAKING CHANGES:
+ - Metadata backend rewrote with symphonia instead of lofty
 
 ### Added:
+ - Experimental webm support! 
  - Addon support!
    - Playlist import/export
-   - Now playing db view
- - User Configurations!
+   - Now_playing database view
+ - CLI Flags
+   - no flag launches NoctaVox
+   - import (if nv-transpose is installed)
+   - export (if nv-transpose is installed)
+   - list (if nv-transpose is installed)
+   - reset (Deletes database completely)
+ - New User Configuration System
    - Control framerate [default: 60fps] `20 <= FR <= 360`
+   - Set custom history size
+   - Flag to update on startup
    - Auto-resume where last song left off [default: off]
+   - Broadcast functionality 
  - Remembers what was playing on last shutdown
     - Do not auto-increment play_count
- - More custom themes
- - Better theme installation script
+ - Added several custom themes to the [theme examples folder]( ./docs/theme_examples/ )
+ - Improved theme installation script
 
 ### Fixed:
- - `Q` binding restored in library view
+ - **[BREAKING?]** Reworked metadata reading pipeline
+   - This won't *really* affect anyone but the logic may lead to different
+     readings than before on library scans. 
+ - `Q` binding restored 
  - Keybinds are more consistent cross-platform
  - Reworked internal timing system
  - Reworked history tracking
     - Fixed bug where songs conditionally wouldn't be added to history
  - Better error handling when Voxio backend fails to start
  - Better error handling when database is corrupt
- - [minimal mode] no longer crashes when terminal height < 3 
- - [minimal mode] stats window matches theme bg
- - [minimal mode] tracklist duration styling normalized 
- - Better pause/play logic, should enhance media control usability
+ - **[minimal mode]** no longer crashes when terminal height < 3 
+ - **[minimal mode]** stats window matches theme bg
+ - **[minimal mode]** tracklist duration styling normalized 
+ - Stats panel won't crash if 0 songs have been played
+ - Better toggle playback logic, should enhance media control usability
+ - No more hanging threads on shutdown 
+   - Fixes hangs on linux systems
 
 ### Other: 
  - Added config documentation to [README](./README.md) 
+ - Added FAQ section to [README](./README.md)
+ - Added new testing profiles
 
 ## [0.2.7] Polished Minimal Mode + Many Bug Fixes 
 

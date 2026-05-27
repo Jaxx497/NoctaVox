@@ -1,11 +1,11 @@
 use crate::{
-    conf::timing,
+    config::timing,
     player::{
         PlaybackMetrics, PlaybackState, PlayerBackend, PlayerCommand, PlayerEvent,
         track::NoctavoxTrack,
     },
 };
-use crossbeam::channel::{Receiver, Sender};
+use crossbeam::channel::{Receiver, Sender, TryRecvError};
 use std::{
     sync::Arc,
     thread::{self, JoinHandle},
@@ -46,6 +46,9 @@ impl PlayerCore {
     fn run(&mut self) {
         self.metrics.set_sample_rate(self.backend.sample_rate());
         loop {
+            if !self.process_commands() {
+                break;
+            }
             self.process_commands();
             self.check_track_end();
             self.update_metrics();
@@ -53,19 +56,23 @@ impl PlayerCore {
         }
     }
 
-    fn process_commands(&mut self) {
-        while let Ok(cmd) = self.commands.try_recv() {
-            match cmd {
-                PlayerCommand::Play(s) => self.play_song(s),
-                PlayerCommand::SetNext(s) => self.set_next(s),
-                PlayerCommand::ClearNext => self.clear_next(),
-                PlayerCommand::TogglePlayback => self.toggle_playback(),
-                PlayerCommand::Resume => self.resume(),
-                PlayerCommand::Pause => self.pause(),
-                PlayerCommand::Stop => self.stop(),
-                PlayerCommand::SeekTo(x) => self.seek_to(x),
-                PlayerCommand::SeekForward(x) => self.seek_forward(x),
-                PlayerCommand::SeekBack(x) => self.seek_back(x),
+    fn process_commands(&mut self) -> bool {
+        loop {
+            match self.commands.try_recv() {
+                Ok(cmd) => match cmd {
+                    PlayerCommand::Play(s) => self.play_song(s),
+                    PlayerCommand::SetNext(s) => self.set_next(s),
+                    PlayerCommand::ClearNext => self.clear_next(),
+                    PlayerCommand::TogglePlayback => self.toggle_playback(),
+                    PlayerCommand::Resume => self.resume(),
+                    PlayerCommand::Pause => self.pause(),
+                    PlayerCommand::Stop => self.stop(),
+                    PlayerCommand::SeekTo(x) => self.seek_to(x),
+                    PlayerCommand::SeekForward(x) => self.seek_forward(x),
+                    PlayerCommand::SeekBack(x) => self.seek_back(x),
+                },
+                Err(TryRecvError::Empty) => return true,
+                Err(TryRecvError::Disconnected) => return false,
             }
         }
     }

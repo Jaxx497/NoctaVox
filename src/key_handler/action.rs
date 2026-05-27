@@ -1,5 +1,5 @@
 use crate::{
-    conf::timing,
+    config::timing,
     key_handler::{key_buffer::KeyBuffer, *},
     ui_state::{
         LibraryView, Mode, Pane, PlaylistAction, PopupType, ProgressDisplay, SettingsMode, UiState,

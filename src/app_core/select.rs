@@ -2,7 +2,7 @@ use crossbeam::channel::{Receiver, select};
 use ratatui::crossterm::event::KeyEvent;
 use souvlaki::{MediaControlEvent, SeekDirection};
 
-use crate::{app_core::NoctaVox, conf::timing, key_handler, user_config};
+use crate::{app_core::NoctaVox, config::timing, key_handler, user_config};
 
 impl NoctaVox {
     #[inline]

@@ -1,4 +1,3 @@
-// use clap::{ArgGroup, Parser};
 use noctavox::addons::parse_args;
 
 fn main() {
@@ -7,7 +6,10 @@ fn main() {
     if std::env::args().len() == 1 {
         match noctavox::app_core::NoctaVox::new() {
             Ok(mut app) => app.run(),
-            Err(e) => eprintln!("{e}"),
+            Err(e) => {
+                eprintln!("{e}");
+                std::process::exit(1)
+            }
         }
         return;
     }

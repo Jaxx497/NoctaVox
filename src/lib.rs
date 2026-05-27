@@ -9,7 +9,7 @@ use ratatui::crossterm::{
 };
 use std::{
     fs,
-    io::Write,
+    io::{self, Write},
     path::{Path, PathBuf},
     process::{self, Command},
     sync::{Arc, LazyLock, OnceLock},
@@ -21,7 +21,7 @@ use xxhash_rust::xxh3::xxh3_64;
 
 pub mod addons;
 pub mod app_core;
-pub mod conf;
+pub mod config;
 pub mod database;
 pub mod key_handler;
 pub mod library;
@@ -32,7 +32,7 @@ pub mod tui;
 pub mod ui_state;
 
 pub use addons::parse_args;
-pub use conf::UserConfig;
+pub use config::UserConfig;
 pub use database::Database;
 pub use library::{Library, SimpleSong};
 pub use playback::PlaybackSession;
@@ -67,8 +67,25 @@ pub static ADDON_DIR: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("addo
 pub static DB_PATH: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("noctavox.db"));
 
 pub const ADDON_TRANSPOSE: &str = "nv-transpose";
-
 pub const TAP_BUFFER_CAPACITY: usize = 2048;
+
+pub fn reset_noctavox() -> anyhow::Result<()> {
+    print!("If you want to erase the database, type RESET: ");
+
+    io::stdout().flush().unwrap();
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+
+    if matches!(input.trim(), "RESET") {
+        std::fs::remove_file(&*DB_PATH)?;
+        println!("Database deleted. NoctaVox reset complete")
+    } else {
+        println!("Reset aborted")
+    }
+
+    Ok(())
+}
 
 /// Create a hash based on...
 ///  - date of last modification (millis)
@@ -172,7 +189,7 @@ pub fn normalize_metadata_str(s: &str) -> String {
             _ => true,
         })
         .collect::<String>()
-        .trim() // Only once!
+        .trim()
         .to_string()
 }
 

@@ -16,6 +16,7 @@ terminal workflows.**
 - Gapless playback
 - Queue support
 - Playlist management
+- Import/Export Playlists
 - Multi-format audio ```mp3, m4a, wav, flac, ogg, opus```
 - Live library reloading
 - Custom theming with hot reload
@@ -97,18 +98,41 @@ is missing/invalid. To adjust the configurations, create a `config.toml` file
 inside of the `$CONFIG/noctavox/` directory. 
 
 ```toml
-framerate = 120         # accepts values from 20 to 360 
+framerate = 120         # INTEGER | accepts values from 20 to 360 
                         # default: 60 | recommended: monitor hz
 
-history_capacity = 64   # accepts values from 0 to 1024
+history_capacity = 64   # INTEGER | accepts values from 0 to 1024
                         # default: 64
 
-auto_resume = true      # if a track was playing when shutdown, resume playback on startup
+update_on_start = true  # BOOLEAN | auto-update library NoctaVox fires up
+                        # default: true
+
+auto_resume = false     # BOOLEAN | if a track was playing when shutdown, resume playback on startup
                         # default: false
 
-broadcast = false       # enable broadcast features for scrobbling/Discord rich presence
+broadcast = false       # BOOLEAN | enable broadcast features for scrobbling/Discord rich presence addons
                         # default: false
+
 ```
+
+## Addons
+
+NoctaVox now supports addons. Official addons can be found in the
+[NoctaVox-Plugins](https://github.com/Jaxx497/NoctaVox-Plugins) repository.
+
+Currently, the only official addon is the *Transpose* addon which enables users
+to import/export playlists. Once installed, users can invoke the import/export
+behavior with the CLI flags:
+
+```bash
+vox --import-playlist
+vox --export-playlist
+vox --list
+```
+
+Installation is simple, drop the addon binary inside of the
+`$CONFIG/noctavox/addons` folder.
+
 
 ## About
 
@@ -144,10 +168,17 @@ https://github.com/Jaxx497/Voxio/
 
 ## FAQ
 
-#### My library looks like a mess, what's going on?
+#### My library appears as a total mess, what's going on?
 
 If your files are not tagged properly, they will not display properly within
-NoctaVox. Look into a tagging solution.
+NoctaVox. Look into a tagging solution like beets or Mp3Tag.
+
+#### I'm having problems seeking/seeing duration/reading metadata. Why?
+
+1. Is it a webm file? WEBM files are still extremely unstable, refrain from any
+   bug reporting on WEBM files until further notice.
+
+2. If not a webm, verify that your problems do not persist in other software. 
 
 #### Can I edit tags within NoctaVox?
 

@@ -1,7 +1,7 @@
 use crate::{
     Library, USER_CONFIG, UserConfig,
     app_core::{NoctaVox, key_loop},
-    conf::{TIMING, Timing},
+    config::{TIMING, Timing},
     key_handler::KeyBuffer,
     overwrite_line,
     player::{NoctavoxTrack, PlayerHandle},
@@ -19,7 +19,15 @@ impl NoctaVox {
 
         let lib = Arc::new({
             let mut l = Library::init()?;
-            l.build_library()?;
+
+            match user_config().update_on_start {
+                true => l.build_library()?,
+                false => {
+                    l.collect_songs()?;
+                    l.build_albums()?;
+                }
+            }
+
             l
         });
 
@@ -70,8 +78,8 @@ impl NoctaVox {
                 if self.ui.get_mode() == Mode::QUIT {
                     self.ui.update_now_playing_elapsed();
                     self.player.stop()?;
-                    if let Some(mc) = self.media_controls.as_mut() {
-                        mc.set_stopped();
+                    if let Some(mc) = self.media_controls.take() {
+                        std::thread::spawn(move || drop(mc));
                     }
                     break;
                 }

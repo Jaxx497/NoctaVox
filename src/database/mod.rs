@@ -433,7 +433,7 @@ impl Database {
             let max_year: u32 = row.get("max_year")?;
             let total_playlists: u32 = row.get("playlists")?;
             let unique_plays: u32 = row.get("unique_plays")?;
-            let total_plays: u32 = row.get("total_plays")?;
+            let total_plays: u32 = row.get("total_plays").unwrap_or(0);
             let play_percentage: f32 = row.get("play_percentage")?;
             let total_duration: f32 = row.get("total_duration")?;
 
