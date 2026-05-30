@@ -4,6 +4,7 @@ use crate::{
     normalize_metadata_str as nms,
 };
 use anyhow::{Result, anyhow, bail};
+
 use symphonia::{
     core::{
         formats::{TrackType, probe::Hint},
@@ -35,7 +36,7 @@ pub struct LongSong {
     pub(crate) disc_no: Option<u32>,
     pub(crate) duration: Duration,
     pub(crate) channels: Option<u8>,
-    pub(crate) bit_rate: Option<u32>,
+    pub(crate) bitrate: Option<u32>,
     pub(crate) sample_rate: Option<u32>,
     pub(crate) filetype: FileType,
     pub(crate) path: PathBuf,
@@ -52,7 +53,6 @@ impl LongSong {
     pub fn build_song_symphonia(path: PathBuf) -> Result<LongSong> {
         let src = File::open(&path)?;
 
-        let size = src.metadata()?.len();
         let mss = MediaSourceStream::new(Box::new(src), Default::default());
         let mut hint = Hint::new();
 
@@ -109,10 +109,6 @@ impl LongSong {
         song_info.sample_rate = sample_rate;
 
         song_info.duration = duration;
-        song_info.bit_rate = (duration > Duration::ZERO)
-            .then(|| (size as f64 * 8.0 / duration.as_secs_f64()) as u32);
-
-        let mut metadata = probed.metadata();
 
         let mut release_year = None;
         let mut recording_year = None;
@@ -120,6 +116,7 @@ impl LongSong {
         let mut artist: Option<(u8, Arc<String>)> = None;
         let mut alb_art: Option<(u8, Arc<String>)> = None;
 
+        let mut metadata = probed.metadata();
         loop {
             if let Some(md) = metadata.current() {
                 for tag in &md.media.tags {

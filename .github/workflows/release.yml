@@ -29,7 +29,7 @@ jobs:
             name: linux-arm64
             archive: tar.gz
           - target: x86_64-apple-darwin
-            runner: macos-13
+            runner: macos-latest
             name: macos-x64
             archive: tar.gz
           - target: aarch64-apple-darwin

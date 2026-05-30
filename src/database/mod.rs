@@ -122,7 +122,7 @@ impl Database {
                     &song.disc_no,
                     &song.duration.as_secs_f32(),
                     &song.channels,
-                    &song.bit_rate,
+                    &song.bitrate,
                     &song.sample_rate,
                     &song.filetype
                 ])?;

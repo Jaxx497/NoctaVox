@@ -213,6 +213,11 @@ official addons will be published (hopefully).
 
 > **IMPORTANT:** Make sure to enable `broadcast = true` in the config.toml file
 
+#### NoctaVox crashed and now it won't launch. What should I do?
+
+`vox --reset` will destroy the existing database and internal configurations.
+If this doesn't fix the issues, file a bug report!
+
 ## Roadmap 
 
 - ReWrite Voxio

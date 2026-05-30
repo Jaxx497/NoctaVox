@@ -1,12 +1,17 @@
 # CHANGELOG
 
-## Current Development Changes
+## [0.2.8] Addons & Config Added
+
+> #### 2026-05-30
 
 ### BREAKING CHANGES:
  - Metadata backend rewrote with symphonia instead of lofty
+ - Bitrate no longer recorded
+   - Still in database to avoid totally breaking existing configs
 
 ### Added:
  - Experimental webm support! 
+   - Bumped voxio to 0.1.5 for partial webm seek support
  - Addon support!
    - Playlist import/export
    - Now_playing database view
@@ -29,6 +34,7 @@
 
 ### Fixed:
  - **[BREAKING?]** Reworked metadata reading pipeline
+   - Replaced lofty with symphonia
    - This won't *really* affect anyone but the logic may lead to different
      readings than before on library scans. 
  - `Q` binding restored 
@@ -36,8 +42,8 @@
  - Reworked internal timing system
  - Reworked history tracking
     - Fixed bug where songs conditionally wouldn't be added to history
+    - Better error handling when database is corrupt
  - Better error handling when Voxio backend fails to start
- - Better error handling when database is corrupt
  - **[minimal mode]** no longer crashes when terminal height < 3 
  - **[minimal mode]** stats window matches theme bg
  - **[minimal mode]** tracklist duration styling normalized 
