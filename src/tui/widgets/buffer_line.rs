@@ -1,7 +1,7 @@
 use crate::{
     library::SongInfo,
     truncate_at_last_space,
-    tui::widgets::{PAUSE_ICON, QUEUE_ICON},
+    tui::widgets::{PAUSE_ICON, QUEUE_ICON, REPEAT_ICON},
     ui_state::{DisplayTheme, UiState},
 };
 use ratatui::{
@@ -63,7 +63,10 @@ const MIN_ARTIST_LEN: usize = 15;
 
 fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<Line<'static>> {
     let song = state.get_now_playing()?;
-    let decorator = &state.get_decorator();
+    let decorator = match state.playback.repeat_is_enabled() {
+        true => REPEAT_ICON,
+        false => &state.get_decorator(),
+    };
 
     let separator = match state.is_paused() {
         true => Span::from(format!(" {PAUSE_ICON} "))

@@ -73,6 +73,11 @@ impl PlayerBackend for VoxEngine {
         Ok(())
     }
 
+    fn clear_next(&mut self) -> Result<()> {
+        self.engine.clear_next()?;
+        Ok(())
+    }
+
     fn drain_samples(&mut self) -> Vec<f32> {
         self.engine.get_latest_samples(TAP_BUFFER_CAPACITY)
     }

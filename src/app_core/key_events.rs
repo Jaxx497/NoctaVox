@@ -51,6 +51,8 @@ impl NoctaVox {
             Action::AddToPlaylist   => self.ui.add_to_playlist_popup(),
             Action::AddToPlaylistConfirm => self.ui.add_to_playlist()?,
 
+            Action::ToggleRepeat => self.toggle_repeat()?,
+
             Action::ShuffleElements => self.shuffle_queue(),
 
             Action::MultiSelect(x)   => self.ui.toggle_multi_selection(x)?,

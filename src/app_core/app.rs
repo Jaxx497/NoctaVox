@@ -4,7 +4,7 @@ use crate::{
     config::{TIMING, Timing},
     key_handler::KeyBuffer,
     overwrite_line,
-    player::{NoctavoxTrack, PlayerHandle},
+    player::{PlayerHandle, VoxioTrack},
     tui,
     ui_state::{Mode, PopupType, SettingsMode, UiState},
     user_config,
@@ -129,7 +129,7 @@ impl NoctaVox {
     fn restore_last_played(&mut self) -> Result<()> {
         if let Ok((song_id, elapsed_secs)) = self.ui.restore_last_played() {
             if let Some(song) = self.library.get_song_by_id(song_id) {
-                let song = NoctavoxTrack::try_from(song.as_ref())?;
+                let song = VoxioTrack::try_from(song.as_ref())?;
 
                 self.restored_song_id = Some(song_id);
                 self.player.play(song)?;

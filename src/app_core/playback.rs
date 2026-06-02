@@ -1,9 +1,9 @@
 use crate::{
     app_core::NoctaVox,
     key_handler::{Director, Incrementor, SelectionType},
-    library::{SimpleSong, SongInfo},
+    library::{SimpleSong, SongDatabase, SongInfo},
     playback::{QueueDelta, ValidatedSong},
-    player::NoctavoxTrack,
+    player::VoxioTrack,
     ui_state::{LibraryView, Mode},
 };
 use anyhow::Result;
@@ -168,15 +168,41 @@ impl NoctaVox {
             .ui
             .playback
             .peek_queue_validated()
-            .map(|s| NoctavoxTrack::from(s.as_ref()));
+            .map(|s| VoxioTrack::from(s.as_ref()));
         let _ = self.player.set_next(next);
+        Ok(())
+    }
+
+    pub fn toggle_repeat(&mut self) -> Result<()> {
+        match self.ui.playback.repeat_is_enabled() {
+            true => self.disable_repeat(),
+            false => self.enable_repeat(),
+        }
+    }
+
+    pub fn disable_repeat(&mut self) -> Result<()> {
+        self.ui.playback.set_repeat(false);
+        self.force_sync()
+    }
+
+    pub fn enable_repeat(&mut self) -> Result<()> {
+        self.ui.playback.set_repeat(true);
+        if let Some(np) = self.ui.playback.get_now_playing() {
+            let _ = self
+                .player
+                .set_next(Some(VoxioTrack::new(np.get_id(), np.get_path()?)));
+        }
+
         Ok(())
     }
 
     /// Ensure that player's up_next value is always synced
     pub fn sync_player(&self, delta: &QueueDelta) {
+        if self.ui.playback.repeat_is_enabled() {
+            return;
+        }
         if let QueueDelta::HeadChanged { curr, .. } = delta {
-            let next = curr.as_ref().map(|s| NoctavoxTrack::new(s.id(), s.path()));
+            let next = curr.as_ref().map(|s| VoxioTrack::new(s.id(), s.path()));
             let _ = self.player.set_next(next);
         }
     }

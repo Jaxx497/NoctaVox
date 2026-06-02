@@ -26,6 +26,8 @@ pub(super) trait PlayerBackend: Send + 'static {
         Ok(()) // silently succeed if not supported
     }
 
+    fn clear_next(&mut self) -> Result<()>;
+
     fn drain_samples(&mut self) -> Vec<f32> {
         Vec::new()
     }

@@ -30,7 +30,7 @@ toml = "1.0.3"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
-voxio = "0.1.5"
+voxio = "0.1.6"
 souvlaki = "0.7"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 

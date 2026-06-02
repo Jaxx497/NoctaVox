@@ -68,6 +68,7 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (C, Char('t')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
             (C, Char('q')) => Some(Action::ChangeMode(Mode::Queue)),
             (C, Char('z')) => Some(Action::ChangeMode(Mode::Power)),
+            (C, Char('r')) => Some(Action::ToggleRepeat),
 
             (_, Char('`') | Char('~')) => Some(Action::ViewSettings),
             (X, Char(' ')) => Some(Action::TogglePlayback),

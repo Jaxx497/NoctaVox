@@ -6,13 +6,13 @@ use crate::{
     key_handler::SelectionType,
     library::{SimpleSong, SongDatabase, SongInfo},
     playback::ValidatedSong,
-    player::{NoctavoxTrack, PlaybackState, PlayerEvent},
+    player::{PlaybackState, PlayerEvent, VoxioTrack},
     ui_state::{LibraryView, Mode},
 };
 
 impl NoctaVox {
     pub(crate) fn play_song(&mut self, song: &ValidatedSong) -> Result<()> {
-        let song = NoctavoxTrack::from(song);
+        let song = VoxioTrack::from(song);
         self.player.play(song)
     }
 
@@ -119,31 +119,41 @@ impl NoctaVox {
 
     pub(super) fn handle_player_events(&mut self, event: PlayerEvent) -> Result<()> {
         match event {
-            PlayerEvent::TrackStarted((this_song, was_gapless)) => {
-                let return_id = this_song.id();
+            PlayerEvent::TrackStarted((prev_song, was_gapless)) => {
+                let last_played_id = prev_song.id();
+                let is_repeat = self.ui.playback.repeat_is_enabled();
 
-                if was_gapless {
+                if was_gapless && !is_repeat {
                     self.advance_to_next_gapless();
                 }
-                let song = self.library.get_song_by_id(return_id).cloned();
+
+                let song = self.library.get_song_by_id(last_played_id).cloned();
                 self.ui.set_now_playing(song);
 
-                let is_restore = self.restored_song_id.take() == Some(return_id);
-                if let Some(song) = self.library.get_song_by_id(return_id).cloned() {
+                if is_repeat {
+                    self.player.set_next(Some(prev_song.clone()))?;
+                }
+
+                let is_restore = self.restored_song_id.take() == Some(last_played_id);
+                if let Some(song) = self.library.get_song_by_id(last_played_id).cloned() {
                     if !is_restore {
                         song.update_play_count()?;
                     }
-                    self.ui.clear_waveform();
-                    self.ui.request_waveform(&song);
 
-                    if let Some(mc) = self.media_controls.as_mut() {
-                        mc.update_metadata(
-                            song.get_title(),
-                            song.get_artist(),
-                            song.get_album(),
-                            song.get_duration(),
-                        );
-                        mc.set_playing(Duration::ZERO);
+                    // Update if not on repeat and not gapless
+                    if !(is_repeat && was_gapless) {
+                        self.ui.clear_waveform();
+                        self.ui.request_waveform(&song);
+
+                        if let Some(mc) = self.media_controls.as_mut() {
+                            mc.update_metadata(
+                                song.get_title(),
+                                song.get_artist(),
+                                song.get_album(),
+                                song.get_duration(),
+                            );
+                            mc.set_playing(Duration::ZERO);
+                        }
                     }
                 }
 

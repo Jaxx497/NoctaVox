@@ -5,22 +5,21 @@ mod handle;
 mod metrics;
 mod track;
 
-pub use crate::player::track::NoctavoxTrack;
+pub use crate::player::track::VoxioTrack;
 use backend::PlayerBackend;
 pub use handle::PlayerHandle;
 pub use metrics::PlaybackMetrics;
 
 pub enum PlayerEvent {
-    TrackStarted((NoctavoxTrack, bool)),
+    TrackStarted((VoxioTrack, bool)),
     StateChanged(PlaybackState),
     PlaybackStopped,
     Error(String),
 }
 
 pub enum PlayerCommand {
-    Play(NoctavoxTrack),
-    SetNext(Option<NoctavoxTrack>),
-    ClearNext,
+    Play(VoxioTrack),
+    SetNext(Option<VoxioTrack>),
     TogglePlayback,
     Resume,
     Pause,

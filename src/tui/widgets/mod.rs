@@ -20,6 +20,7 @@ pub use song_window::SongTable;
 const PAUSE_ICON: &str = "󰏤";
 const SELECTOR: &str = "⮞  ";
 const QUEUE_ICON: &str = "󰐑";
+const REPEAT_ICON: &str = "";
 const MUSIC_NOTE: &str = "♫";
 const QUEUED: &str = "";
 const SELECTED: &str = "󱕣";

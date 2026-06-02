@@ -3,7 +3,7 @@ use crossbeam::channel::{Receiver, Sender};
 use std::{sync::Arc, time::Duration};
 
 use crate::player::{
-    NoctavoxTrack, PlaybackState, PlayerCommand, PlayerEvent, backend_voxio::VoxEngine,
+    PlaybackState, PlayerCommand, PlayerEvent, VoxioTrack, backend_voxio::VoxEngine,
     core::PlayerCore, metrics::PlaybackMetrics,
 };
 
@@ -39,18 +39,13 @@ impl PlayerHandle {
 //    COMMAND HANDLER
 // =====================
 impl PlayerHandle {
-    pub fn play(&self, song: NoctavoxTrack) -> Result<()> {
+    pub fn play(&self, song: VoxioTrack) -> Result<()> {
         self.commands.send(PlayerCommand::Play(song))?;
         Ok(())
     }
 
-    pub fn set_next(&self, song: Option<NoctavoxTrack>) -> Result<()> {
+    pub fn set_next(&self, song: Option<VoxioTrack>) -> Result<()> {
         self.commands.send(PlayerCommand::SetNext(song))?;
-        Ok(())
-    }
-
-    pub fn clear_next(&self) -> Result<()> {
-        self.commands.send(PlayerCommand::ClearNext)?;
         Ok(())
     }
 

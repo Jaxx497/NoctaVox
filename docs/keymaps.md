@@ -36,6 +36,7 @@ with the exception of searching as not to affect a user's search query.
 | Oscilloscope View | `O` |
 | Spectrum-Analyzer View | `S` |
 | Waveform View | `W` |
+| Toggle Repeat Song | `Ctrl` + `r` |
 
 #### General
 | Action      | Keymap |

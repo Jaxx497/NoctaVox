@@ -49,6 +49,8 @@ pub enum Action {
     },
     RemoveSong,
 
+    ToggleRepeat,
+
     AddToPlaylist,
     AddToPlaylistConfirm,
 

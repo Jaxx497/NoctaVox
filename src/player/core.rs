@@ -2,7 +2,7 @@ use crate::{
     config::timing,
     player::{
         PlaybackMetrics, PlaybackState, PlayerBackend, PlayerCommand, PlayerEvent,
-        track::NoctavoxTrack,
+        track::VoxioTrack,
     },
 };
 use crossbeam::channel::{Receiver, Sender, TryRecvError};
@@ -17,8 +17,8 @@ pub struct PlayerCore {
     events: Sender<PlayerEvent>,
     metrics: Arc<PlaybackMetrics>,
 
-    current: Option<NoctavoxTrack>,
-    next: Option<NoctavoxTrack>,
+    current: Option<VoxioTrack>,
+    next: Option<VoxioTrack>,
 }
 
 impl PlayerCore {
@@ -62,7 +62,6 @@ impl PlayerCore {
                 Ok(cmd) => match cmd {
                     PlayerCommand::Play(s) => self.play_song(s),
                     PlayerCommand::SetNext(s) => self.set_next(s),
-                    PlayerCommand::ClearNext => self.clear_next(),
                     PlayerCommand::TogglePlayback => self.toggle_playback(),
                     PlayerCommand::Resume => self.resume(),
                     PlayerCommand::Pause => self.pause(),
@@ -110,7 +109,7 @@ impl PlayerCore {
         }
     }
 
-    fn play_song(&mut self, song: NoctavoxTrack) {
+    fn play_song(&mut self, song: VoxioTrack) {
         if let Err(e) = self.backend.play(&song.path()) {
             self.emit(PlayerEvent::Error(e.to_string()));
             return;
@@ -122,21 +121,18 @@ impl PlayerCore {
         self.emit(PlayerEvent::TrackStarted((song, false)));
     }
 
-    fn set_next(&mut self, next: Option<NoctavoxTrack>) {
+    fn set_next(&mut self, next: Option<VoxioTrack>) {
         if self.backend.supports_gapless() {
             if let Some(song) = &next {
                 if let Err(e) = self.backend.set_next(&song.path()) {
                     self.emit(PlayerEvent::Error(e.to_string()));
                     return;
                 }
+            } else {
+                let _ = self.backend.clear_next();
             }
-
             self.next = next;
         }
-    }
-
-    fn clear_next(&mut self) {
-        self.next = None
     }
 
     fn toggle_playback(&mut self) {

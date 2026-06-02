@@ -2953,9 +2953,9 @@ dependencies = [
 
 [[package]]
 name = "voxio"
-version = "0.1.5"
+version = "0.1.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c365a84c73a8aaf0641ca6762cd7a0aab317f4f9ce83e35832775f86f2030916"
+checksum = "56765caee04460c6d188dd29c0f629d9bd34ea84874c70fe147e7f572a09203b"
 dependencies = [
  "cpal",
  "crossbeam",

@@ -12,6 +12,8 @@ use std::{
 };
 
 pub struct PlaybackSession {
+    repeat: bool,
+
     queue: VecDeque<Arc<ValidatedSong>>,
     history: VecDeque<Arc<SimpleSong>>,
     queue_ids: HashSet<u64>,
@@ -22,6 +24,8 @@ pub struct PlaybackSession {
 impl PlaybackSession {
     pub fn init() -> Self {
         PlaybackSession {
+            repeat: false,
+
             queue: VecDeque::new(),
             history: VecDeque::with_capacity(user_config().history_capacity as usize),
             queue_ids: HashSet::new(),
@@ -200,6 +204,14 @@ impl PlaybackSession {
         let delta = self.head_delta(prev_head);
 
         Ok(Some((delta, validated_popped)))
+    }
+
+    pub fn repeat_is_enabled(&self) -> bool {
+        self.repeat
+    }
+
+    pub fn set_repeat(&mut self, status: bool) {
+        self.repeat = status
     }
 
     // ======================
