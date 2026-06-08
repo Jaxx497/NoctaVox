@@ -309,35 +309,39 @@ impl UiState {
     }
 
     pub(crate) fn go_to_album(&mut self) -> Result<()> {
-        let this_song = self.get_selected_song()?;
-        let album_id = this_song.album_id;
+        if let Ok(this_song) = self.get_selected_song() {
+            let album_id = this_song.album_id;
 
-        self.set_mode(Mode::Library(LibraryView::Albums));
-        self.set_pane(Pane::TrackList);
+            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_pane(Pane::TrackList);
 
-        let album = self
-            .library
-            .albums
-            .get(&album_id)
-            .context("Invalid album index")?;
+            let album = self
+                .library
+                .albums
+                .get(&album_id)
+                .context("Invalid album index")?;
 
-        let track_pos = album
-            .tracklist
-            .iter()
-            .position(|s| s.id == this_song.id)
-            .unwrap_or(0);
+            let track_pos = album
+                .tracklist
+                .iter()
+                .position(|s| s.id == this_song.id)
+                .unwrap_or(0);
 
-        let album_pos = self
-            .albums
-            .iter()
-            .position(|a| a.id == album_id)
-            .ok_or_else(|| anyhow!("Could not identify album!"))?;
+            let album_pos = self
+                .albums
+                .iter()
+                .position(|a| a.id == album_id)
+                .ok_or_else(|| anyhow!("Could not identify album!"))?;
 
-        self.legal_songs = album.get_tracklist();
+            self.legal_songs = album.get_tracklist();
 
-        self.display_state.album_pos.select(Some(album_pos));
-        self.display_state.table_pos.select(Some(track_pos));
-        *self.display_state.table_pos.offset_mut() = 0;
+            self.display_state.album_pos.select(Some(album_pos));
+            self.display_state.table_pos.select(Some(track_pos));
+            *self.display_state.table_pos.offset_mut() = 0;
+        } else {
+            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_pane(Pane::SideBar);
+        }
 
         Ok(())
     }

@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## CURRENT DEVELOPMENT CHANGES
+
+### Added:
+  - Repeat/Looping Mode 
+    - Toggle repeat with `ctrl`+`r`
+
+### Changed:
+  - Updated Voxio to version 0.1.6
+    - Voxio now exposes `clear_next` method
+
+### Fixed:
+  - Ivoking the GoToAlbum command (`ctrl + A`) on empty table will fallback to
+    the sidebar view rather than throwing an error
+
 ## [0.2.8] Addons & Config Added
 
 > #### 2026-05-30
