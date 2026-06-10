@@ -4,6 +4,8 @@
   inputs = {
     flake-parts.url = "github:hercules-ci/flake-parts";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    rust-overlay.url = "github:oxalica/rust-overlay";
+    rust-overlay.inputs.nixpkgs.follows = "nixpkgs";
   };
 
   outputs =
@@ -16,24 +18,24 @@
         "x86_64-darwin"
       ];
       perSystem =
-        { pkgs, ... }:
+        { system, ... }:
+        let
+          pkgs = import inputs.nixpkgs {
+            inherit system;
+            overlays = [ inputs.rust-overlay.overlays.default ];
+          };
+          rustToolchain = pkgs.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+          noctavox = pkgs.callPackage ./nix/package.nix { inherit rustToolchain; };
+        in
         {
           devShells.default = pkgs.mkShell {
             strictDeps = true;
-            nativeBuildInputs = [
-              pkgs.cargo
-              pkgs.rustc
-              pkgs.pkg-config
-              pkgs.cmake
-            ];
-
-            buildInputs = [
-              pkgs.ffmpeg
-            ];
+            inputsFrom = [ noctavox ];
+            nativeBuildInputs = [ rustToolchain ];
           };
 
-          packages = rec {
-            noctavox = pkgs.callPackage ./nix/package.nix { };
+          packages = {
+            inherit noctavox;
             default = noctavox;
           };
         };

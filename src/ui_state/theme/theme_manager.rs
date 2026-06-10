@@ -75,6 +75,7 @@ impl ThemeManager {
                 }
             }
         }
+        themes.sort_by(|a, b| a.name.cmp(&b.name));
         themes
     }
 

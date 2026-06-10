@@ -1,14 +1,19 @@
 {
   lib,
-  rustPlatform,
+  rustToolchain,
+  makeRustPlatform,
   cmake,
   ffmpeg,
   pkg-config,
   dbus,
-  alsa-lib
+  alsa-lib,
 }:
 let
-  cargoToml = (lib.importTOML ../Cargo.toml);
+  cargoToml = lib.importTOML ../Cargo.toml;
+  rustPlatform = makeRustPlatform {
+    cargo = rustToolchain;
+    rustc = rustToolchain;
+  };
 in
 rustPlatform.buildRustPackage {
   pname = cargoToml.package.name;
