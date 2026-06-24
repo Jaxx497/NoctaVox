@@ -4,7 +4,13 @@ use crate::{
     normalize_metadata_str as nms,
 };
 use anyhow::{Result, anyhow, bail};
-
+use std::{
+    fs::File,
+    io::{BufReader, Read, Seek, SeekFrom},
+    path::{Path, PathBuf},
+    sync::{Arc, LazyLock},
+    time::Duration,
+};
 use symphonia::{
     core::{
         formats::{TrackType, probe::Hint},
@@ -13,13 +19,6 @@ use symphonia::{
         units::{Duration as SymphoniaDuration, TimeBase},
     },
     default::get_probe,
-};
-
-use std::{
-    fs::File,
-    path::PathBuf,
-    sync::{Arc, LazyLock},
-    time::Duration,
 };
 
 static NO_ARTIST: LazyLock<Arc<String>> = LazyLock::new(|| Arc::new(String::from("[NO ARTIST!]")));
@@ -159,6 +158,23 @@ impl LongSong {
             metadata.pop();
         }
 
+        if ext == FileType::WAV {
+            if let Ok(info) = read_wav_info_tags(&song_info.path) {
+                for (key, val) in info {
+                    match &key {
+                        b"INAM" => song_info.title = nms(&val),
+                        b"IART" => artist = best(artist, 0, &Arc::new(val)),
+                        b"IPRD" => song_info.album = Arc::new(nms(&val)),
+                        b"ICRD" | b"IYER" => {
+                            release_year = release_year.or_else(|| val.get(..4)?.parse().ok());
+                        }
+                        b"ITRK" | b"IPRT" => song_info.track_no = val.parse().ok(),
+                        _ => {}
+                    }
+                }
+            }
+        }
+
         if song_info.title.is_empty() {
             song_info.title = fallback_title
         }
@@ -222,5 +238,78 @@ fn best<C: Clone>(current: Option<(u8, C)>, priority: u8, value: &C) -> Option<(
     match current {
         Some((p, _)) if p < priority => current,
         _ => Some((priority, value.clone())),
+    }
+}
+
+// BUG: This is a workaround for symphonia failing to properly parse RIFF tags
+
+/// WAV stores tags in a RIFF `LIST/INFO` chunk that symphonia 0.6 never
+/// surfaces (it discards parsed INFO and stops reading at the `data` chunk).
+/// Walk the chunk structure ourselves and pull the INFO tags.
+fn read_wav_info_tags(path: &Path) -> Result<Vec<([u8; 4], String)>> {
+    let mut f = BufReader::new(File::open(path)?);
+
+    // RIFF header: "RIFF" <u32 LE size> "WAVE"
+    let mut hdr = [0u8; 12];
+    f.read_exact(&mut hdr)?;
+    if &hdr[0..4] != b"RIFF" || &hdr[8..12] != b"WAVE" {
+        bail!("not a RIFF/WAVE file: {}", path.display());
+    }
+
+    let mut tags = Vec::new();
+    let mut id = [0u8; 4];
+    let mut sz = [0u8; 4];
+
+    // Each chunk: <id:4> <size:u32 LE> <body...> (+1 pad byte if size is odd)
+    loop {
+        if f.read_exact(&mut id).is_err() {
+            break; // clean EOF
+        }
+        f.read_exact(&mut sz)?;
+        let size = u32::from_le_bytes(sz) as u64;
+
+        if &id == b"LIST" {
+            let mut form = [0u8; 4];
+            f.read_exact(&mut form)?;
+            if &form == b"INFO" {
+                let mut buf = vec![0u8; (size - 4) as usize];
+                f.read_exact(&mut buf)?;
+                parse_info_body(&buf, &mut tags);
+            } else {
+                f.seek(SeekFrom::Current((size - 4) as i64))?;
+            }
+        } else {
+            f.seek(SeekFrom::Current(size as i64))?;
+        }
+
+        if size % 2 == 1 {}
+    }
+
+    Ok(tags)
+}
+
+fn parse_info_body(buf: &[u8], tags: &mut Vec<([u8; 4], String)>) {
+    let mut i = 0;
+    while i + 8 <= buf.len() {
+        let key: [u8; 4] = buf[i..i + 4].try_into().unwrap();
+        let len = u32::from_le_bytes(buf[i + 4..i + 8].try_into().unwrap()) as usize;
+        i += 8;
+        if i + len > buf.len() {
+            break;
+        }
+        // INFO values are null-terminated, typically ASCII/Latin-1.
+        let val: String = buf[i..i + len]
+            .iter()
+            .take_while(|&&b| b != 0)
+            .map(|&b| b as char)
+            .collect();
+        let val = val.trim().to_string();
+        if !val.is_empty() {
+            tags.push((key, val));
+        }
+        i += len;
+        if len % 2 == 1 {
+            i += 1; // pad
+        }
     }
 }

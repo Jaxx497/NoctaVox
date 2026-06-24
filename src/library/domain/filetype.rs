@@ -6,7 +6,9 @@ use std::fmt::Display;
 
 pub static LEGAL_EXTENSION: std::sync::LazyLock<std::collections::HashSet<&'static str>> =
     std::sync::LazyLock::new(|| {
-        std::collections::HashSet::from(["mp3", "m4a", "flac", "ogg", "wav", "opus", "webm"])
+        std::collections::HashSet::from([
+            "aiff", "alac", "flac", "m4a", "mp3", "ogg", "opus", "wav", "webm",
+        ])
     });
 
 #[allow(clippy::upper_case_acronyms)]
@@ -19,13 +21,15 @@ pub enum FileType {
     FLAC = 5,
     OPUS = 6,
     WEBM = 7,
+    AIFF = 8,
+    ALAC = 9,
     #[default]
     ERR = 0,
 }
 
 impl From<&str> for FileType {
     fn from(str: &str) -> Self {
-        match str {
+        match str.to_lowercase().as_ref() {
             "mp3" => Self::MP3,
             "aac" | "m4a" => Self::M4A,
             "ogg" => Self::OGG,
@@ -33,6 +37,8 @@ impl From<&str> for FileType {
             "flac" => Self::FLAC,
             "opus" => Self::OPUS,
             "webm" => Self::WEBM,
+            "aiff" => Self::AIFF,
+            "alac" => Self::ALAC,
             _ => Self::ERR,
         }
     }
@@ -48,6 +54,8 @@ impl FileType {
             FileType::FLAC => "flac",
             FileType::OPUS => "opus",
             FileType::WEBM => "webm",
+            FileType::AIFF => "aiff",
+            FileType::ALAC => "ALAC",
             FileType::ERR => "ERR",
         }
     }
@@ -78,6 +86,8 @@ impl Display for FileType {
             FileType::WAV => write!(f, "ʷᵃᵛ"),
             FileType::FLAC => write!(f, "ᶠˡᵃᶜ"),
             FileType::WEBM => write!(f, "ʷᵉᵇᵐ"),
+            FileType::AIFF => write!(f, "ᵃᶦᶠᶠ"),
+            FileType::ALAC => write!(f, "ᵃˡᵃᶜ"),
             FileType::ERR => write!(f, "ERR"),
         }
     }
@@ -93,6 +103,8 @@ impl FileType {
             5 => Self::FLAC,
             6 => Self::OPUS,
             7 => Self::WEBM,
+            8 => Self::AIFF,
+            9 => Self::ALAC,
             _ => Self::ERR,
         }
     }

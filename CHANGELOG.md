@@ -3,8 +3,10 @@
 ## CURRENT DEVELOPMENT CHANGES
 
 ### Added:
+  - Support for AIFF and ALAC filetypes
   - Repeat/Looping Mode 
     - Toggle repeat with `ctrl`+`r`
+  - Added MSRV tag (1.95)
 
 ### Changed:
   - Updated Voxio to version 0.1.6
@@ -13,6 +15,9 @@
 ### Fixed:
   - Ivoking the GoToAlbum command (`ctrl + A`) on empty table will fallback to
     the sidebar view rather than throwing an error
+  - WAV metadata reading restored (workaround for upstream bug)
+  - Theme selector now sorts themes the same way between various platforms
+  - Nix flake updated
 
 ## [0.2.8] Addons & Config Added
 
