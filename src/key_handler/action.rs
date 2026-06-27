@@ -258,12 +258,15 @@ fn handle_fullscreen(key: &KeyEvent) -> Option<Action> {
         (X, Char('p')) => Action::SeekBack(SEEK_SMALL),
         (S, Char('P')) => Action::SeekBack(SEEK_LARGE),
 
-        (X, Char('w')) | (S, Char('W')) => Action::SetProgressDisplay(ProgressDisplay::Waveform),
-        (X, Char('o')) | (S, Char('O')) => {
-            Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)
-        }
-        (X, Char('s')) | (S, Char('S')) => Action::SetProgressDisplay(ProgressDisplay::Spectrum),
-        (X, Char('b')) | (S, Char('B')) => Action::SetProgressDisplay(ProgressDisplay::ProgressBar),
+        (X, Char('w')) => Action::NextProgressDisplay,
+
+        (S, Char('W')) => Action::SetProgressDisplay(ProgressDisplay::Waveform),
+        (S, Char('O')) => Action::SetProgressDisplay(ProgressDisplay::Oscilloscope),
+        (S, Char('S')) => Action::SetProgressDisplay(ProgressDisplay::Spectrum),
+        (S, Char('B')) => Action::SetProgressDisplay(ProgressDisplay::ProgressBar),
+
+        (_, Char('<')) => Action::CycleTheme(Incrementor::Up),
+        (_, Char('>')) => Action::CycleTheme(Incrementor::Down),
 
         (_, Char('{')) => Action::IncrementWFSmoothness(Incrementor::Down),
         (_, Char('}')) => Action::IncrementWFSmoothness(Incrementor::Up),

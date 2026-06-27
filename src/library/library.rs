@@ -9,7 +9,7 @@ use crate::{
 };
 
 use anyhow::{Result, anyhow};
-use crossbeam::channel::Sender;
+use crossbeam_channel::Sender;
 use indexmap::IndexMap;
 use rayon::prelude::*;
 use std::{

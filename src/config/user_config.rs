@@ -1,6 +1,7 @@
 use anyhow::Context;
 use serde::Deserialize;
 use std::fs;
+use voxio::ReplayGainMode;
 
 use crate::CONFIG_DIR;
 
@@ -17,7 +18,7 @@ pub struct UserConfig {
         default = "defaults::history",
         deserialize_with = "deserialize_history"
     )]
-    pub history_capacity: usize,
+    pub history_capacity: u32,
 
     #[serde(default = "defaults::update_on_start")]
     pub update_on_start: bool,
@@ -25,16 +26,24 @@ pub struct UserConfig {
     #[serde(default = "defaults::auto_resume")]
     pub auto_resume: bool,
 
+    #[serde(
+        default = "defaults::replay_gain",
+        deserialize_with = "deserialize_replay_gain"
+    )]
+    pub replay_gain: ReplayGainMode,
+
     #[serde(default = "defaults::broadcast")]
     pub broadcast: bool,
 }
 
 mod defaults {
+    use voxio::ReplayGainMode;
+
     pub fn framerate() -> u16 {
         60
     }
 
-    pub fn history() -> usize {
+    pub fn history() -> u32 {
         64
     }
 
@@ -45,9 +54,12 @@ mod defaults {
     pub fn auto_resume() -> bool {
         false
     }
-
     pub fn broadcast() -> bool {
         false
+    }
+
+    pub fn replay_gain() -> ReplayGainMode {
+        ReplayGainMode::Off
     }
 }
 
@@ -55,8 +67,18 @@ fn deserialize_framerate<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16, 
     u16::deserialize(d).map(|v| v.clamp(20, 360))
 }
 
-fn deserialize_history<'de, D: serde::Deserializer<'de>>(d: D) -> Result<usize, D::Error> {
-    usize::deserialize(d).map(|v| v.max(1024))
+fn deserialize_history<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
+    u32::deserialize(d).map(|v| v.clamp(8, 1024))
+}
+
+fn deserialize_replay_gain<'de, D: serde::Deserializer<'de>>(
+    d: D,
+) -> Result<ReplayGainMode, D::Error> {
+    String::deserialize(d).map(|s| match s.to_lowercase().as_str() {
+        "album" => ReplayGainMode::Album,
+        "track" => ReplayGainMode::Track,
+        _ => ReplayGainMode::Off,
+    })
 }
 
 impl Default for UserConfig {
@@ -67,6 +89,7 @@ impl Default for UserConfig {
             update_on_start: defaults::update_on_start(),
             auto_resume: defaults::auto_resume(),
             broadcast: defaults::broadcast(),
+            replay_gain: ReplayGainMode::Off,
         }
     }
 }

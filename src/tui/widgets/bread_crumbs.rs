@@ -48,15 +48,16 @@ impl StatefulWidget for BreadCrumbs {
             }
             Pane::TrackList => match state.get_mode() {
                 Mode::Library(LibraryView::Albums) => {
-                    // match top_level {
-                    // LibraryView::Albums => {
                     let Some(album) = state.get_selected_album() else {
                         return;
                     };
                     Vec::from([
-                        Span::from(format!("{top_level}  ")).fg(theme.text_muted),
-                        Span::from(format!("{}", album.title)).fg(bc_highlight),
-                        Span::from(format!(" [{}]", album.artist)).fg(theme.text_muted),
+                        Span::from(top_level.to_str()).fg(theme.text_muted),
+                        Span::from("  ").fg(theme.text_muted),
+                        Span::from(album.title.as_ref()).fg(bc_highlight),
+                        Span::from(" [").fg(theme.text_muted),
+                        Span::from(album.artist.as_ref()).fg(theme.text_muted),
+                        Span::from("]").fg(theme.text_muted),
                     ])
                 }
                 Mode::Library(LibraryView::Playlists) => {
@@ -64,15 +65,17 @@ impl StatefulWidget for BreadCrumbs {
                         return;
                     };
                     Vec::from([
-                        Span::from(format!("{top_level}  ")).fg(theme.text_muted),
-                        Span::from(format!("{}", playlist.name)).fg(bc_highlight),
+                        Span::from(top_level.to_str()).fg(theme.text_muted),
+                        Span::from("  ").fg(theme.text_muted),
+                        Span::from(&playlist.name).fg(bc_highlight),
                     ])
                 }
                 Mode::Queue => {
                     let queue_len = state.playback.queue_len();
                     Vec::from([
-                        Span::from(format!("Queue ")).fg(theme.text_muted),
-                        Span::from(format!("({queue_len})")).fg(theme.text_muted),
+                        Span::from("Queue (").fg(theme.text_muted),
+                        Span::from(queue_len.to_string()).fg(theme.text_muted),
+                        Span::from(" tracks)").fg(theme.text_muted),
                     ])
                 }
                 _ => return,

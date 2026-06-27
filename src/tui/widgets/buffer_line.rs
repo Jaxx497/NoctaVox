@@ -75,8 +75,8 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
         false => Span::from(format!(" {decorator} ")).fg(theme.text_muted),
     };
 
-    let title = song.get_title().to_string();
-    let artist = song.get_artist().to_string();
+    let title = song.get_title();
+    let artist = song.get_artist();
 
     let title_len = title.chars().count();
     let artist_len = artist.chars().count();
@@ -85,9 +85,9 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
         Some(
             Line::from_iter([
                 " ".into(),
-                Span::from(title).fg(theme.text_secondary),
+                Span::from(title.to_string()).fg(theme.text_secondary),
                 Span::from(separator),
-                Span::from(artist).fg(theme.text_muted),
+                Span::from(artist.to_string()).fg(theme.text_muted),
                 " ".into(),
             ])
             .centered(),

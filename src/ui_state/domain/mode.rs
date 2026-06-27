@@ -16,6 +16,15 @@ impl Display for LibraryView {
     }
 }
 
+impl LibraryView {
+    pub fn to_str(&self) -> &str {
+        match self {
+            LibraryView::Albums => "Albums",
+            LibraryView::Playlists => "Playlists",
+        }
+    }
+}
+
 #[derive(PartialEq, Eq, Clone)]
 pub enum Mode {
     Power,

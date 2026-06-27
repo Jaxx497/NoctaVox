@@ -11,7 +11,7 @@ impl NoctaVox {
             return Ok(());
         }
 
-        let (tx, rx) = crossbeam::channel::bounded(1);
+        let (tx, rx) = crossbeam_channel::bounded(1);
         self.library_refresh_rec = Some(rx);
 
         self.ui.set_library_refresh_progress(Some(0));

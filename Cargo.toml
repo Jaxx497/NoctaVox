@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.2.8"
+version = "0.3.0"
 edition = "2024"
 rust-version = "1.95"
 authors = ["Jaxx497"]
@@ -14,13 +14,13 @@ readme = "README.md"
 [dependencies]
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive"] }
-crossbeam = { version = "0.8.4", default-features = false, features = ["crossbeam-channel", "crossbeam-queue"] }
+crossbeam-channel = "0.5.15"
 dirs = "6.0.0"
 fuzzy-matcher = "0.3.7"
 indexmap = "2.14.0"
 nohash-hasher = "0.2.0"
 rand = "0.10.1"
-ratatui = {version = "0.30.0", features = ["serde"]}
+ratatui = { version = "0.30.2" }
 ratatui-textarea = "0.9.1"
 rayon = "1.12.0"
 rusqlite = { version = "0.40.0", features = ["bundled"] }
@@ -31,12 +31,11 @@ toml = "1.0.3"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
-voxio = "0.1.6"
+voxio = "0.2.0"
 souvlaki = "0.7"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 
 [target.'cfg(windows)'.dependencies]
-windows = "0.56"
 windows-sys = { version = "0.61", features = [
     "Win32_Foundation",
     "Win32_Graphics_Gdi",

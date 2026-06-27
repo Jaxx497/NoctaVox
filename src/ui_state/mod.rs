@@ -25,13 +25,13 @@ pub use settings::SettingsMode;
 pub use stats::LibraryStats;
 pub use theme::DisplayTheme;
 pub use ui_snapshot::UiSnapshot;
+use voxio::{TapHandle, Vox};
 pub use waveform::WaveformManager;
 
 use crate::{
     Library, PlaybackSession,
     database::DbWorker,
     library::{Album, Playlist, SimpleSong},
-    player::PlaybackMetrics,
     ui_state::{
         popup::PopupState, search_state::SearchState, spectrum::SpectrumState, stats::VoxStats,
     },
@@ -65,8 +65,9 @@ pub struct UiState {
     library: Arc<Library>,
     db_worker: DbWorker,
 
-    pub(crate) metrics: Arc<PlaybackMetrics>,
     pub(crate) playback: PlaybackSession,
+    pub(crate) metrics: Arc<Vox>,
+    pub(crate) tap: TapHandle,
 
     search: SearchState,
     pub(crate) popup: PopupState,

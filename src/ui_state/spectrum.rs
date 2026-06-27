@@ -14,12 +14,12 @@ pub struct SpectrumState {
 }
 
 impl SpectrumState {
-    pub fn update(&mut self, samples: &[f32], channels: u8, sample_rate: u32) {
-        if channels == 0 || sample_rate == 0 {
+    pub fn update(&mut self, samples: &[f32], sample_rate: u32) {
+        if sample_rate == 0 {
             return;
         }
 
-        let fft_size = TAP_BUFFER_CAPACITY / channels as usize;
+        let fft_size = TAP_BUFFER_CAPACITY;
 
         if self.sample_rate != sample_rate {
             self.sample_rate = sample_rate;
@@ -36,20 +36,15 @@ impl SpectrumState {
             self.bins.resize(n, 0.0);
         }
 
-        let mono: Vec<f32> = samples
-            .chunks_exact(channels as usize)
-            .map(|frame| frame.iter().sum::<f32>() / channels as f32)
-            .collect();
-
-        if mono.len() < fft_size {
+        if samples.len() < fft_size {
             for bin in self.bins.iter_mut() {
                 *bin *= self.decay_factor;
             }
             return;
         }
 
-        let start = mono.len() - fft_size;
-        let windowed = hann_window(&mono[start..]);
+        let start = samples.len() - fft_size;
+        let windowed = hann_window(&samples[start..]);
 
         let spectrum = match samples_fft_to_spectrum(
             &windowed,

@@ -1,22 +1,71 @@
 # CHANGELOG
 
-## CURRENT DEVELOPMENT CHANGES
+## [0.3.0] VOXIO OVERHAUL
+> #### 2026-06-26
+Voxio has been rewritten from the ground up. A lot of care has gone into the
+stability and compatibility of the engine. The API has been cleaned up. The
+engine reports events as they happen without the need for polling. OPUS support
+is feature gated (although enabled for NoctaVox) and a comprehensive testing
+suite acts as a safeguard and guarantee for future changes. This rewrite solves
+several bugs, including the obnoxious crash on device switch that plagued
+previous versions of NoctaVox.
 
 ### Added:
-  - Support for AIFF and ALAC filetypes
-  - Repeat/Looping Mode 
+  - Support for ReplayGain
+  - Support for AIFF, ALAC, and WEBM*
+  - Repeat/Looping Mode (resolves issue #22) 
     - Toggle repeat with `ctrl`+`r`
   - Added MSRV tag (1.95)
 
-### Changed:
-  - Updated Voxio to version 0.1.6
-    - Voxio now exposes `clear_next` method
+  > ***Note:** WEBM support may be slightly unstable depending on metadata
+
+### Voxio Replated Changed:
+  > Bumped Voxio to version 0.2.0
+
+  - **Voxio now persists playback on device change** (resolves #3)
+  - Voxio now supports ReplayGain (resolves #25)
+  - Voxio now uses an event system
+  - Voxio now hands the tap off rather than maintaining ownership
+  - Voxio now exposes a `clear_next` method
+  - Tap system requires significantly less allocations
+  - Many more API changes
+  - Added a large testing suite
+
+#### **Tighter Voxio Integration**
+
+  - Reworked the PlayerHandle to be a direct fit with Voxio
+  - Removed Playercore type
+  - Removed PlayerBackend Trait
+  - Removed VoxEngine container
+  - Removed PlayerMetrics type
+  - Removed PlaybackState enum
+  - Removed PlayerEvent enum
+  - Removed VoxioTrack type
+  - Removed QueueDelta enum
+
+### Other Changes:
+
+  - Widgets read state from player directly
+  - Underlying queue management system radically simplified
+  - Cleaner integration between main thread and audio thread
+  - Cleaned up unnecessary allocations
+  - Less unwraps & expect statements
+  - Opted for more references than clones in various contexts
+  - Minor optimizations & enhanced stability 
+  - Removed crossbeam::ArrayQueue dependency
+  - Removed windows dependency (not to be confused with windows-sys)
+  - Cleaned up & removed ratatui serde feature
 
 ### Fixed:
+  - **Users can change audio device without crashing the audio thread!** (resolves #3)
   - Ivoking the GoToAlbum command (`ctrl + A`) on empty table will fallback to
     the sidebar view rather than throwing an error
-  - WAV metadata reading restored (workaround for upstream bug)
-  - Theme selector now sorts themes the same way between various platforms
+  - WAV metadata reading restored (workaround for symphonia upstream bug)
+  - Queued track icon color fixed in search view
+  - Keybinds between standard view and fullscreen keybinds are more consistent
+  - Theme selector now sorts themes the same way between various OS platforms
+  - History - Fixed bug where wrong side of Deque would be popped
+  - History - fixed broken history count
   - Nix flake updated
 
 ## [0.2.8] Addons & Config Added

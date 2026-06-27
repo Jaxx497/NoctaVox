@@ -269,11 +269,7 @@ impl UiState {
 
                 album_a.cmp(&album_b)
             }),
-            TableSort::Duration => self.legal_songs.sort_by(|a, b| {
-                a.duration
-                    .partial_cmp(&b.duration)
-                    .expect("Error sorting by duration.")
-            }),
+            TableSort::Duration => self.legal_songs.sort_by_key(|s| s.duration),
         };
     }
 
@@ -419,7 +415,7 @@ impl UiState {
 
             let new_pos = match director {
                 Director::Up(x) => selected_idx
-                    .map(|idx| ((idx + len - (x % len)) % len + len) % len)
+                    .map(|idx| (idx + len - (x % len)) % len)
                     .unwrap_or(0),
                 Director::Down(x) => selected_idx.map(|idx| (idx + x) % len).unwrap_or(0),
                 _ => unreachable!(),

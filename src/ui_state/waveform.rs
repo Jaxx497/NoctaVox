@@ -1,5 +1,5 @@
 use anyhow::{Context, Result, anyhow, bail};
-use crossbeam::channel::Receiver;
+use crossbeam_channel::Receiver;
 use std::{
     io::{Cursor, Read},
     path::Path,
@@ -53,7 +53,7 @@ impl WaveformManager {
         }
 
         if let Ok(path) = song.get_path() {
-            let (tx, rx) = crossbeam::channel::bounded(1);
+            let (tx, rx) = crossbeam_channel::bounded(1);
             self.state = WaveformState::Loading;
 
             thread::spawn(move || {
@@ -258,7 +258,7 @@ fn extract_waveform_data<P: AsRef<Path>>(audio_path: P) -> Result<Vec<f32>> {
 /// Calculate adaptive samples per point based on duration
 fn calculate_adaptive_samples(duration: Duration) -> usize {
     let duration_secs = duration.as_secs_f32();
-    let sample_rate = 44100.0; // Standard sample rate
+    let sample_rate = 22050.0; // Standard sample rate
 
     let total_samples = (duration_secs * sample_rate) as usize;
     let ideal_samples = total_samples / (WF_LEN * 10);

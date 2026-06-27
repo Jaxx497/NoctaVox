@@ -1,37 +1,16 @@
-use anyhow::{Result, anyhow};
-use crossbeam::channel::{Receiver, Sender};
+use anyhow::Result;
+use crossbeam_channel::Receiver;
 use std::{sync::Arc, time::Duration};
-
-use crate::player::{
-    PlaybackState, PlayerCommand, PlayerEvent, VoxioTrack, backend_voxio::VoxEngine,
-    core::PlayerCore, metrics::PlaybackMetrics,
-};
+use voxio::{Vox, VoxEvent, VoxEvents};
 
 pub struct PlayerHandle {
-    commands: Sender<PlayerCommand>,
-    events: Receiver<PlayerEvent>,
-    metrics: Arc<PlaybackMetrics>,
+    backend: Arc<Vox>,
+    events: VoxEvents,
 }
 
 impl PlayerHandle {
-    pub fn spawn() -> Result<Self> {
-        let backend = VoxEngine::new()
-            .map_err(|e| anyhow!("\nFailed to initialize backend.\nVoxio {e}\n\nPossible fix: Install pipewire-alsa or an equivalent ALSA bridge for your audio server."))?;
-        let (cmd_tx, cmd_rx) = crossbeam::channel::bounded(32);
-        let (event_tx, event_rx) = crossbeam::channel::bounded(32);
-        let metrics = PlaybackMetrics::new();
-
-        PlayerCore::spawn(Box::new(backend), cmd_rx, event_tx, Arc::clone(&metrics));
-
-        Ok(Self {
-            commands: cmd_tx,
-            events: event_rx,
-            metrics,
-        })
-    }
-
-    pub fn metrics(&self) -> Arc<PlaybackMetrics> {
-        Arc::clone(&self.metrics)
+    pub fn new(backend: Arc<Vox>, events: VoxEvents) -> Result<Self> {
+        Ok(Self { backend, events })
     }
 }
 
@@ -39,49 +18,48 @@ impl PlayerHandle {
 //    COMMAND HANDLER
 // =====================
 impl PlayerHandle {
-    pub fn play(&self, song: VoxioTrack) -> Result<()> {
-        self.commands.send(PlayerCommand::Play(song))?;
+    pub fn play(&self, s: &str) -> Result<()> {
+        self.backend.play(s)?;
         Ok(())
     }
 
-    pub fn set_next(&self, song: Option<VoxioTrack>) -> Result<()> {
-        self.commands.send(PlayerCommand::SetNext(song))?;
+    pub fn set_next(&self, song: Option<&str>) -> Result<()> {
+        match song {
+            Some(s) => self.backend.set_next(s)?,
+            None => self.backend.clear_next(),
+        }
         Ok(())
     }
 
-    pub fn toggle_playback(&self) -> Result<()> {
-        self.commands.send(PlayerCommand::TogglePlayback)?;
-        Ok(())
+    pub fn toggle_playback(&self) {
+        match self.backend.is_paused() {
+            true => self.backend.resume(),
+            false => self.backend.pause(),
+        }
     }
 
-    pub fn resume(&self) -> Result<()> {
-        self.commands.send(PlayerCommand::Resume)?;
-        Ok(())
+    pub fn resume(&self) {
+        self.backend.resume();
     }
 
-    pub fn pause(&self) -> Result<()> {
-        self.commands.send(PlayerCommand::Pause)?;
-        Ok(())
+    pub fn pause(&self) {
+        self.backend.pause();
     }
 
-    pub fn stop(&self) -> Result<()> {
-        self.commands.send(PlayerCommand::Stop)?;
-        Ok(())
+    pub fn stop(&self) {
+        self.backend.stop();
     }
 
-    pub fn seek_to(&self, secs: f32) -> Result<()> {
-        self.commands.send(PlayerCommand::SeekTo(secs))?;
-        Ok(())
+    pub fn seek_to(&self, secs: f32) {
+        self.backend.seek_to(secs as f64);
     }
 
-    pub fn seek_forward(&self, dur: u64) -> Result<()> {
-        self.commands.send(PlayerCommand::SeekForward(dur))?;
-        Ok(())
+    pub fn seek_forward(&self, dur: f64) {
+        self.backend.seek_relative(dur as f64);
     }
 
-    pub fn seek_back(&self, dur: u64) -> Result<()> {
-        self.commands.send(PlayerCommand::SeekBack(dur))?;
-        Ok(())
+    pub fn seek_back(&self, dur: f64) {
+        self.backend.seek_relative(dur * -1.0);
     }
 }
 
@@ -90,27 +68,19 @@ impl PlayerHandle {
 // ===============
 
 impl PlayerHandle {
-    pub fn elapsed(&self) -> Duration {
-        self.metrics.get_elapsed()
+    pub fn events(&self) -> &Receiver<VoxEvent> {
+        self.events.receiver()
     }
 
-    pub fn get_playback_state(&self) -> PlaybackState {
-        self.metrics.get_state()
+    pub fn elapsed(&self) -> Duration {
+        self.backend.position()
     }
 
     pub fn is_paused(&self) -> bool {
-        self.get_playback_state() == PlaybackState::Paused
+        self.backend.is_paused()
     }
 
-    pub fn is_stopped(&self) -> bool {
-        self.get_playback_state() == PlaybackState::Stopped
-    }
-
-    pub fn events(&self) -> &Receiver<PlayerEvent> {
-        &self.events
-    }
-
-    pub fn poll_events(&mut self) -> Vec<PlayerEvent> {
-        std::iter::from_fn(|| self.events.try_recv().ok()).collect()
+    pub fn is_active(&self) -> bool {
+        self.backend.is_active()
     }
 }

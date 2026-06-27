@@ -43,7 +43,7 @@ impl StatefulWidget for AlbumView {
 
                 let track_no = CellFactory::track_cell(theme, song, idx, is_m_selected);
                 let track_disc_no = CellFactory::track_disc_cell(theme, song, idx, is_m_selected);
-                let icon = CellFactory::status_cell(song, state, is_m_selected);
+                let symbol = CellFactory::status_cell(song, state, is_m_selected);
                 let title = CellFactory::title_cell(theme, song.get_title(), is_m_selected);
                 let artist = CellFactory::artist_cell(theme, song, is_m_selected);
                 let format = CellFactory::filetype_cell(theme, song, is_m_selected);
@@ -52,18 +52,28 @@ impl StatefulWidget for AlbumView {
 
                 match state.get_layout() {
                     LayoutStyle::Traditional => match is_m_selected {
-                        true => {
-                            Row::new([track_disc_no, icon, title.into(), artist, format, duration])
-                                .bg(state.theme_manager.active.accent_inactive)
-                        }
-                        false => {
-                            Row::new([track_disc_no, icon, title.into(), artist, format, duration])
-                        }
+                        true => Row::new([
+                            track_disc_no,
+                            symbol,
+                            title.into(),
+                            artist,
+                            format,
+                            duration,
+                        ])
+                        .bg(state.theme_manager.active.accent_inactive),
+                        false => Row::new([
+                            track_disc_no,
+                            symbol,
+                            title.into(),
+                            artist,
+                            format,
+                            duration,
+                        ]),
                     },
                     LayoutStyle::Minimal => match is_m_selected {
-                        true => Row::new([track_no, icon, title.into(), duration])
+                        true => Row::new([track_no, symbol, title.into(), duration])
                             .bg(state.theme_manager.active.accent_inactive),
-                        false => Row::new([track_no, icon, title.into(), duration]),
+                        false => Row::new([track_no, symbol, title.into(), duration]),
                     },
                 }
             })

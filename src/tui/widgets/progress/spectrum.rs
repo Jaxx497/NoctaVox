@@ -7,9 +7,6 @@ use ratatui::{
     },
 };
 
-const LEFT_MARG: u16 = 0;
-const RIGHT_MARG: u16 = 0;
-
 pub struct SpectrumAnalyzer;
 
 impl StatefulWidget for SpectrumAnalyzer {
@@ -26,9 +23,9 @@ impl StatefulWidget for SpectrumAnalyzer {
         }
 
         let theme = state.theme_manager.get_display_theme(true);
-        let elapsed = state.get_playback_elapsed_f32();
+        let elapsed = state.get_elapsed_f32();
 
-        let canvas_width = area.width.saturating_sub(LEFT_MARG + RIGHT_MARG).max(1) as usize;
+        let canvas_width = area.width.max(1) as usize;
         let pixel_width = canvas_width * 2;
 
         state.spectrum.remap_display(canvas_width);

@@ -1,9 +1,8 @@
 use crate::{
     app_core::NoctaVox,
     key_handler::{Director, Incrementor, SelectionType},
-    library::{SimpleSong, SongDatabase, SongInfo},
-    playback::{QueueDelta, ValidatedSong},
-    player::VoxioTrack,
+    library::{SimpleSong, SongDatabase},
+    playback::ValidatedSong,
     ui_state::{LibraryView, Mode},
 };
 use anyhow::Result;
@@ -11,24 +10,27 @@ use rand::seq::SliceRandom;
 use std::sync::Arc;
 
 impl NoctaVox {
-    pub fn advance_to_next_gapless(&mut self) -> Option<Arc<ValidatedSong>> {
-        let (delta, next, current) = self.ui.playback.advance();
+    pub fn advance_to_next_gapless(&mut self) {
+        let (next, current) = self.ui.playback.advance();
 
         if let Some(np) = current {
-            self.ui.insert_history_entry(np.get_id());
+            self.ui.insert_history_entry(&np);
+        }
+
+        if let Some(n) = &next {
+            self.ui.set_now_playing(Some(Arc::clone(&n.meta)));
         }
 
         if self.ui.get_mode() == Mode::Queue {
             self.ui.set_legal_songs();
         }
 
-        self.sync_player(&delta);
-        next
+        self.force_sync();
     }
 
     pub fn queue_song(&mut self, song: &Arc<SimpleSong>) -> Result<()> {
-        let delta = self.ui.playback.enqueue(song)?;
-        self.sync_player(&delta);
+        self.ui.playback.enqueue(song)?;
+        self.force_sync();
         Ok(())
     }
 
@@ -42,35 +44,35 @@ impl NoctaVox {
             songs.shuffle(&mut rand::rng());
         }
 
-        if self.player.is_stopped() {
+        if !self.player.is_active() {
             let first = songs.remove(0);
             let validated = ValidatedSong::new(&first)?;
             self.play_song(&validated)?;
         }
 
-        let delta = self.ui.playback.enqueue_multi(&songs)?;
-        self.sync_player(&delta);
+        self.ui.playback.enqueue_multi(&songs);
+        self.force_sync();
         self.ui.set_legal_songs();
         Ok(())
     }
 
     pub fn push_queue_front(&mut self, song: &Arc<SimpleSong>) -> Result<()> {
-        let delta = self.ui.playback.queue_push_front(song)?;
-        self.sync_player(&delta);
+        self.ui.playback.queue_push_front(song)?;
+        self.force_sync();
         Ok(())
     }
 
     pub fn shuffle_queue(&mut self) {
-        let delta = self.ui.playback.shuffle_queue();
-        self.sync_player(&delta);
+        self.ui.playback.shuffle_queue();
+        self.force_sync();
         self.ui.set_legal_songs();
     }
 
     pub fn remove_from_queue(&mut self) -> Result<()> {
         let idx = self.ui.get_selected_idx()?;
-        let (delta, _popped) = self.ui.playback.remove_from_queue(idx);
+        self.ui.playback.remove_from_queue(idx);
 
-        self.sync_player(&delta);
+        self.force_sync();
         Ok(())
     }
 
@@ -78,13 +80,11 @@ impl NoctaVox {
         let mut indicies = self.ui.get_multi_select_indices().clone();
         indicies.sort_unstable();
 
-        let mut last_delta = QueueDelta::HeadUnchanged;
         for &idx in indicies.iter().rev() {
-            let (delta, _) = self.ui.playback.remove_from_queue(idx);
-            last_delta = delta;
+            self.ui.playback.remove_from_queue(idx);
         }
 
-        self.sync_player(&last_delta);
+        self.force_sync();
         self.ui.clear_multi_select();
         Ok(())
     }
@@ -101,37 +101,34 @@ impl NoctaVox {
     }
 
     fn shift_queue_position(&mut self, dir: Incrementor) -> Result<()> {
-        let delta = match self.ui.multi_select_empty() {
-            true => self.shift_qposition_single(dir),
+        match self.ui.multi_select_empty() {
+            true => self.shift_qposition_single(dir)?,
             false => self.shift_qposition_multi(dir),
         };
 
-        if let Some(d) = delta {
-            self.sync_player(&d);
-        }
-
+        self.force_sync();
         Ok(())
     }
 
-    fn shift_qposition_single(&mut self, dir: Incrementor) -> Option<QueueDelta> {
-        let display_idx = self.ui.get_selected_idx().ok()?;
+    fn shift_qposition_single(&mut self, dir: Incrementor) -> Result<()> {
+        let display_idx = self.ui.get_selected_idx()?;
 
         let target_idx = match dir {
             Incrementor::Up if display_idx > 0 => display_idx - 1,
             Incrementor::Down if display_idx < self.ui.playback.queue_len() - 1 => display_idx + 1,
-            _ => return None,
+            _ => return Ok(()),
         };
 
-        let delta = self.ui.playback.swap(display_idx, target_idx);
+        self.ui.playback.swap(display_idx, target_idx);
         self.ui.scroll(match dir {
             Incrementor::Up => Director::Up(1),
             Incrementor::Down => Director::Down(1),
         });
 
-        delta
+        Ok(())
     }
 
-    fn shift_qposition_multi(&mut self, dir: Incrementor) -> Option<QueueDelta> {
+    fn shift_qposition_multi(&mut self, dir: Incrementor) {
         let mut indices = self
             .ui
             .get_multi_select_indices()
@@ -142,68 +139,45 @@ impl NoctaVox {
         indices.sort_unstable();
         let queue_len = self.ui.playback.queue_len();
 
-        let mut last_delta = None;
         match dir {
             Incrementor::Up if indices[0] > 0 => {
                 for idx in indices.iter_mut() {
-                    last_delta = self.ui.playback.swap(*idx, *idx - 1);
+                    self.ui.playback.swap(*idx, *idx - 1);
                     *idx -= 1;
                 }
             }
-            Incrementor::Down if *indices.last()? < (queue_len - 1) => {
+            Incrementor::Down
+                if indices[indices.len().saturating_sub(1)] < (queue_len.saturating_sub(1)) =>
+            {
                 for idx in indices.iter_mut().rev() {
-                    last_delta = self.ui.playback.swap(*idx, *idx + 1);
+                    self.ui.playback.swap(*idx, *idx + 1);
                     *idx += 1;
                 }
             }
-            _ => return None,
+            _ => return,
         }
 
         self.ui.update_multi_select(indices);
-        last_delta
     }
 
-    pub fn force_sync(&self) -> Result<()> {
-        let next = self
-            .ui
+    pub fn force_sync(&self) {
+        let next = match self.ui.playback.repeat_is_enabled() {
+            true => self.ui.get_now_playing().and_then(|np| np.get_path().ok()),
+            false => self
+                .ui
+                .playback
+                .peek_queue_validated()
+                .map(|s| s.path.to_string()),
+        };
+
+        let dr = next.as_deref();
+        let _ = self.player.set_next(dr);
+    }
+
+    pub fn toggle_repeat(&mut self) {
+        self.ui
             .playback
-            .peek_queue_validated()
-            .map(|s| VoxioTrack::from(s.as_ref()));
-        let _ = self.player.set_next(next);
-        Ok(())
-    }
-
-    pub fn toggle_repeat(&mut self) -> Result<()> {
-        match self.ui.playback.repeat_is_enabled() {
-            true => self.disable_repeat(),
-            false => self.enable_repeat(),
-        }
-    }
-
-    pub fn disable_repeat(&mut self) -> Result<()> {
-        self.ui.playback.set_repeat(false);
-        self.force_sync()
-    }
-
-    pub fn enable_repeat(&mut self) -> Result<()> {
-        self.ui.playback.set_repeat(true);
-        if let Some(np) = self.ui.playback.get_now_playing() {
-            let _ = self
-                .player
-                .set_next(Some(VoxioTrack::new(np.get_id(), np.get_path()?)));
-        }
-
-        Ok(())
-    }
-
-    /// Ensure that player's up_next value is always synced
-    pub fn sync_player(&self, delta: &QueueDelta) {
-        if self.ui.playback.repeat_is_enabled() {
-            return;
-        }
-        if let QueueDelta::HeadChanged { curr, .. } = delta {
-            let next = curr.as_ref().map(|s| VoxioTrack::new(s.id(), s.path()));
-            let _ = self.player.set_next(next);
-        }
+            .set_repeat(!self.ui.playback.repeat_is_enabled());
+        self.force_sync();
     }
 }

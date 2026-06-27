@@ -4,13 +4,15 @@ use crate::{
     config::{TIMING, Timing},
     key_handler::KeyBuffer,
     overwrite_line,
-    player::{PlayerHandle, VoxioTrack},
+    playback::ValidatedSong,
+    player::PlayerHandle,
     tui,
     ui_state::{Mode, PopupType, SettingsMode, UiState},
     user_config,
 };
 use anyhow::Result;
 use std::sync::Arc;
+use voxio::Vox;
 
 impl NoctaVox {
     pub fn new() -> Result<Self> {
@@ -33,8 +35,12 @@ impl NoctaVox {
 
         let lib_clone = Arc::clone(&lib);
 
-        let player = PlayerHandle::spawn()?;
-        let metrics = player.metrics();
+        let (mut vox, events) = Vox::new()?;
+        let tap = vox.take_tap().expect("Vox yields its tap on first call");
+        vox.set_replaygain(user_config().replay_gain);
+        let vox = Arc::new(vox);
+
+        let player = PlayerHandle::new(Arc::clone(&vox), events)?;
 
         let media_controls = crate::media_controls::MediaControlsHandle::new()
             .map_err(|e| eprintln!("OS media controls unavailable: {e}"))
@@ -43,7 +49,7 @@ impl NoctaVox {
         let mut nv = NoctaVox {
             library: lib,
             player,
-            ui: UiState::new(lib_clone, metrics),
+            ui: UiState::new(lib_clone, vox, tap),
             library_refresh_rec: None,
             key_buffer: KeyBuffer::new(),
             media_controls,
@@ -77,7 +83,7 @@ impl NoctaVox {
 
                 if self.ui.get_mode() == Mode::QUIT {
                     self.ui.update_now_playing_elapsed();
-                    self.player.stop()?;
+                    self.player.stop();
                     if let Some(mc) = self.media_controls.take() {
                         std::thread::spawn(move || drop(mc));
                     }
@@ -129,15 +135,15 @@ impl NoctaVox {
     fn restore_last_played(&mut self) -> Result<()> {
         if let Ok((song_id, elapsed_secs)) = self.ui.restore_last_played() {
             if let Some(song) = self.library.get_song_by_id(song_id) {
-                let song = VoxioTrack::try_from(song.as_ref())?;
+                let song = ValidatedSong::new(song)?;
 
                 self.restored_song_id = Some(song_id);
-                self.player.play(song)?;
+                self.play_song(song.as_ref())?;
 
-                self.player.seek_to(elapsed_secs)?;
+                self.player.seek_to(elapsed_secs);
 
                 if !user_config().auto_resume {
-                    self.player.pause()?;
+                    self.player.pause();
                 }
             }
         }

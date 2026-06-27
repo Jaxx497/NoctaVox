@@ -37,9 +37,8 @@ impl<'de> Deserialize<'de> for ThemeColor {
         let s = String::deserialize(deserializer)?;
 
         // Handle transparent
-        match s.to_lowercase().as_str() {
-            "" | "none" => return Ok(ThemeColor(Color::Reset)),
-            _ => {}
+        if let "" | "none" = s.to_lowercase().as_str() {
+            return Ok(ThemeColor(Color::Reset));
         }
 
         Color::from_str(&s)

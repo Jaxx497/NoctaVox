@@ -1,6 +1,5 @@
 use crate::{
     DurationStyle, get_readable_duration,
-    library::SongInfo,
     ui_state::{ProgressDisplay, UiState},
 };
 use ratatui::{
@@ -33,11 +32,8 @@ impl StatefulWidget for Timer {
         let elapsed_str = get_readable_duration(elapsed, crate::DurationStyle::Compact);
         let elapsed_str_len = elapsed_str.len() as u16;
 
-        let duration_str = state
-            .playback
-            .get_now_playing()
-            .expect("Expected a song to be playing. [Widget: Waveform]")
-            .get_duration_str(DurationStyle::Compact);
+        let dur_str = state.metrics.duration();
+        let duration_str = get_readable_duration(dur_str, DurationStyle::Compact);
 
         let dur_str_len = duration_str.len() as u16;
 

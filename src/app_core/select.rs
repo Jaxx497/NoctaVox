@@ -1,4 +1,4 @@
-use crossbeam::channel::{Receiver, select};
+use crossbeam_channel::{Receiver, select};
 use ratatui::crossterm::event::KeyEvent;
 use souvlaki::{MediaControlEvent, SeekDirection};
 
@@ -55,19 +55,19 @@ impl NoctaVox {
 
     fn handle_media_control_event(&mut self, event: MediaControlEvent) -> anyhow::Result<()> {
         match event {
-            MediaControlEvent::Play => self.player.resume()?,
-            MediaControlEvent::Pause => self.player.pause()?,
-            MediaControlEvent::Toggle => self.player.toggle_playback()?,
+            MediaControlEvent::Play => self.player.resume(),
+            MediaControlEvent::Pause => self.player.pause(),
+            MediaControlEvent::Toggle => self.player.toggle_playback(),
             MediaControlEvent::Next => self.play_next()?,
             MediaControlEvent::Previous => self.play_prev()?,
-            MediaControlEvent::Stop => self.stop()?,
-            MediaControlEvent::Seek(SeekDirection::Forward) => self.player.seek_forward(5)?,
-            MediaControlEvent::Seek(SeekDirection::Backward) => self.player.seek_back(5)?,
+            MediaControlEvent::Stop => self.stop(),
+            MediaControlEvent::Seek(SeekDirection::Forward) => self.player.seek_forward(5.0),
+            MediaControlEvent::Seek(SeekDirection::Backward) => self.player.seek_back(5.0),
             MediaControlEvent::SeekBy(SeekDirection::Forward, dur) => {
-                self.player.seek_forward(dur.as_secs())?
+                self.player.seek_forward(dur.as_secs_f64())
             }
             MediaControlEvent::SeekBy(SeekDirection::Backward, dur) => {
-                self.player.seek_back(dur.as_secs())?
+                self.player.seek_back(dur.as_secs_f64())
             }
             _ => {}
         }
@@ -79,7 +79,7 @@ impl NoctaVox {
         self.tick_sync = self.tick_sync.wrapping_add(1);
 
         if user_config().broadcast
-            && !self.player.is_stopped()
+            && self.player.is_active()
             && self.tick_sync % timing().db_tick == 0
         {
             self.ui.update_now_playing_elapsed();
@@ -90,7 +90,7 @@ impl NoctaVox {
                 let elapsed = self.player.elapsed();
                 if self.player.is_paused() {
                     mc.set_paused(elapsed);
-                } else if !self.player.is_stopped() {
+                } else if self.player.is_active() {
                     mc.set_playing(elapsed);
                 }
             }
@@ -100,5 +100,5 @@ impl NoctaVox {
 
 #[inline]
 fn never<T>() -> Receiver<T> {
-    crossbeam::channel::never()
+    crossbeam_channel::never()
 }

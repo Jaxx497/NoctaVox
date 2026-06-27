@@ -37,8 +37,8 @@ impl ThemeManager {
         }
     }
 
-    pub fn get_themes(&self) -> Vec<ThemeConfig> {
-        self.theme_lib.clone()
+    pub fn get_themes(&self) -> &[ThemeConfig] {
+        &self.theme_lib
     }
 
     pub fn update_themes(&mut self) {

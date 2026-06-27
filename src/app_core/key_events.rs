@@ -1,6 +1,6 @@
 use crate::{app_core::NoctaVox, key_handler::Action, ui_state::Mode};
 use anyhow::Result;
-use crossbeam::channel::Receiver;
+use crossbeam_channel::Receiver;
 use ratatui::crossterm::{self, event::KeyEvent};
 
 impl NoctaVox {
@@ -9,10 +9,10 @@ impl NoctaVox {
         match action {
             // Player 
             Action::Play(c)         => self.play_selected_song(c)?,
-            Action::TogglePlayback  => self.player.toggle_playback()?,
-            Action::Stop            => self.stop()?,
-            Action::SeekForward(s)  => self.player.seek_forward(s)?,
-            Action::SeekBack(s)     => self.player.seek_back(s)?,
+            Action::TogglePlayback  => self.player.toggle_playback(),
+            Action::Stop            => self.stop(),
+            Action::SeekForward(s)  => self.player.seek_forward(s),
+            Action::SeekBack(s)     => self.player.seek_back(s),
             Action::PlayNext        => self.play_next()?,
             Action::PlayPrev        => self.play_prev()?,
 
@@ -51,7 +51,7 @@ impl NoctaVox {
             Action::AddToPlaylist   => self.ui.add_to_playlist_popup(),
             Action::AddToPlaylistConfirm => self.ui.add_to_playlist()?,
 
-            Action::ToggleRepeat => self.toggle_repeat()?,
+            Action::ToggleRepeat => self.toggle_repeat(),
 
             Action::ShuffleElements => self.shuffle_queue(),
 
@@ -99,7 +99,7 @@ impl NoctaVox {
 }
 
 pub fn key_loop() -> Receiver<KeyEvent> {
-    let (key_tx, key_rx) = crossbeam::channel::bounded(16);
+    let (key_tx, key_rx) = crossbeam_channel::bounded(16);
 
     // 2. SPAWN the input thread (offloading)
     std::thread::spawn(move || {

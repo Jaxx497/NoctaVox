@@ -13,8 +13,7 @@ pub use waveform::Waveform;
 use crate::ui_state::{LayoutStyle, ProgressDisplay, UiState};
 use ratatui::widgets::StatefulWidget;
 
-pub(crate) const OSCILLO_LIMITER: usize = 1024;
-pub(crate) const DEFAULT_AMP: f32 = 1.0;
+const DEFAULT_AMP: f32 = 1.0;
 
 pub struct Progress;
 impl StatefulWidget for Progress {

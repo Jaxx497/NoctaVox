@@ -1,5 +1,4 @@
 use crate::{
-    library::SongInfo,
     tui::widgets::WAVEFORM_WIDGET_HEIGHT,
     ui_state::{LayoutStyle, UiState},
 };
@@ -21,6 +20,8 @@ impl StatefulWidget for Waveform {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
+        let theme = state.theme_manager.get_display_theme(true);
+
         let padding_vertical = match area.height {
             0..=6 => 0,
             7..=20 => (area.height as f32 * 0.15) as u16 - 1,
@@ -43,51 +44,47 @@ impl StatefulWidget for Waveform {
             },
         };
 
-        let theme = state.theme_manager.get_display_theme(true);
+        let waveform = state.get_waveform_as_slice();
+        let wf_len = waveform.len();
 
-        if let Some(np) = state.get_now_playing() {
-            let waveform = state.get_waveform_as_slice();
-            let wf_len = waveform.len();
-            let duration_f32 = &np.get_duration_f32();
+        Canvas::default()
+            .x_bounds([0.0, wf_len as f64])
+            .y_bounds([WAVEFORM_WIDGET_HEIGHT * -1.0, WAVEFORM_WIDGET_HEIGHT])
+            .marker(theme.progress_style)
+            .paint(|ctx| {
+                let elapsed = state.get_elapsed_f32();
+                let duration = state.get_duration_f32();
+                let progress = elapsed / duration;
 
-            Canvas::default()
-                .x_bounds([0.0, wf_len as f64])
-                .y_bounds([WAVEFORM_WIDGET_HEIGHT * -1.0, WAVEFORM_WIDGET_HEIGHT])
-                .marker(theme.progress_style)
-                .paint(|ctx| {
-                    let elapsed = state.get_playback_elapsed_f32();
-                    let progress = elapsed / duration_f32;
+                for (idx, amp) in waveform.iter().enumerate() {
+                    let hgt = (*amp as f64 * WAVEFORM_WIDGET_HEIGHT).round();
+                    let position = idx as f32 / wf_len as f32;
 
-                    for (idx, amp) in waveform.iter().enumerate() {
-                        let hgt = (*amp as f64 * WAVEFORM_WIDGET_HEIGHT).round();
-                        let position = idx as f32 / wf_len as f32;
+                    let color = match position < progress {
+                        true => theme.waveform.active_color.color_at(
+                            position,
+                            elapsed,
+                            theme.waveform.speed,
+                        ),
+                        false => theme.waveform.inactive_color.color_at(
+                            position,
+                            elapsed,
+                            theme.waveform.speed,
+                            theme.dark,
+                            *amp,
+                            &theme.waveform.active_color,
+                        ),
+                    };
 
-                        let color = match position < progress {
-                            true => theme.waveform.active_color.color_at(
-                                position,
-                                elapsed,
-                                theme.waveform.speed,
-                            ),
-                            false => theme.waveform.inactive_color.color_at(
-                                position,
-                                elapsed,
-                                theme.waveform.speed,
-                                theme.dark,
-                                *amp,
-                                &theme.waveform.active_color,
-                            ),
-                        };
-
-                        match area.width < 170 {
-                            true => draw_waveform_line(ctx, idx as f64, hgt, color),
-                            false => draw_waveform_rect(ctx, idx as f64, hgt, color),
-                        }
+                    match area.width < 170 {
+                        true => draw_waveform_line(ctx, idx as f64, hgt, color),
+                        false => draw_waveform_rect(ctx, idx as f64, hgt, color),
                     }
-                })
-                .background_color(theme.bg_global)
-                .block(Block::new().bg(theme.bg_global).padding(padding))
-                .render(area, buf)
-        }
+                }
+            })
+            .background_color(theme.bg_global)
+            .block(Block::new().bg(theme.bg_global).padding(padding))
+            .render(area, buf)
     }
 }
 

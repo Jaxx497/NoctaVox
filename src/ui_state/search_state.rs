@@ -66,7 +66,7 @@ impl UiState {
                 let album_score = (self
                     .search
                     .matcher
-                    .fuzzy_match(&strip_diacritics(&song.get_album().to_lowercase()), &query)
+                    .fuzzy_match(&strip_diacritics(&song.get_album()), &query)
                     .unwrap_or(0) as f32
                     * 1.75) as i64;
 

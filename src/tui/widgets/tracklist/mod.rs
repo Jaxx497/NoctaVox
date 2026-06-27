@@ -25,17 +25,12 @@ use ratatui::{
     widgets::{Block, Borders, Cell, Padding, Row, Table},
 };
 
+// 7 matches the `xxM xxS` or `xxH xxM` format
+const DURATION_SPACING: u16 = 7;
 const COLUMN_SPACING: u16 = 2;
 
 pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
     let layout = state.get_layout();
-
-    let max_dur_len = state
-        .get_legal_songs()
-        .iter()
-        .map(|s| s.get_duration_str(DurationStyle::Clean).len())
-        .max()
-        .unwrap_or(8) as u16;
 
     match state.get_mode() {
         Mode::Power | Mode::Search => match layout {
@@ -62,13 +57,13 @@ pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
                 Constraint::Min(25),
                 Constraint::Max(20),
                 Constraint::Length(4),
-                Constraint::Length(max_dur_len),
+                Constraint::Length(DURATION_SPACING),
             ],
             LayoutStyle::Minimal => vec![
                 Constraint::Length(3),
                 Constraint::Length(1),
                 Constraint::Fill(1),
-                Constraint::Length(max_dur_len),
+                Constraint::Length(DURATION_SPACING),
             ],
         },
         _ => Vec::new(),
@@ -76,12 +71,12 @@ pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
 }
 
 pub fn get_keymaps(mode: &Mode, decorator: &str) -> String {
-    let full = format!(" [q]ueue {decorator} [a]dd to playlist {decorator} [x] remove ");
-    let basic = format!(" [q]ueue {decorator} [a]dd to playlist ");
-
-    matches!(mode, Mode::Library(LibraryView::Playlists) | Mode::Queue)
-        .then_some(full)
-        .unwrap_or(basic)
+    match mode {
+        Mode::Library(LibraryView::Playlists) | Mode::Queue => {
+            format!(" [q]ueue {decorator} [a]dd to playlist {decorator} [x] remove ")
+        }
+        _ => format!(" [q]ueue {decorator} [a]dd to playlist "),
+    }
 }
 
 pub fn create_standard_table<'a>(

@@ -30,7 +30,7 @@ impl StatefulWidget for GenericView {
 
                 let index =
                     CellFactory::index_cell(&theme, &state.get_layout(), idx, is_m_selected);
-                let icon = CellFactory::status_cell(song, state, is_m_selected);
+                let symbol = CellFactory::status_cell(song, state, is_m_selected);
                 let title = CellFactory::title_cell(&theme, song.get_title(), is_m_selected);
                 let artist = CellFactory::artist_cell(&theme, song, is_m_selected);
                 let filetype = CellFactory::filetype_cell(&theme, song, is_m_selected);
@@ -39,16 +39,16 @@ impl StatefulWidget for GenericView {
 
                 match state.get_layout() {
                     LayoutStyle::Traditional => match is_m_selected {
-                        true => Row::new([index, icon, title, artist, filetype, duration])
+                        true => Row::new([index, symbol, title, artist, filetype, duration])
                             .fg(theme.text_selected)
                             .bg(state.theme_manager.active.accent_inactive),
-                        false => Row::new([index, icon, title, artist, filetype, duration]),
+                        false => Row::new([index, symbol, title, artist, filetype, duration]),
                     },
                     LayoutStyle::Minimal => match is_m_selected {
-                        true => Row::new([index, icon, title, duration])
+                        true => Row::new([index, symbol, title, duration])
                             .fg(theme.text_selected)
                             .bg(state.theme_manager.active.accent_inactive),
-                        false => Row::new([index, icon, title, duration]),
+                        false => Row::new([index, symbol, title, duration]),
                     },
                 }
             })

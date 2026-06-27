@@ -1,7 +1,4 @@
-use crate::{
-    tui::widgets::progress::OSCILLO_LIMITER,
-    ui_state::{DisplayTheme, UiState},
-};
+use crate::ui_state::{DisplayTheme, UiState};
 use ratatui::{
     style::Stylize,
     widgets::{
@@ -9,6 +6,8 @@ use ratatui::{
         canvas::{Canvas, Context, Line},
     },
 };
+
+const OSCILLO_LIMITER: usize = 1024;
 
 pub struct Oscilloscope;
 impl StatefulWidget for Oscilloscope {
@@ -21,7 +20,7 @@ impl StatefulWidget for Oscilloscope {
         state: &mut Self::State,
     ) {
         let theme = state.theme_manager.get_display_theme(true);
-        let elapsed = state.get_playback_elapsed_f32();
+        let elapsed = state.get_elapsed_f32();
         let samples = state.sample_tap.make_contiguous();
 
         let n = OSCILLO_LIMITER.min(samples.len());
@@ -58,7 +57,7 @@ fn draw_oscilloscope(ctx: &mut Context, samples: &[f32], time: f32, theme: &Disp
     let peak = samples
         .iter()
         .map(|s| s.abs())
-        .max_by(|a, b| a.partial_cmp(b).unwrap())
+        .max_by(|a, b| a.total_cmp(b))
         .unwrap_or(1.0);
 
     let scale = if peak > 1.0 { 1.0 / peak } else { 1.0 };

@@ -1,4 +1,4 @@
-use crate::{FFMPEG_AVAILABLE, TAP_BUFFER_CAPACITY, player::PlaybackState, ui_state::UiState};
+use crate::{FFMPEG_AVAILABLE, TAP_BUFFER_CAPACITY, ui_state::UiState};
 
 #[derive(Clone, Default, PartialEq, Eq)]
 pub enum ProgressDisplay {
@@ -46,7 +46,7 @@ impl UiState {
     }
 
     pub fn is_progress_display(&self) -> bool {
-        self.metrics.get_state() != PlaybackState::Stopped || !self.queue_is_empty()
+        self.metrics.is_active() || !self.queue_is_empty()
     }
 
     pub fn get_progress_display(&self) -> &ProgressDisplay {
@@ -64,8 +64,16 @@ impl UiState {
     }
 
     pub fn fill_tap(&mut self) {
-        self.metrics
-            .drain_into(&mut self.sample_tap, TAP_BUFFER_CAPACITY);
+        let channels = self.metrics.channels();
+
+        let latest = self.tap.latest(TAP_BUFFER_CAPACITY * channels);
+        for frame in latest.chunks_exact(channels) {
+            let mono = frame.iter().copied().sum::<f32>() / channels as f32;
+            self.sample_tap.push_back(mono);
+        }
+
+        let overflow = self.sample_tap.len().saturating_sub(TAP_BUFFER_CAPACITY);
+        self.sample_tap.drain(..overflow);
     }
 
     pub fn update_spectrum(&mut self) {
@@ -73,9 +81,8 @@ impl UiState {
             return;
         } else {
             let samples = self.sample_tap.make_contiguous();
-            let channels = self.metrics.channels();
             let sample_rate = self.metrics.sample_rate();
-            self.spectrum.update(samples, channels, sample_rate);
+            self.spectrum.update(samples, sample_rate);
         }
     }
 }

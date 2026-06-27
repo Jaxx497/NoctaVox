@@ -2,7 +2,7 @@ use crate::{
     Library, key_handler::KeyBuffer, media_controls::MediaControlsHandle, player::PlayerHandle,
     ui_state::UiState,
 };
-use crossbeam::channel::Receiver;
+use crossbeam_channel::Receiver;
 use std::sync::Arc;
 
 mod app;

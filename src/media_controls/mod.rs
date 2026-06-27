@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use crossbeam::channel::{Receiver, bounded};
+use crossbeam_channel::{Receiver, bounded};
 use souvlaki::{
     MediaControlEvent, MediaControls, MediaMetadata, MediaPlayback, MediaPosition, PlatformConfig,
 };
@@ -88,7 +88,6 @@ impl MediaControlsHandle {
 ///   - WS_EX_NOACTIVATE [cannot be focused]
 #[cfg(target_os = "windows")]
 fn create_hidden_window() -> Option<*mut std::ffi::c_void> {
-    use windows::core::{PCWSTR, w};
     use windows_sys::Win32::{
         Foundation::{HWND, LPARAM, LRESULT, WPARAM},
         System::LibraryLoader::GetModuleHandleW,
@@ -97,8 +96,6 @@ fn create_hidden_window() -> Option<*mut std::ffi::c_void> {
             WS_EX_TOOLWINDOW,
         },
     };
-
-    const CLASS_NAME: PCWSTR = w!("NoctaVoxSTMC");
 
     unsafe extern "system" fn wnd_proc(
         hwnd: HWND,
@@ -109,6 +106,9 @@ fn create_hidden_window() -> Option<*mut std::ffi::c_void> {
         unsafe { DefWindowProcW(hwnd, msg, wparam, lparam) }
     }
 
+    // Null-terminated UTF-16 class name (replaces the `windows` crate's `w!` macro).
+    let class_name: Vec<u16> = "NoctaVoxSTMC\0".encode_utf16().collect();
+
     unsafe {
         let h_instance = GetModuleHandleW(std::ptr::null());
 
@@ -118,7 +118,7 @@ fn create_hidden_window() -> Option<*mut std::ffi::c_void> {
             cbSize: std::mem::size_of::<WNDCLASSEXW>() as u32,
             lpfnWndProc: Some(wnd_proc),
             hInstance: h_instance,
-            lpszClassName: CLASS_NAME.as_ptr(),
+            lpszClassName: class_name.as_ptr(),
             ..Default::default()
         });
 
@@ -126,7 +126,7 @@ fn create_hidden_window() -> Option<*mut std::ffi::c_void> {
         // dwStyle = 0, size 0×0, no WS_VISIBLE → completely invisible.
         let hwnd = CreateWindowExW(
             WS_EX_NOACTIVATE | WS_EX_TOOLWINDOW,
-            CLASS_NAME.as_ptr(),
+            class_name.as_ptr(),
             std::ptr::null(),
             0,
             0,
@@ -139,6 +139,6 @@ fn create_hidden_window() -> Option<*mut std::ffi::c_void> {
             std::ptr::null(),
         );
 
-        if hwnd.is_null() { None } else { Some(hwnd) }
+        (!hwnd.is_null()).then_some(hwnd)
     }
 }

@@ -5,7 +5,6 @@ use crate::{
     database::DbWorker,
     key_handler::InputContext,
     library::{SimpleSong, SongInfo},
-    player::{PlaybackMetrics, PlaybackState},
     ui_state::{
         LayoutStyle, LibraryView, Mode, Pane, PlaylistAction, ProgressDisplay, SettingsMode,
         ThemeManager, UiState, WaveformManager,
@@ -16,9 +15,10 @@ use crate::{
 };
 use anyhow::{Error, Result};
 use std::{collections::VecDeque, sync::Arc, time::Duration};
+use voxio::{TapHandle, Vox};
 
 impl UiState {
-    pub fn new(library: Arc<Library>, metrics: Arc<PlaybackMetrics>) -> Self {
+    pub fn new(library: Arc<Library>, metrics: Arc<Vox>, tap: TapHandle) -> Self {
         UiState {
             library,
             db_worker: DbWorker::new()
@@ -26,6 +26,7 @@ impl UiState {
             search: SearchState::new(),
             display_state: DisplayState::new(),
             metrics,
+            tap,
             playback: PlaybackSession::init(),
 
             waveform: WaveformManager::new(),
@@ -177,15 +178,19 @@ impl UiState {
     }
 
     pub fn get_playback_elapsed(&self) -> Duration {
-        self.metrics.get_elapsed()
+        self.metrics.position()
     }
 
-    pub fn get_playback_elapsed_f32(&self) -> f32 {
-        self.metrics.get_elapsed().as_secs_f32()
+    pub fn get_elapsed_f32(&self) -> f32 {
+        self.metrics.position().as_secs_f32()
+    }
+
+    pub fn get_duration_f32(&self) -> f32 {
+        self.metrics.duration().as_secs_f32()
     }
 
     pub fn player_is_active(&self) -> bool {
-        self.metrics.get_state() != PlaybackState::Stopped && self.get_now_playing().is_some()
+        self.metrics.is_active()
     }
 
     pub fn get_layout(&self) -> &LayoutStyle {
@@ -203,8 +208,9 @@ impl UiState {
         }
     }
 
-    pub fn insert_history_entry(&self, song_id: u64) {
-        self.db_worker.insert_song_to_history(song_id);
+    pub fn insert_history_entry(&mut self, song: &Arc<SimpleSong>) {
+        self.db_worker.insert_song_to_history(song.id);
+        self.playback.push_history(song);
     }
 
     pub fn delete_last_history_entry(&self) {
@@ -216,7 +222,7 @@ impl UiState {
     }
 
     pub fn update_now_playing_elapsed(&self) {
-        let elapsed = self.metrics.get_elapsed().as_secs_f32();
+        let elapsed = self.metrics.position().as_secs_f32();
         self.db_worker.update_now_playing(elapsed);
     }
 }

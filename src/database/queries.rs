@@ -104,7 +104,7 @@ pub const DELETE_SONGS: &str = "
 pub const LOAD_HISTORY: &str = "
     SELECT song_id FROM history
     ORDER BY timestamp DESC
-    LIMIT 50
+    LIMIT ? 
 ";
 
 pub const INSERT_INTO_HISTORY: &str = "
@@ -117,7 +117,7 @@ pub const HISTORY_CLEANUP: &str = "
 
 pub const HISTORY_DELETE_LATEST: &str = "
     DELETE FROM history WHERE id = 
-    (SELECT id FROM history ORDER BY timestamp LIMIT 1)
+    (SELECT id FROM history ORDER BY timestamp DESC LIMIT 1)
 ";
 
 pub const UPDATE_PLAY_COUNT: &str = "

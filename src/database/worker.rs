@@ -18,13 +18,13 @@ pub enum DbMessage {
 }
 
 pub struct DbWorker {
-    sender: crossbeam::channel::Sender<DbMessage>,
+    sender: crossbeam_channel::Sender<DbMessage>,
     pub handle: Option<thread::JoinHandle<()>>,
 }
 
 impl DbWorker {
     pub fn new() -> Result<Self> {
-        let (sender, receiver) = crossbeam::channel::bounded::<DbMessage>(DB_BOUND);
+        let (sender, receiver) = crossbeam_channel::bounded::<DbMessage>(DB_BOUND);
 
         let handle = thread::spawn(move || {
             let mut db = match Database::open() {
@@ -63,7 +63,7 @@ impl DbWorker {
         F: FnOnce(&mut Database) -> Result<T> + Send + 'static,
         T: Send + 'static,
     {
-        let (result_tx, result_rx) = crossbeam::channel::bounded(128);
+        let (result_tx, result_rx) = crossbeam_channel::bounded(128);
 
         self.execute(move |db| {
             let result = operation(db);

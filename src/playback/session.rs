@@ -1,9 +1,4 @@
-use crate::{
-    Database, SongMap,
-    library::SimpleSong,
-    playback::{QueueDelta, ValidatedSong},
-    user_config,
-};
+use crate::{Database, SongMap, library::SimpleSong, playback::ValidatedSong, user_config};
 use anyhow::Result;
 use rand::seq::SliceRandom;
 use std::{
@@ -60,74 +55,50 @@ impl PlaybackSession {
     // =====================
     //    QUEUE METHODS
     // =====================
-    pub fn enqueue(&mut self, song: &Arc<SimpleSong>) -> Result<QueueDelta> {
+    pub fn enqueue(&mut self, song: &Arc<SimpleSong>) -> Result<()> {
         let validated = ValidatedSong::new(song)?;
-        let prev = self.get_head();
 
         self.queue_ids.insert(validated.id());
         self.queue.push_back(validated);
 
-        Ok(self.head_delta(prev))
+        Ok(())
     }
 
-    pub fn enqueue_multi(&mut self, songs: &[Arc<SimpleSong>]) -> Result<QueueDelta> {
-        let prev = self.get_head();
-
+    pub fn enqueue_multi(&mut self, songs: &[Arc<SimpleSong>]) {
         for song in songs {
             if let Ok(validated) = ValidatedSong::new(song) {
                 self.queue_ids.insert(validated.id());
                 self.queue.push_back(validated);
             }
         }
-
-        Ok(self.head_delta(prev))
     }
 
     /// Push song to front of queue
-    pub fn queue_push_front(&mut self, song: &Arc<SimpleSong>) -> Result<QueueDelta> {
+    pub fn queue_push_front(&mut self, song: &Arc<SimpleSong>) -> Result<()> {
         let validated = ValidatedSong::new(song)?;
-        let prev = self.get_head();
 
         self.queue_ids.insert(validated.id());
         self.queue.push_front(Arc::clone(&validated));
 
-        Ok(QueueDelta::HeadChanged {
-            prev,
-            curr: Some(validated),
-        })
+        Ok(())
     }
 
-    /// Take now_playing, put to history.
-    pub fn advance(
-        &mut self,
-    ) -> (
-        QueueDelta,
-        Option<Arc<ValidatedSong>>,
-        Option<Arc<SimpleSong>>,
-    ) {
-        let prev = self.get_head();
-
-        let pushed = self.now_playing.take().map(|c| {
-            self.push_history(&c);
-            c
-        });
+    pub fn advance(&mut self) -> (Option<Arc<ValidatedSong>>, Option<Arc<SimpleSong>>) {
+        let pushed = self.now_playing.take();
 
         let next = self.queue.pop_front().map(|song| {
             self.remove_id_if_final(song.id());
             song
         });
 
-        (self.head_delta(prev), next, pushed)
+        (next, pushed)
     }
 
-    pub fn remove_from_queue(&mut self, idx: usize) -> (QueueDelta, Option<Arc<ValidatedSong>>) {
-        let prev = self.get_head();
-        let dropped = self.queue.remove(idx).map(|s| {
+    pub fn remove_from_queue(&mut self, idx: usize) -> Option<Arc<ValidatedSong>> {
+        self.queue.remove(idx).map(|s| {
             self.remove_id_if_final(s.id());
             s
-        });
-
-        (self.head_delta(prev), dropped)
+        })
     }
 
     pub fn clear_queue(&mut self) {
@@ -135,20 +106,16 @@ impl PlaybackSession {
         self.queue_ids.clear();
     }
 
-    pub fn swap(&mut self, a: usize, b: usize) -> Option<QueueDelta> {
+    pub fn swap(&mut self, a: usize, b: usize) {
         if a.max(b) >= self.queue.len() || a == b {
-            return None;
+            return;
         }
 
-        let prev = self.get_head();
         self.queue.swap(a, b);
-        Some(self.head_delta(prev))
     }
 
-    pub fn shuffle_queue(&mut self) -> QueueDelta {
-        let prev = self.get_head();
+    pub fn shuffle_queue(&mut self) {
         self.queue.make_contiguous().shuffle(&mut rand::rng());
-        self.head_delta(prev)
     }
 
     pub fn is_queued(&self, id: u64) -> bool {
@@ -174,21 +141,19 @@ impl PlaybackSession {
         Ok(())
     }
 
-    pub fn push_history(&mut self, song: &Arc<SimpleSong>) {
+    pub(crate) fn push_history(&mut self, song: &Arc<SimpleSong>) {
         self.history.push_front(Arc::clone(song));
-        if self.history.len() > user_config().history_capacity {
+        if self.history.len() > user_config().history_capacity as usize {
             self.history.pop_back();
         }
     }
 
-    pub fn pop_previous(&mut self) -> Result<Option<(QueueDelta, Arc<ValidatedSong>)>> {
+    pub fn pop_previous(&mut self) -> Result<Option<Arc<ValidatedSong>>> {
         // Handle nothing in history
         let last_played = match self.history.pop_front() {
             Some(song) => song,
             None => return Ok(None),
         };
-
-        let prev_head = self.get_head();
 
         // If something is playing, place it back in the queue
         if let Some(current) = self.now_playing.take() {
@@ -201,9 +166,7 @@ impl PlaybackSession {
         let validated_popped = ValidatedSong::new(&last_played)?;
         self.now_playing = Some(last_played);
 
-        let delta = self.head_delta(prev_head);
-
-        Ok(Some((delta, validated_popped)))
+        Ok(Some(validated_popped))
     }
 
     pub fn repeat_is_enabled(&self) -> bool {
@@ -212,25 +175,6 @@ impl PlaybackSession {
 
     pub fn set_repeat(&mut self, status: bool) {
         self.repeat = status
-    }
-
-    // ======================
-    //    INTERNAL METHODS
-    // ======================
-
-    fn get_head(&self) -> Option<Arc<ValidatedSong>> {
-        self.queue.front().cloned()
-    }
-
-    fn head_delta(&self, prev: Option<Arc<ValidatedSong>>) -> QueueDelta {
-        let curr = self.queue.front().cloned();
-        let curr_id = curr.as_ref().map(|s| s.id());
-        let prev_id = prev.as_ref().map(|s| s.id());
-
-        match curr_id == prev_id {
-            true => QueueDelta::HeadUnchanged,
-            false => QueueDelta::HeadChanged { prev, curr },
-        }
     }
 
     fn remove_id_if_final(&mut self, id: u64) {

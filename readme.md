@@ -17,15 +17,19 @@ terminal workflows.**
 - Gapless playback
 - Queue support
 - Playlist management
-- Import/Export Playlists
-- Multi-format audio ```mp3, m4a, wav, flac, ogg, opus```
+- ReplayGain support
+- Import/Export Playlists*
+- Multi-format audio ```mp3, m4a, wav, flac, ogg, opus, aiff, alac, webm```
 - Live library reloading
 - Custom theming with hot reload
 - Vim-inspired key-bindings
+- Single track loop mode
 - Minimal-view mode (pictured above)
 - Smart search matches against title, album and artist
 - Waveform, oscilloscope, and spectrum visualizations
 - Integration with system media controls
+
+> ***Note:** Requires plugin
 
 ## Installation
 
@@ -111,6 +115,10 @@ update_on_start = true  # BOOLEAN | auto-update library NoctaVox fires up
 auto_resume = false     # BOOLEAN | if a track was playing when shutdown, resume playback on startup
                         # default: false
 
+replay_gain = "off"     # STRING | accepts [ "track" | "album" | "off" ]
+                        # enables reading of ReplayGain tags, specifies which tag to prioritize 
+                        # default: off
+
 broadcast = false       # BOOLEAN | enable broadcast features for scrobbling/Discord rich presence addons
                         # default: false
 
@@ -137,9 +145,7 @@ Installation is simple, drop the addon binary inside of the
 
 ## About
 
-Supported formats: `mp3`, `m4a`, `wav`, `flac`, `ogg`, `opus` \
-Container formats are **not** currently supported (e.g. `webm`, `mkv`) but they
-will be implemented following the upcoming Voxio rewrite.
+Supported formats: `mp3`, `m4a`, `wav`, `flac`, `alac`, `ogg`, `opus`, `aiff` and `webm`
 
 FFmpeg is an ***optional*** dependency which enables the waveform visualization
 functionality. Without ffmpeg, the functionality will simply fallback onto a
@@ -156,16 +162,16 @@ properly tagged.
 
 ## Voxio Backend 
 
-In order for NoctaVox to recognize the intended vision without compromise, a
-custom backend was written- Voxio. It's an extremely simple audio playback
-engine designed to play audio at the highest quality, while also supporting the
-OPUS filetype and gapless playback; features that have proven hard to come by
-in more mature projects. This backend is being actively developed to increase
-user satisfaction and reduce decoding errors. 
+In order for NoctaVox to recognize the intended vision without compromise, the
+Voxio backend was written. While other Rust-powered solutions existed, each one
+was missing one or more features that NoctaVox required: Gapless playback, OPUS
+support, sample tap for visualizations, and a clean API. Voxio has evolved
+since it's inception, and while it is designed specifically to tie into
+NoctaVox, the API and structure will integrate nicely into other projects as
+well.
 
-As of version 0.2.6, Voxio has been moved into its own repository, feel free
-to view it here: \
-https://github.com/Jaxx497/Voxio/
+If you're looking for an audio engine for your project, consider
+[Voxio](https://github.com/Jaxx497/Voxio/).
 
 ## FAQ
 
@@ -221,12 +227,10 @@ If this doesn't fix the issues, file a bug report!
 
 ## Roadmap 
 
-- ReWrite Voxio
-    - Enable container formats
-    - Use symphonia 0.6
-    - Fix device switch crashes
+- Keymap helper popup
 - Write Scrobbling Addon
 - Write Discord Rich Presence Addon
+- Lyrics feature
 
 ## Other
 

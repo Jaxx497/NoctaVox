@@ -383,7 +383,9 @@ impl Database {
         let mut history = VecDeque::new();
 
         let mut stmt = self.conn.prepare(LOAD_HISTORY)?;
-        let rows = stmt.query_map([], |row| Ok(convert_from_bytes(row.get("song_id")?)))?;
+        let rows = stmt.query_map(params![user_config().history_capacity], |row| {
+            Ok(convert_from_bytes(row.get("song_id")?))
+        })?;
 
         for row in rows {
             if let Ok(song_id) = row {
