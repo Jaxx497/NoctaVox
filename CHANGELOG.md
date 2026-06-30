@@ -1,5 +1,58 @@
 # CHANGELOG
 
+## [0.3.1] Voxio Updates
+> #### **2026-06-30**  
+> *Mostly cosmetic update, following up the Voxio overhaul. Enhanced internal stability, but a new waveform rendering engine and added configuration fields!*
+
+
+### RESTORED LICENSE FILE
+  - Accidentally deleted last commit, restored.
+
+### IN-HOUSE WAVEFORM GENERATION
+  - Voxio now exposes a `waveform` feature which builds waveforms using the
+    same decode loop for playback. This has replaced the previous *ffmpeg*
+    based approach.
+  - A consequence of this new waveform generation method is sample accurate
+    duration reporting, which will be applied to new and existing databases.
+  - **WAVEFORMS WILL HAVE A DIFFERENT SHAPE THAN BEFORE**
+    - (Honestly you probably won't even notice)
+    - If this bothers you, delete the `waveforms` table from `noctavox.db`. 
+
+    ```bash
+    > cd ~/{$CONFIG}/noctavox/ 
+    > sqlite3 noctavox.db "DELETE FROM waveforms"
+
+    -- or --
+
+    > vox --reset   # THIS WILL DETELE ALL LISTENING DATA, PLAYLISTS,
+                    # PREFERENCES, CACHED DATA, AND OF COURSE, THE
+                    # REPRESENTATION OF YOUR LIBRARY 
+                    # (user files never written to by NoctaVox)
+    ```
+
+### Added:
+  - Program title now sets to `NoctaVox` on most platforms
+  - UserConfig introduced `seek_small` and `seek_large` fields for customizable
+    seek steps
+
+### Removed:
+  - Waveform render logic no longer utilizes ffmpeg
+  - Removed all syscalls calls to ffmpeg/ffprobe
+  - Removed excess waveform enums and structs
+  - Removed excess derive traits from various structs
+  - Removed nix dependency listing of ffmpeg
+
+### Other Changes:
+  - Voxio bumped to version 0.2.1
+  - Spectrum analyzer is now the default/fallback display widget
+  - Enhanced seek stability
+  - Realtime duration updates on poorly tagged tracks
+  - Enhanced resilience against corrupt packets
+  - Improved error handling
+  - `SimpleSong.duration` now of type AtomicU64 
+  - Additional bug fixes and stability improvements
+
+
 ## [0.3.0] VOXIO OVERHAUL
 > #### 2026-06-26
 Voxio has been rewritten from the ground up. A lot of care has gone into the
@@ -11,7 +64,7 @@ several bugs, including the obnoxious crash on device switch that plagued
 previous versions of NoctaVox.
 
 ### Added:
-  - Support for ReplayGain
+  - Support for ReplayGain via user config
   - Support for AIFF, ALAC, and WEBM*
   - Repeat/Looping Mode (resolves issue #22) 
     - Toggle repeat with `ctrl`+`r`

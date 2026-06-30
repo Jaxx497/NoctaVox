@@ -93,7 +93,7 @@ impl StatefulWidget for AlbumView {
                     .italic(),
                 Span::from(year_str).fg(theme.text_muted),
                 Span::from(format!(" {decorator} ")).fg(theme.text_muted),
-                Span::from(album.artist.to_string()).fg(theme.accent),
+                Span::from(album.get_album_artist().to_owned()).fg(theme.accent),
                 Span::from(format!(" [{} Songs] ", album.tracklist.len())).fg(theme.text_muted),
             ]),
 

@@ -1,4 +1,4 @@
-use crate::{DurationStyle, get_readable_duration, library::SongInfo};
+use crate::{DurationStyle, library::SongInfo};
 
 use super::SimpleSong;
 use std::{sync::Arc, time::Duration};
@@ -65,14 +65,14 @@ impl SongInfo for PlaylistSong {
     }
 
     fn get_duration(&self) -> Duration {
-        self.song.duration
+        self.song.get_duration()
     }
 
     fn get_duration_f32(&self) -> f32 {
-        self.song.duration.as_secs_f32()
+        self.song.get_duration_f32()
     }
 
     fn get_duration_str(&self, style: DurationStyle) -> String {
-        get_readable_duration(self.song.duration, style)
+        self.song.get_duration_str(style)
     }
 }

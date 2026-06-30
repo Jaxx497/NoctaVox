@@ -28,7 +28,7 @@ impl StatefulWidget for SideBarAlbum {
         let album_sort = state.get_album_sort();
 
         let selected_album_idx = state.display_state.album_pos.selected();
-        let selected_artist = state.get_selected_album().map(|a| a.artist.as_str());
+        let selected_artist = state.get_selected_album().map(|a| a.get_album_artist());
 
         let mut list_items = Vec::with_capacity(albums.len());
         let mut current_artist = None;
@@ -38,8 +38,8 @@ impl StatefulWidget for SideBarAlbum {
         for (idx, album) in albums.iter().enumerate() {
             // Add header if artist changed (only for Artist sort)
             if album_sort == AlbumSort::Artist {
-                if current_artist.as_ref() != Some(&album.artist.as_str()) {
-                    let artist_str = album.artist.as_str();
+                if current_artist.as_ref() != Some(&album.get_album_artist()) {
+                    let artist_str = album.get_album_artist();
                     let is_selected_artist = selected_artist == Some(artist_str);
 
                     let header_style = match is_selected_artist {
@@ -72,7 +72,7 @@ impl StatefulWidget for SideBarAlbum {
             let decorator = &state.get_decorator();
 
             let album_title = match album.title.is_empty() {
-                true => album.artist.to_string() + " [Unknown Album]",
+                true => album.get_album_artist().to_string() + " [Unknown Album]",
                 false => album.title.to_string(),
             };
 

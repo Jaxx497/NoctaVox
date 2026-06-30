@@ -20,8 +20,7 @@ pub const GET_ALL_SONGS: &str = "
         s.artist_id,
         s.album_id,
         s.format,
-        a.title as album,
-        a.artist_id as album_artist
+        a.title as album
     from songs s
     INNER JOIN albums a ON a.id = s.album_id
     ORDER BY 
@@ -269,4 +268,10 @@ pub const GET_NOW_PLAYING: &str = "
 
 pub const CLEAR_NOW_PLAYING: &str = "
     DELETE FROM now_playing
+";
+
+pub const UPDATE_DURATION: &str = "
+    UPDATE songs
+    SET duration = ?1
+    WHERE id = ?2
 ";

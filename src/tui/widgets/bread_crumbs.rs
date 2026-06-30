@@ -56,7 +56,7 @@ impl StatefulWidget for BreadCrumbs {
                         Span::from("  ").fg(theme.text_muted),
                         Span::from(album.title.as_ref()).fg(bc_highlight),
                         Span::from(" [").fg(theme.text_muted),
-                        Span::from(album.artist.as_ref()).fg(theme.text_muted),
+                        Span::from(album.get_album_artist()).fg(theme.text_muted),
                         Span::from("]").fg(theme.text_muted),
                     ])
                 }

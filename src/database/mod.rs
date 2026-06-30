@@ -12,7 +12,7 @@ use std::{
     collections::{HashMap, HashSet, VecDeque},
     fs,
     path::PathBuf,
-    sync::Arc,
+    sync::{Arc, atomic::AtomicU64},
     time::{Duration, SystemTime, UNIX_EPOCH},
     u64,
 };
@@ -23,7 +23,7 @@ mod schema;
 mod snapshot;
 mod worker;
 
-pub(crate) const DB_BOUND: usize = 100;
+pub(crate) const DB_BOUND: usize = 128;
 
 pub use worker::DbWorker;
 
@@ -144,17 +144,14 @@ impl Database {
                 let hash = convert_from_bytes(row.get("id")?);
 
                 let artist_id = row.get("artist_id")?;
-                let album_artist_id = row.get("album_artist")?;
 
                 let artist = match self.artist_map.get(&artist_id) {
                     Some(a) => Arc::clone(a),
                     None => Arc::new(format!("Unknown Artist")),
                 };
 
-                let album_artist = match self.artist_map.get(&album_artist_id) {
-                    Some(a) => Arc::clone(a),
-                    None => Arc::new(format!("Unknown Artist")),
-                };
+                let duration_f32 = Duration::from_secs_f32(row.get("duration")?);
+                let duration = AtomicU64::new(duration_f32.as_millis() as u64);
 
                 let album_id = row.get("album_id")?;
                 let album = match self.album_map.get(&album_id) {
@@ -168,11 +165,10 @@ impl Database {
                     artist,
                     album,
                     album_id,
-                    album_artist,
                     year: row.get("year")?,
                     track_no: row.get("track_no")?,
                     disc_no: row.get("disc_no")?,
-                    duration: Duration::from_secs_f32(row.get("duration")?),
+                    duration,
                     filetype: row.get("format")?,
                 };
 
@@ -319,6 +315,13 @@ impl Database {
                 Ok((row.get("id")?, Arc::from(row.get::<_, String>("title")?)))
             })?
             .collect::<Result<HashMap<_, _>, _>>()?;
+
+        Ok(())
+    }
+
+    pub(crate) fn update_duration(&mut self, song_id: u64, duration: f32) -> Result<()> {
+        self.conn
+            .execute(UPDATE_DURATION, params![duration, song_id.to_le_bytes()])?;
 
         Ok(())
     }

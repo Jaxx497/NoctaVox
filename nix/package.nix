@@ -3,7 +3,6 @@
   rustToolchain,
   makeRustPlatform,
   cmake,
-  ffmpeg,
   pkg-config,
   dbus,
   alsa-lib,
@@ -28,7 +27,6 @@ rustPlatform.buildRustPackage {
   ];
 
   buildInputs = [
-    ffmpeg
     dbus
     alsa-lib
   ];

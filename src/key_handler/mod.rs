@@ -17,6 +17,7 @@ use crate::ui_state::Mode;
 use crate::ui_state::Pane;
 use crate::ui_state::PopupType;
 use crate::ui_state::ProgressDisplay;
+use crate::user_config;
 
 static ILLEGAL_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| HashSet::from([';']));
 
@@ -24,13 +25,13 @@ const X: KeyModifiers = KeyModifiers::NONE;
 const S: KeyModifiers = KeyModifiers::SHIFT;
 const C: KeyModifiers = KeyModifiers::CONTROL;
 
-const SEEK_SMALL: f64 = 5.0;
-const SEEK_LARGE: f64 = 30.0;
+static SEEK_SMALL: LazyLock<f64> = LazyLock::new(|| user_config().seek_small);
+static SEEK_LARGE: LazyLock<f64> = LazyLock::new(|| user_config().seek_large);
+
 const SCROLL_MID: usize = 5;
 const SCROLL_XTRA: usize = 20;
 const SIDEBAR_INCREMENT: isize = 1;
 
-#[derive(PartialEq)]
 pub enum Action {
     // Player Controls
     Play(usize),
@@ -132,13 +133,11 @@ pub enum InputContext {
     Popup(PopupType),
 }
 
-#[derive(PartialEq, Eq)]
 pub enum SelectionType {
     Multi,
     Legal,
 }
 
-#[derive(PartialEq, Eq)]
 pub enum Director {
     Up(usize),
     Down(usize),
@@ -146,7 +145,6 @@ pub enum Director {
     Bottom,
 }
 
-#[derive(PartialEq, Eq)]
 pub enum Incrementor {
     Up,
     Down,

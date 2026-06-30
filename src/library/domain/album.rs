@@ -1,7 +1,7 @@
 use super::SimpleSong;
 use std::sync::Arc;
 
-#[derive(Default, Clone)]
+#[derive(Clone)]
 pub struct Album {
     pub id: i64,
     pub title: Arc<String>,
@@ -24,5 +24,9 @@ impl Album {
 
     pub fn get_tracklist(&self) -> Vec<Arc<SimpleSong>> {
         self.tracklist.to_vec()
+    }
+
+    pub fn get_album_artist(&self) -> &str {
+        &self.artist
     }
 }

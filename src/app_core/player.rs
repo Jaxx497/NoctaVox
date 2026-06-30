@@ -1,6 +1,6 @@
-use anyhow::{Result, anyhow};
+use anyhow::{Result, anyhow, bail};
 use std::{sync::Arc, time::Duration};
-use voxio::{StartReason, VoxEvent};
+use voxio::{EndReason, StartReason, VoxEvent};
 
 use crate::{
     app_core::NoctaVox,
@@ -157,7 +157,23 @@ impl NoctaVox {
                         mc.set_playing(Duration::ZERO);
                     }
                 }
+                Ok(())
+            }
 
+            VoxEvent::DurationResolved { duration, .. } => {
+                if let Some(np) = self.ui.get_now_playing() {
+                    let _ = np.update_duration_db(duration);
+                }
+                Ok(())
+            }
+
+            VoxEvent::TrackEnded { path, reason } => {
+                if matches!(reason, EndReason::Failed) {
+                    bail!(
+                        "Track failed with no decodeable packets.\n\nPath: {}",
+                        path.display()
+                    )
+                }
                 Ok(())
             }
 

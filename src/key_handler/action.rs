@@ -74,11 +74,11 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (X, Char(' ')) => Some(Action::TogglePlayback),
             (C, Char('s')) => Some(Action::Stop),
 
-            (X, Char('n')) => Some(Action::SeekForward(SEEK_SMALL)),
-            (S, Char('N')) => Some(Action::SeekForward(SEEK_LARGE)),
+            (X, Char('n')) => Some(Action::SeekForward(*SEEK_SMALL)),
+            (S, Char('N')) => Some(Action::SeekForward(*SEEK_LARGE)),
 
-            (X, Char('p')) => Some(Action::SeekBack(SEEK_SMALL)),
-            (S, Char('P')) => Some(Action::SeekBack(SEEK_LARGE)),
+            (X, Char('p')) => Some(Action::SeekBack(*SEEK_SMALL)),
+            (S, Char('P')) => Some(Action::SeekBack(*SEEK_LARGE)),
 
             // NAVIGATION
             (X, Char('/')) => Some(Action::ChangeMode(Mode::Search)),
@@ -252,11 +252,11 @@ fn handle_fullscreen(key: &KeyEvent) -> Option<Action> {
         (X, Char(' ')) => Action::TogglePlayback,
         (X, F(6)) => Action::ThemeRefresh,
 
-        (X, Char('n')) => Action::SeekForward(SEEK_SMALL),
-        (S, Char('N')) => Action::SeekForward(SEEK_LARGE),
+        (X, Char('n')) => Action::SeekForward(*SEEK_SMALL),
+        (S, Char('N')) => Action::SeekForward(*SEEK_LARGE),
 
-        (X, Char('p')) => Action::SeekBack(SEEK_SMALL),
-        (S, Char('P')) => Action::SeekBack(SEEK_LARGE),
+        (X, Char('p')) => Action::SeekBack(*SEEK_SMALL),
+        (S, Char('P')) => Action::SeekBack(*SEEK_LARGE),
 
         (X, Char('w')) => Action::NextProgressDisplay,
 

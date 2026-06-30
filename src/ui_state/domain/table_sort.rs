@@ -1,4 +1,3 @@
-#[derive(PartialEq)]
 pub enum TableSort {
     Title,
     Artist,

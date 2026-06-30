@@ -26,7 +26,6 @@ pub struct ColorScheme {
     pub accent_inactive: ThemeColor,
 }
 
-#[derive(Clone, Copy, Debug)]
 pub struct ThemeColor(pub Color);
 
 impl<'de> Deserialize<'de> for ThemeColor {

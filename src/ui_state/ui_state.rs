@@ -32,7 +32,7 @@ impl UiState {
             waveform: WaveformManager::new(),
             spectrum: SpectrumState::default(),
             sample_tap: VecDeque::with_capacity(TAP_BUFFER_CAPACITY),
-            progress_display: ProgressDisplay::Oscilloscope,
+            progress_display: ProgressDisplay::Spectrum,
             stats: VoxStats::default(),
 
             layout: LayoutStyle::Traditional,

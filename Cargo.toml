@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.3.0"
+version = "0.3.1"
 edition = "2024"
 rust-version = "1.95"
 authors = ["Jaxx497"]
@@ -31,7 +31,7 @@ toml = "1.0.3"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
-voxio = "0.2.0"
+voxio = { version = "0.2.1", features = ["waveform"] }
 souvlaki = "0.7"
 xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
 

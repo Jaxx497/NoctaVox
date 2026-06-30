@@ -269,7 +269,7 @@ impl UiState {
 
                 album_a.cmp(&album_b)
             }),
-            TableSort::Duration => self.legal_songs.sort_by_key(|s| s.duration),
+            TableSort::Duration => self.legal_songs.sort_by_key(|s| s.get_duration()),
         };
     }
 

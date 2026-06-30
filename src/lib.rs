@@ -11,7 +11,6 @@ use std::{
     fs,
     io::{self, Write},
     path::{Path, PathBuf},
-    process::{self, Command},
     sync::{Arc, LazyLock, OnceLock},
     time::{Duration, UNIX_EPOCH},
 };
@@ -36,15 +35,6 @@ pub use config::UserConfig;
 pub use database::Database;
 pub use library::{Library, SimpleSong};
 pub use playback::PlaybackSession;
-
-pub static FFMPEG_AVAILABLE: LazyLock<bool> = LazyLock::new(|| {
-    Command::new("ffmpeg")
-        .arg("-version")
-        .stdout(process::Stdio::null())
-        .stderr(process::Stdio::null())
-        .status()
-        .is_ok()
-});
 
 pub type SongMap = IndexMap<u64, Arc<SimpleSong>, BuildNoHashHasher<u64>>;
 

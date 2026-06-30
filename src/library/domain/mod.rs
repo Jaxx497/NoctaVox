@@ -11,6 +11,7 @@ pub use playlist::{Playlist, PlaylistSong};
 pub use simple_song::SimpleSong;
 
 use crate::DurationStyle;
+use std::time::Duration;
 
 pub trait SongInfo {
     fn get_id(&self) -> u64;
@@ -25,6 +26,7 @@ pub trait SongInfo {
 pub trait SongDatabase {
     fn get_path(&self) -> anyhow::Result<String>;
     fn update_play_count(&self) -> anyhow::Result<()>;
-    fn get_waveform(&self) -> anyhow::Result<Vec<f32>>;
+    fn get_waveform_db(&self) -> anyhow::Result<Vec<f32>>;
     fn set_waveform_db(&self, wf: &[f32]) -> anyhow::Result<()>;
+    fn update_duration_db(&self, cand: Duration) -> anyhow::Result<()>;
 }

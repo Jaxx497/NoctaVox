@@ -1,4 +1,3 @@
-#[derive(PartialEq, Eq, Clone, Copy)]
 pub enum AlbumSort {
     Artist,
     Title,

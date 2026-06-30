@@ -28,6 +28,7 @@ terminal workflows.**
 - Smart search matches against title, album and artist
 - Waveform, oscilloscope, and spectrum visualizations
 - Integration with system media controls
+- No external dependencies required!
 
 > ***Note:** Requires plugin
 
@@ -106,8 +107,11 @@ inside of the `$CONFIG/noctavox/` directory.
 framerate = 120         # INTEGER | accepts values from 20 to 360 
                         # default: 60 | recommended: monitor hz
 
-history_capacity = 64   # INTEGER | accepts values from 0 to 1024
-                        # default: 64
+seek_small = 5          # INTEGER or FLOAT | `n` seek step, in seconds
+                        # default = 5.0 | clamps from 0.5 to 3600.0
+
+seek_large = 30.0       # INTEGER or FLOAT | `N` seek step, in seconds
+                        # default = 30.0 | clamps from 0.5 to 3600.0
 
 update_on_start = true  # BOOLEAN | auto-update library NoctaVox fires up
                         # default: true
@@ -115,9 +119,11 @@ update_on_start = true  # BOOLEAN | auto-update library NoctaVox fires up
 auto_resume = false     # BOOLEAN | if a track was playing when shutdown, resume playback on startup
                         # default: false
 
-replay_gain = "off"     # STRING | accepts [ "track" | "album" | "off" ]
-                        # enables reading of ReplayGain tags, specifies which tag to prioritize 
-                        # default: off
+history_capacity = 64   # INTEGER | Number of songs history table in db holds
+                        # default: 64 | clamps from 8 to 1024
+
+replay_gain = "off"     # STRING | enables reading of ReplayGain tags, specifies which tag to prioritize 
+                        # default: "off" | accepts [ "track" | "album" | "off" ]
 
 broadcast = false       # BOOLEAN | enable broadcast features for scrobbling/Discord rich presence addons
                         # default: false
@@ -146,10 +152,6 @@ Installation is simple, drop the addon binary inside of the
 ## About
 
 Supported formats: `mp3`, `m4a`, `wav`, `flac`, `alac`, `ogg`, `opus`, `aiff` and `webm`
-
-FFmpeg is an ***optional*** dependency which enables the waveform visualization
-functionality. Without ffmpeg, the functionality will simply fallback onto a
-different visualization method.
 
 NoctaVox never overwrites user files and does not have any online capabilities.
 The program does rely on accurate tagging, and does not supply a method for
@@ -180,13 +182,6 @@ If you're looking for an audio engine for your project, consider
 If your files are not tagged properly, they will not display properly within
 NoctaVox. Look into a tagging solution like beets or Mp3Tag.
 
-#### I'm having problems seeking/seeing duration/reading metadata. Why?
-
-1. Is it a webm file? WEBM files are still extremely unstable, refrain from any
-   bug reporting on WEBM files until further notice.
-
-2. If not a webm, verify that your problems do not persist in other software. 
-
 #### Can I edit tags within NoctaVox?
 
 No. NoctaVox's philosophy is based on a read-only basis (outside of it's own
@@ -204,10 +199,10 @@ Windows)
 
 #### Can I import and/or export my existing playlists?
 
-Yes! Place the the `nv-transpose` executable from the
-[NoctaVox-Plugins](https://github.com/Jaxx497/NoctaVox-Plugins) repository into
-the `$CONFIG/noctavox/addons` folder and try running `vox --import-playlist` or
-`vox --export-playlist`
+Yes! [NoctaVox-Plugins](https://github.com/Jaxx497/NoctaVox-Plugins) houses the
+`nv-transpose` executable. This can be run on it's own or placed into the
+`$CONFIG/noctavox/addons` folder and run via `vox --import-playlist` or `vox
+--export-playlist`
 
 #### Does Noctavox support scrobbling or Discord Rich Presence?
 

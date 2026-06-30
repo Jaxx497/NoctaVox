@@ -23,7 +23,7 @@ use symphonia::{
 
 static NO_ARTIST: LazyLock<Arc<String>> = LazyLock::new(|| Arc::new(String::from("[NO ARTIST!]")));
 
-#[derive(Default, Debug)]
+#[derive(Default)]
 pub struct LongSong {
     pub(crate) id: u64,
     pub(crate) title: String,

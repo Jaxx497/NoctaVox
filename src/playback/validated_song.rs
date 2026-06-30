@@ -1,5 +1,5 @@
 use crate::{
-    DurationStyle, get_readable_duration,
+    DurationStyle,
     library::{SimpleSong, SongDatabase, SongInfo},
 };
 use anyhow::Result;
@@ -53,14 +53,14 @@ impl SongInfo for ValidatedSong {
     }
 
     fn get_duration(&self) -> Duration {
-        self.meta.duration
+        self.meta.get_duration()
     }
 
     fn get_duration_f32(&self) -> f32 {
-        self.meta.duration.as_secs_f32()
+        self.meta.get_duration_f32()
     }
 
     fn get_duration_str(&self, style: DurationStyle) -> String {
-        get_readable_duration(self.meta.duration, style)
+        self.meta.get_duration_str(style)
     }
 }

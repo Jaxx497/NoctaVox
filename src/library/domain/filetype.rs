@@ -12,7 +12,7 @@ pub static LEGAL_EXTENSION: std::sync::LazyLock<std::collections::HashSet<&'stat
     });
 
 #[allow(clippy::upper_case_acronyms)]
-#[derive(Default, Eq, PartialEq, Copy, Clone, Hash, Debug)]
+#[derive(Default, PartialEq, Copy, Clone)]
 pub enum FileType {
     MP3 = 1,
     M4A = 2,

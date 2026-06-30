@@ -10,7 +10,11 @@ pub use spectrum::SpectrumAnalyzer;
 pub use timer::Timer;
 pub use waveform::Waveform;
 
-use crate::ui_state::{LayoutStyle, ProgressDisplay, UiState};
+use crate::ui_state::{
+    LayoutStyle,
+    ProgressDisplay::{self},
+    UiState,
+};
 use ratatui::widgets::StatefulWidget;
 
 const DEFAULT_AMP: f32 = 1.0;
@@ -28,9 +32,9 @@ impl StatefulWidget for Progress {
             state.fill_tap();
             match &state.get_progress_display() {
                 ProgressDisplay::ProgressBar => ProgressBar.render(area, buf, state),
-                ProgressDisplay::Waveform => match !state.get_waveform_as_slice().is_empty() {
+                ProgressDisplay::Waveform => match state.waveform_is_valid() {
                     true => Waveform.render(area, buf, state),
-                    false => Oscilloscope.render(area, buf, state),
+                    false => SpectrumAnalyzer.render(area, buf, state),
                 },
                 ProgressDisplay::Oscilloscope => Oscilloscope.render(area, buf, state),
                 ProgressDisplay::Spectrum => SpectrumAnalyzer.render(area, buf, state),

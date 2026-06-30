@@ -1,9 +1,14 @@
 use super::{FileType, SongInfo};
 use crate::{Database, DurationStyle, get_readable_duration};
 use anyhow::Result;
-use std::{sync::Arc, time::Duration};
+use std::{
+    sync::{
+        Arc,
+        atomic::{AtomicU64, Ordering},
+    },
+    time::Duration,
+};
 
-#[derive(Default, Hash, Eq, PartialEq)]
 pub struct SimpleSong {
     pub(crate) id: u64,
     pub(crate) title: String,
@@ -11,10 +16,9 @@ pub struct SimpleSong {
     pub(crate) year: Option<u32>,
     pub(crate) album: Arc<String>,
     pub(crate) album_id: i64,
-    pub(crate) album_artist: Arc<String>,
     pub(crate) track_no: Option<u32>,
     pub(crate) disc_no: Option<u32>,
-    pub(crate) duration: Duration,
+    pub(crate) duration: AtomicU64,
     pub(crate) filetype: FileType,
 }
 
@@ -34,7 +38,7 @@ impl super::SongDatabase for SimpleSong {
 
     /// Retrieve the waveform of a song
     /// returns Result<Vec<f32>>
-    fn get_waveform(&self) -> Result<Vec<f32>> {
+    fn get_waveform_db(&self) -> Result<Vec<f32>> {
         let mut db = Database::open()?;
         db.get_waveform(self.id)
     }
@@ -43,6 +47,22 @@ impl super::SongDatabase for SimpleSong {
     fn set_waveform_db(&self, wf: &[f32]) -> Result<()> {
         let mut db = Database::open()?;
         db.set_waveform(self.id, wf)
+    }
+
+    fn update_duration_db(&self, cand: Duration) -> anyhow::Result<()> {
+        let cand_f32 = cand.as_secs_f32();
+        let current = self.get_duration_f32();
+
+        let changed = cand_f32 > 0.5 && (cand_f32 - current).abs() > 0.5;
+
+        if changed {
+            self.duration
+                .store(cand.as_millis() as u64, Ordering::Release);
+            let mut db = Database::open()?;
+            db.update_duration(self.id, cand_f32)?
+        }
+
+        Ok(())
     }
 }
 
@@ -65,15 +85,17 @@ impl SongInfo for SimpleSong {
     }
 
     fn get_duration(&self) -> Duration {
-        self.duration
+        let ms = self.duration.load(Ordering::Acquire);
+        Duration::from_millis(ms)
     }
 
     fn get_duration_f32(&self) -> f32 {
-        self.duration.as_secs_f32()
+        let ms = self.duration.load(Ordering::Acquire);
+        Duration::from_millis(ms).as_secs_f32()
     }
 
     fn get_duration_str(&self, style: DurationStyle) -> String {
-        get_readable_duration(self.duration, style)
+        get_readable_duration(self.get_duration(), style)
     }
 }
 

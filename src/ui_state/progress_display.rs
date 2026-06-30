@@ -1,12 +1,12 @@
-use crate::{FFMPEG_AVAILABLE, TAP_BUFFER_CAPACITY, ui_state::UiState};
+use crate::{TAP_BUFFER_CAPACITY, ui_state::UiState};
 
-#[derive(Clone, Default, PartialEq, Eq)]
+#[derive(Default)]
 pub enum ProgressDisplay {
     Waveform,
     Oscilloscope,
-    Spectrum,
-    #[default]
     ProgressBar,
+    #[default]
+    Spectrum,
 }
 
 impl ProgressDisplay {
@@ -21,10 +21,10 @@ impl ProgressDisplay {
 
     pub fn from_str(s: &str) -> Self {
         match s {
-            "spectrum" => Self::Spectrum,
             "waveform" => Self::Waveform,
             "oscilloscope" => Self::Oscilloscope,
-            _ => Self::ProgressBar,
+            "progress_bar" => Self::ProgressBar,
+            _ => Self::Spectrum,
         }
     }
 }
@@ -54,13 +54,7 @@ impl UiState {
     }
 
     pub fn set_progress_display(&mut self, display: ProgressDisplay) {
-        self.progress_display = match display {
-            ProgressDisplay::Waveform => match *FFMPEG_AVAILABLE {
-                true => display,
-                false => ProgressDisplay::default(),
-            },
-            _ => display,
-        }
+        self.progress_display = display
     }
 
     pub fn fill_tap(&mut self) {
