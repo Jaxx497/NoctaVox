@@ -1,5 +1,5 @@
 use crate::{
-    library::SongInfo,
+    library::{RefreshStage, SongInfo},
     truncate_at_last_space,
     tui::widgets::{PAUSE_ICON, QUEUE_ICON, REPEAT_ICON},
     ui_state::{DisplayTheme, UiState},
@@ -24,17 +24,23 @@ impl StatefulWidget for BufferLine {
     ) {
         let theme = state.theme_manager.get_display_theme(true);
 
-        if let Some(progress) = state
-            .get_library_refresh_progress()
-            .filter(|p| *p > 1 && *p < 100)
-        {
-            let desc = state.get_library_refresh_detail().unwrap_or_default();
-            let label = format!("{desc} | {progress}%").fg(theme.text_muted);
+        if let Some(refresh) = &state.library_refresh {
+            let percent = refresh.percent();
+
+            let label = match refresh.stage() {
+                RefreshStage::Parsing => {
+                    let (c, t) = refresh.counts();
+                    format!("Processing {c}/{t} | {percent}%")
+                }
+                stage => format!("{} | {percent}%", stage.label()),
+            }
+            .fg(theme.text_muted);
+
             let guage = Gauge::default()
                 .block(Block::new().borders(Borders::NONE))
                 .gauge_style(theme.accent)
                 .label(label)
-                .percent(progress as u16 - 1);
+                .percent(percent.min(100) as u16);
 
             guage.render(area, buf);
             return;

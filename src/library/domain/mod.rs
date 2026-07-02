@@ -2,12 +2,14 @@ mod album;
 mod filetype;
 mod long_song;
 mod playlist;
+mod refresh;
 mod simple_song;
 
 pub use album::Album;
 pub use filetype::{FileType, LEGAL_EXTENSION};
 pub use long_song::LongSong;
 pub use playlist::{Playlist, PlaylistSong};
+pub use refresh::{RefreshProgress, RefreshStage};
 pub use simple_song::SimpleSong;
 
 use crate::DurationStyle;

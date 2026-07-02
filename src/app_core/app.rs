@@ -19,21 +19,7 @@ impl NoctaVox {
         let config_err = Self::load_config();
         Self::init_timings();
 
-        let lib = Arc::new({
-            let mut l = Library::init()?;
-
-            match user_config().update_on_start {
-                true => l.build_library()?,
-                false => {
-                    l.collect_songs()?;
-                    l.build_albums()?;
-                }
-            }
-
-            l
-        });
-
-        let lib_clone = Arc::clone(&lib);
+        let lib = Arc::new(Library::init_and_build()?);
 
         let (mut vox, events) = Vox::new()?;
         let tap = vox.take_tap().expect("Vox yields its tap on first call");
@@ -47,9 +33,9 @@ impl NoctaVox {
             .ok();
 
         let mut nv = NoctaVox {
-            library: lib,
+            library: Arc::clone(&lib),
             player,
-            ui: UiState::new(lib_clone, vox, tap),
+            ui: UiState::new(lib, vox, tap),
             library_refresh_rec: None,
             key_buffer: KeyBuffer::new(),
             media_controls,

@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Current Unreleased Chagnes
+
+### Changed:
+  - Reworked live update logic and library refresh process
+
 ## [0.3.1] Voxio Updates
 > #### **2026-06-30**  
 > *Mostly cosmetic update, following up the Voxio overhaul. Enhanced internal stability, but a new waveform rendering engine and added configuration fields!*

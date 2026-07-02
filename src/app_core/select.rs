@@ -16,9 +16,9 @@ impl NoctaVox {
                 }
             }
 
-            recv(self.library_refresh_rec.as_ref().unwrap_or(&never())) -> progress => {
-                if let Ok(progress) = progress {
-                    self.handle_library_progress(progress)
+            recv(self.library_refresh_rec.as_ref().unwrap_or(&never())) -> result => {
+                if let Ok(result) = result {
+                    self.handle_library_result(result)
                 }
             }
 

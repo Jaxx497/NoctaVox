@@ -31,7 +31,7 @@ pub use waveform::WaveformManager;
 use crate::{
     Library, PlaybackSession,
     database::DbWorker,
-    library::{Album, Playlist, SimpleSong},
+    library::{Album, Playlist, RefreshProgress, SimpleSong},
     ui_state::{
         popup::PopupState, search_state::SearchState, spectrum::SpectrumState, stats::VoxStats,
     },
@@ -86,8 +86,7 @@ pub struct UiState {
     pub(crate) albums: Vec<Album>,
     pub(crate) playlists: Vec<Playlist>,
 
-    pub library_refresh_progress: Option<u8>,
-    pub library_refresh_detail: Option<String>,
+    pub library_refresh: Option<Arc<RefreshProgress>>,
 }
 
 pub use theme::*;

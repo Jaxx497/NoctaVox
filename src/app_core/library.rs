@@ -1,8 +1,5 @@
-use crate::{
-    Library,
-    app_core::{LibraryRefreshProgress, NoctaVox},
-};
-use anyhow::{Result, anyhow};
+use crate::{Library, app_core::NoctaVox, library::RefreshProgress};
+use anyhow::Result;
 use std::{sync::Arc, thread};
 
 impl NoctaVox {
@@ -14,59 +11,23 @@ impl NoctaVox {
         let (tx, rx) = crossbeam_channel::bounded(1);
         self.library_refresh_rec = Some(rx);
 
-        self.ui.set_library_refresh_progress(Some(0));
+        let progress = Arc::new(RefreshProgress::default());
+        self.ui.library_refresh = Some(Arc::clone(&progress));
 
         thread::spawn(move || {
-            let _ = tx.send(LibraryRefreshProgress::Scanning { progress: 1 });
-            let mut updated_lib = match Library::init() {
-                Ok(l) => l,
-                Err(e) => {
-                    let _ = tx.send(LibraryRefreshProgress::Error(e.to_string()));
-                    return;
-                }
-            };
-
-            if updated_lib.roots.is_empty() {
-                let _ = tx.send(LibraryRefreshProgress::Complete(updated_lib));
-                return;
-            }
-
-            let _ = match updated_lib.build_library_with_progress(&tx) {
-                Ok(_) => tx.send(LibraryRefreshProgress::Complete(updated_lib)),
-                Err(e) => tx.send(LibraryRefreshProgress::Error(e.to_string())),
-            };
+            let result = Library::init().and_then(|mut lib| {
+                lib.rebuild_library(&progress)?;
+                Ok(lib)
+            });
+            let _ = tx.send(result);
         });
 
         Ok(())
     }
 
-    pub(super) fn handle_library_progress(&mut self, progress: LibraryRefreshProgress) {
-        match progress {
-            LibraryRefreshProgress::Scanning { progress } => {
-                self.ui.set_library_refresh_progress(Some(progress));
-                self.ui
-                    .set_library_refresh_detail(Some(format!("Scanning Songs...")));
-            }
-            LibraryRefreshProgress::Processing {
-                progress,
-                current,
-                total,
-            } => {
-                self.ui.set_library_refresh_progress(Some(progress));
-                self.ui
-                    .set_library_refresh_detail(Some(format!("Processing {}/{}", current, total)));
-            }
-            LibraryRefreshProgress::UpdatingDatabase { progress } => {
-                self.ui.set_library_refresh_progress(Some(progress));
-                self.ui
-                    .set_library_refresh_detail(Some("Updating database...".to_string()));
-            }
-            LibraryRefreshProgress::Rebuilding { progress } => {
-                self.ui.set_library_refresh_progress(Some(progress));
-                self.ui
-                    .set_library_refresh_detail(Some("Rebuilding library...".to_string()));
-            }
-            LibraryRefreshProgress::Complete(new_library) => {
+    pub(super) fn handle_library_result(&mut self, result: Result<Library>) {
+        match result {
+            Ok(new_library) => {
                 let cached = self.ui.display_state.album_pos.selected();
                 let cached_offset = self.ui.display_state.album_pos.offset();
                 let updated_len = new_library.albums.len();
@@ -88,16 +49,11 @@ impl NoctaVox {
                 }
 
                 self.ui.set_legal_songs();
-                self.ui.set_library_refresh_progress(None);
-                self.ui.set_library_refresh_detail(None);
-                self.library_refresh_rec = None;
             }
-            LibraryRefreshProgress::Error(e) => {
-                self.ui.set_error(anyhow!(e));
-                self.ui.set_library_refresh_progress(None);
-                self.ui.set_library_refresh_detail(None);
-                self.library_refresh_rec = None;
-            }
+            Err(e) => self.ui.set_error(e),
         }
+
+        self.ui.library_refresh = None;
+        self.library_refresh_rec = None;
     }
 }
