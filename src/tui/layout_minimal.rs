@@ -1,4 +1,7 @@
-use crate::ui_state::{LibraryView, Mode, Pane, ProgressDisplay, UiState};
+use crate::{
+    ui_state::{LibraryView, Mode, Pane, UiState},
+    visualization::ProgressDisplay,
+};
 use ratatui::layout::{Constraint, Layout, Rect};
 
 pub struct LayoutMinimal {
@@ -12,7 +15,7 @@ const WIDGET_PERCENTAGE: f32 = 0.12;
 
 impl LayoutMinimal {
     pub fn new(area: Rect, state: &mut UiState) -> Self {
-        let is_progress_display = state.is_progress_display();
+        let is_progress_display = state.metrics.is_active();
 
         let search_height = match state.get_mode() {
             Mode::Search => match state.borders_enabled() {
@@ -24,7 +27,7 @@ impl LayoutMinimal {
 
         let widget_h = match is_progress_display {
             false => 0,
-            true => match (state.get_progress_display(), area.height > 20) {
+            true => match (state.viz.get_progress_display(), area.height > 20) {
                 (ProgressDisplay::ProgressBar, _) | (_, false) => 3,
                 _ => (area.height as f32 * WIDGET_PERCENTAGE).ceil() as u16,
             },
@@ -37,7 +40,7 @@ impl LayoutMinimal {
         };
 
         let item_count = match state.get_pane() {
-            Pane::SideBar => match state.get_sidebar_view() {
+            Pane::SideBar => match state.nav.get_sidebar_view() {
                 LibraryView::Albums => state.albums.len(),
                 LibraryView::Playlists => state.playlists.len(),
             },

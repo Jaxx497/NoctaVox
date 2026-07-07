@@ -22,10 +22,10 @@ impl NoctaVox {
                 }
             }
 
-            recv(&self.ui.wf_reciever().unwrap_or(&never())) -> result => {
+            recv(&self.ui.viz.wf_reciever().unwrap_or(&never())) -> result => {
                 if let Ok(res) = result {
-                    let now_playing = &self.ui.playback.get_now_playing().cloned();
-                    self.ui.handle_wf_result(res, now_playing.as_ref());
+                    let now_playing = &self.ui.get_now_playing().cloned();
+                    self.ui.viz.handle_wf_result(res, now_playing.as_ref());
                 }
             }
 
@@ -39,7 +39,7 @@ impl NoctaVox {
 
             recv(key_rx) -> key => {
                 if let Ok(key) = key {
-                    if let Some(action) = key_handler::handle_key_event(key, &mut self.ui, &mut self.key_buffer) {
+                    if let Some(action) = key_handler::handle_key_event(key, &mut self.ui) {
                         if let Err(e) = self.handle_action(action) {
                             self.ui.set_error(e);
                         }

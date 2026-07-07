@@ -2,7 +2,6 @@ use crate::{
     Library, USER_CONFIG, UserConfig,
     app_core::{NoctaVox, key_loop},
     config::{TIMING, Timing},
-    key_handler::KeyBuffer,
     overwrite_line,
     playback::ValidatedSong,
     player::PlayerHandle,
@@ -33,11 +32,9 @@ impl NoctaVox {
             .ok();
 
         let mut nv = NoctaVox {
-            library: Arc::clone(&lib),
             player,
             ui: UiState::new(lib, vox, tap),
             library_refresh_rec: None,
-            key_buffer: KeyBuffer::new(),
             media_controls,
             tick_sync: 0,
             restored_song_id: None,
@@ -56,7 +53,7 @@ impl NoctaVox {
             self.restore_ui();
             let _ = self.restore_last_played();
 
-            if self.library.roots.is_empty() {
+            if self.ui.library().roots.is_empty() {
                 self.ui
                     .show_popup(PopupType::Settings(SettingsMode::AddRoot));
             }
@@ -108,10 +105,11 @@ impl NoctaVox {
     }
 
     fn preload_lib(&mut self) {
-        if let Err(e) = self.ui.sync_library(Arc::clone(&self.library)) {
+        let lib = Arc::clone(self.ui.library());
+        if let Err(e) = self.ui.sync_library(Arc::clone(&lib)) {
             self.ui.set_error(e);
         }
-        let _ = self.ui.playback.load_history(self.library.get_songs_map());
+        let _ = self.ui.playback.load_history(lib.get_songs_map());
     }
 
     fn restore_ui(&mut self) {
@@ -120,7 +118,7 @@ impl NoctaVox {
 
     fn restore_last_played(&mut self) -> Result<()> {
         if let Ok((song_id, elapsed_secs)) = self.ui.restore_last_played() {
-            if let Some(song) = self.library.get_song_by_id(song_id) {
+            if let Some(song) = self.ui.library().get_song_by_id(song_id) {
                 let song = ValidatedSong::new(song)?;
 
                 self.restored_song_id = Some(song_id);

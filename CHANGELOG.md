@@ -3,7 +3,11 @@
 ## Current Unreleased Chagnes
 
 ### Changed:
+  - sidebar max size moved to 49%
   - Reworked live update logic and library refresh process
+  - Shaved off library clone
+  - Minor refactor of UI handler
+  - Improved encapsulation acrossed modules
 
 ## [0.3.1] Voxio Updates
 > #### **2026-06-30**  

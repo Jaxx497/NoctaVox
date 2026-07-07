@@ -50,7 +50,7 @@ impl StatefulWidget for AlbumView {
                 let duration =
                     CellFactory::duration_cell(theme, song, DurationStyle::Clean, is_m_selected);
 
-                match state.get_layout() {
+                match state.layout {
                     LayoutStyle::Traditional => match is_m_selected {
                         true => Row::new([
                             track_disc_no,
@@ -86,7 +86,7 @@ impl StatefulWidget for AlbumView {
             .filter(|y| *y != 0)
             .map_or(String::new(), |y| format!(" [{y}]"));
 
-        let title = match state.get_layout() {
+        let title = match state.layout {
             LayoutStyle::Traditional => Line::from_iter([
                 Span::from(format!(" {}", album_title))
                     .fg(theme.text_secondary)
@@ -101,6 +101,6 @@ impl StatefulWidget for AlbumView {
         };
 
         let table = create_standard_table(rows, title, state, theme, area);
-        StatefulWidget::render(table, area, buf, &mut state.display_state.table_pos);
+        StatefulWidget::render(table, area, buf, &mut state.nav.table_pos);
     }
 }

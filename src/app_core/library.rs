@@ -28,24 +28,23 @@ impl NoctaVox {
     pub(super) fn handle_library_result(&mut self, result: Result<Library>) {
         match result {
             Ok(new_library) => {
-                let cached = self.ui.display_state.album_pos.selected();
-                let cached_offset = self.ui.display_state.album_pos.offset();
+                let cached = self.ui.nav.album_pos.selected();
+                let cached_offset = self.ui.nav.album_pos.offset();
                 let updated_len = new_library.albums.len();
 
-                self.library = Arc::new(new_library);
-                if let Err(e) = self.ui.sync_library(Arc::clone(&self.library)) {
+                if let Err(e) = self.ui.sync_library(Arc::new(new_library)) {
                     self.ui.set_error(e);
                 }
 
                 if updated_len > 0 {
                     self.ui
-                        .display_state
+                        .nav
                         .album_pos
                         .select(match cached < Some(updated_len) {
                             true => cached,
                             false => Some(updated_len / 2),
                         });
-                    *self.ui.display_state.album_pos.offset_mut() = cached_offset;
+                    *self.ui.nav.album_pos.offset_mut() = cached_offset;
                 }
 
                 self.ui.set_legal_songs();

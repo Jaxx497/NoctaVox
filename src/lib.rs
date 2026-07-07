@@ -29,6 +29,7 @@ pub mod playback;
 pub mod player;
 pub mod tui;
 pub mod ui_state;
+pub mod visualization;
 
 pub use addons::parse_args;
 pub use config::UserConfig;
@@ -57,7 +58,6 @@ pub static ADDON_DIR: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("addo
 pub static DB_PATH: LazyLock<PathBuf> = LazyLock::new(|| CONFIG_DIR.join("noctavox.db"));
 
 pub const ADDON_TRANSPOSE: &str = "nv-transpose";
-pub const TAP_BUFFER_CAPACITY: usize = 2048;
 
 pub fn reset_noctavox() -> anyhow::Result<()> {
     print!("If you want to erase the database, type RESET: ");

@@ -22,14 +22,14 @@ impl StatefulWidget for BreadCrumbs {
         }
 
         let theme = state.theme_manager.get_display_theme(true);
-        let top_level = state.get_sidebar_view();
+        let top_level = state.nav.get_sidebar_view();
         let sidebar = top_level.to_string();
 
         let bc_highlight = fade_color(theme.dark, theme.accent, 0.85);
         let dimmed = fade_color(theme.dark, theme.text_muted, 0.75);
 
         let right_label = match top_level {
-            LibraryView::Albums => state.get_album_sort_string(),
+            LibraryView::Albums => state.nav.get_album_sort().to_string(),
             LibraryView::Playlists => format!("{} 󰲸", state.playlists.len()),
         };
 

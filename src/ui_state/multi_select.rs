@@ -9,31 +9,30 @@ use std::sync::Arc;
 
 impl UiState {
     pub fn get_multi_select_indices(&self) -> &IndexSet<usize> {
-        &self.display_state.multi_select
+        &self.nav.multi_select
     }
 
     pub fn toggle_multi_selection(&mut self, count: usize) -> Result<()> {
-        let song_idx = self.get_selected_idx()?;
+        let song_idx = self.nav.get_table_idx()?;
 
         if count == 0 {
-            match self.display_state.multi_select.contains(&song_idx) {
-                true => self.display_state.multi_select.shift_remove(&song_idx),
-                false => self.display_state.multi_select.insert(song_idx),
+            match self.nav.multi_select.contains(&song_idx) {
+                true => self.nav.multi_select.shift_remove(&song_idx),
+                false => self.nav.multi_select.insert(song_idx),
             };
         } else {
             let end = (song_idx + count).min(self.legal_songs.len());
 
-            let all_selected =
-                (song_idx..=end).all(|x| self.display_state.multi_select.contains(&x));
+            let all_selected = (song_idx..=end).all(|x| self.nav.multi_select.contains(&x));
 
             for i in song_idx..=end {
                 if all_selected {
-                    self.display_state.multi_select.swap_remove(&i);
+                    self.nav.multi_select.swap_remove(&i);
                 } else {
-                    self.display_state.multi_select.insert(i);
+                    self.nav.multi_select.insert(i);
                 }
             }
-            self.display_state.table_pos.select(Some(end));
+            self.nav.table_pos.select(Some(end));
         };
         Ok(())
     }
@@ -62,12 +61,12 @@ impl UiState {
     pub fn multi_select_all(&mut self) -> Result<()> {
         if let Mode::Queue | Mode::Library(_) = self.get_mode() {
             let all_selected =
-                (0..self.legal_songs.len()).all(|i| self.display_state.multi_select.contains(&i));
+                (0..self.legal_songs.len()).all(|i| self.nav.multi_select.contains(&i));
 
             match all_selected {
                 true => self.clear_multi_select(),
                 false => {
-                    self.display_state.multi_select = (0..self.legal_songs.len()).collect();
+                    self.nav.multi_select = (0..self.legal_songs.len()).collect();
                 }
             }
         }
@@ -75,7 +74,7 @@ impl UiState {
     }
 
     pub fn get_multi_select_songs(&self) -> Vec<Arc<SimpleSong>> {
-        self.display_state
+        self.nav
             .multi_select
             .iter()
             .filter_map(|&idx| self.legal_songs.get(idx))
@@ -84,15 +83,15 @@ impl UiState {
     }
 
     pub fn multi_select_empty(&self) -> bool {
-        self.display_state.multi_select.is_empty()
+        self.nav.multi_select.is_empty()
     }
 
     pub fn clear_multi_select(&mut self) {
-        self.display_state.multi_select.clear();
+        self.nav.multi_select.clear();
     }
 
     pub fn remove_from_playlist(&mut self) -> Result<()> {
-        let song_idx = self.get_selected_idx()?;
+        let song_idx = self.nav.get_table_idx()?;
 
         let playlist_id = self
             .get_selected_playlist()
@@ -165,7 +164,7 @@ impl UiState {
     }
 
     pub(crate) fn update_multi_select(&mut self, indices: Vec<usize>) {
-        self.display_state.multi_select = IndexSet::from_iter(indices.into_iter());
+        self.nav.multi_select = IndexSet::from_iter(indices.into_iter());
     }
 
     pub fn shift_playlist_position(&mut self, dir: Incrementor) -> Result<()> {
@@ -178,9 +177,9 @@ impl UiState {
     }
 
     fn shift_playlist_position_single(&mut self, direction: Incrementor) -> Result<()> {
-        let display_idx = self.get_selected_idx()?;
+        let display_idx = self.nav.get_table_idx()?;
 
-        let Some(playlist_idx) = self.display_state.playlist_pos.selected() else {
+        let Some(playlist_idx) = self.nav.playlist_pos.selected() else {
             return Ok(());
         };
 
@@ -216,7 +215,7 @@ impl UiState {
         indices.sort_unstable();
         let last_selected_idx = indices[indices.len() - 1];
 
-        let Some(playlist_idx) = self.display_state.playlist_pos.selected() else {
+        let Some(playlist_idx) = self.nav.playlist_pos.selected() else {
             return Ok(());
         };
 
@@ -245,7 +244,7 @@ impl UiState {
             // Do nothing but maintain selection in other modes
             _ => return Ok(()),
         }
-        self.display_state.multi_select = indices.iter().copied().collect::<IndexSet<_>>();
+        self.nav.multi_select = indices.iter().copied().collect::<IndexSet<_>>();
 
         Ok(())
     }

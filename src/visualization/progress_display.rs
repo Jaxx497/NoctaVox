@@ -1,4 +1,4 @@
-use crate::{TAP_BUFFER_CAPACITY, ui_state::UiState};
+use crate::visualization::Visualizer;
 
 #[derive(Default)]
 pub enum ProgressDisplay {
@@ -40,43 +40,16 @@ impl std::fmt::Display for ProgressDisplay {
     }
 }
 
-impl UiState {
+impl Visualizer {
     pub fn next_progress_display(&mut self) {
-        self.progress_display = self.progress_display.next()
-    }
-
-    pub fn is_progress_display(&self) -> bool {
-        self.metrics.is_active() || !self.queue_is_empty()
+        self.mode = self.mode.next()
     }
 
     pub fn get_progress_display(&self) -> &ProgressDisplay {
-        &self.progress_display
+        &self.mode
     }
 
     pub fn set_progress_display(&mut self, display: ProgressDisplay) {
-        self.progress_display = display
-    }
-
-    pub fn fill_tap(&mut self) {
-        let channels = self.metrics.channels();
-
-        let latest = self.tap.latest(TAP_BUFFER_CAPACITY * channels);
-        for frame in latest.chunks_exact(channels) {
-            let mono = frame.iter().copied().sum::<f32>() / channels as f32;
-            self.sample_tap.push_back(mono);
-        }
-
-        let overflow = self.sample_tap.len().saturating_sub(TAP_BUFFER_CAPACITY);
-        self.sample_tap.drain(..overflow);
-    }
-
-    pub fn update_spectrum(&mut self) {
-        if self.sample_tap.is_empty() {
-            return;
-        } else {
-            let samples = self.sample_tap.make_contiguous();
-            let sample_rate = self.metrics.sample_rate();
-            self.spectrum.update(samples, sample_rate);
-        }
+        self.mode = display
     }
 }

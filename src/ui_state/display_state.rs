@@ -25,7 +25,6 @@ pub struct DisplayState {
     pub table_pos: TableState,
     table_pos_cached: usize,
 
-    key_buffer: Option<usize>,
     pub multi_select: IndexSet<usize>,
 }
 
@@ -47,31 +46,44 @@ impl DisplayState {
             table_pos: TableState::default().with_selected(0),
             table_pos_cached: 0,
 
-            key_buffer: None,
             multi_select: IndexSet::default(),
         }
+    }
+
+    pub fn get_table_idx(&self) -> Result<usize> {
+        self.table_pos
+            .selected()
+            .ok_or_else(|| anyhow!("No song selected"))
+    }
+
+    pub fn get_sidebar_view(&self) -> &LibraryView {
+        &self.sidebar_view
+    }
+
+    pub fn get_album_sort(&self) -> &AlbumSort {
+        &self.album_sort
+    }
+
+    pub fn get_table_sort(&self) -> &TableSort {
+        &self.table_sort
     }
 }
 
 impl UiState {
     pub fn get_pane(&self) -> &Pane {
-        &self.display_state.pane
+        &self.nav.pane
     }
 
     pub fn set_pane(&mut self, pane: Pane) {
-        self.display_state.pane = pane;
+        self.nav.pane = pane;
     }
 
     pub fn get_mode(&self) -> &Mode {
-        &self.display_state.mode
-    }
-
-    pub fn get_sidebar_view(&self) -> &LibraryView {
-        &self.display_state.sidebar_view
+        &self.nav.mode
     }
 
     pub fn get_sidebar_details(&self) -> (LibraryView, usize) {
-        let sidebar_type = self.get_sidebar_view();
+        let sidebar_type = self.nav.get_sidebar_view();
         let count = match sidebar_type {
             LibraryView::Albums => self.albums.len(),
             LibraryView::Playlists => self.playlists.len(),
@@ -82,99 +94,90 @@ impl UiState {
 
     pub fn set_mode(&mut self, mode: Mode) {
         self.clear_multi_select();
-        match self.display_state.mode {
+        match self.nav.mode {
             Mode::Power => {
-                self.display_state.table_pos_cached = self
-                    .display_state
+                self.nav.table_pos_cached = self
+                    .nav
                     .table_pos
                     .selected()
-                    .unwrap_or(self.display_state.table_pos_cached)
+                    .unwrap_or(self.nav.table_pos_cached)
             }
             _ => (),
         }
 
         match mode {
             Mode::Power => {
-                self.display_state.pane = Pane::TrackList;
-                self.display_state.mode = Mode::Power;
-                self.display_state.table_sort = TableSort::Title;
+                self.nav.pane = Pane::TrackList;
+                self.nav.mode = Mode::Power;
+                self.nav.table_sort = TableSort::Title;
                 self.set_legal_songs();
-                self.display_state
-                    .table_pos
-                    .select(Some(self.display_state.table_pos_cached));
+                self.nav.table_pos.select(Some(self.nav.table_pos_cached));
             }
 
             Mode::Library(view) => {
-                self.display_state.sidebar_view = view;
-                self.display_state.mode = Mode::Library(view);
-                self.display_state.pane = Pane::SideBar;
+                self.nav.sidebar_view = view;
+                self.nav.mode = Mode::Library(view);
+                self.nav.pane = Pane::SideBar;
 
                 // Ensure we have a valid selection for the view we're entering
                 match view {
                     LibraryView::Albums => {
                         if self.albums.is_empty() {
-                            self.display_state.album_pos.select(None);
-                        } else if self.display_state.album_pos.selected().is_none() {
-                            self.display_state.album_pos.select(Some(0));
+                            self.nav.album_pos.select(None);
+                        } else if self.nav.album_pos.selected().is_none() {
+                            self.nav.album_pos.select(Some(0));
                         }
                     }
                     LibraryView::Playlists => {
                         if self.playlists.is_empty() {
-                            self.display_state.playlist_pos.select(None);
-                        } else if self.display_state.playlist_pos.selected().is_none() {
-                            self.display_state.playlist_pos.select(Some(0));
+                            self.nav.playlist_pos.select(None);
+                        } else if self.nav.playlist_pos.selected().is_none() {
+                            self.nav.playlist_pos.select(Some(0));
                         }
                     }
                 }
 
-                *self.display_state.table_pos.offset_mut() = 0;
+                *self.nav.table_pos.offset_mut() = 0;
                 self.set_legal_songs();
             }
             Mode::Fullscreen => {
-                if self.player_is_active() || !self.queue_is_empty() {
-                    self.display_state.mode_cached = Some(self.display_state.mode.to_owned());
-                    self.display_state.mode = Mode::Fullscreen
+                if self.metrics.is_active() {
+                    self.nav.mode_cached = Some(self.nav.mode.to_owned());
+                    self.nav.mode = Mode::Fullscreen
                 }
             }
             Mode::Queue => {
-                if !self.queue_is_empty() {
-                    *self.display_state.table_pos.offset_mut() = 0;
-                    self.display_state.mode = Mode::Queue;
-                    self.display_state.pane = Pane::TrackList;
+                if !self.playback.queue_is_empty() {
+                    *self.nav.table_pos.offset_mut() = 0;
+                    self.nav.mode = Mode::Queue;
+                    self.nav.pane = Pane::TrackList;
                     self.set_legal_songs()
                 } else {
                     self.set_error(anyhow!("Queue is empty!"));
                 }
             }
             Mode::Search => {
-                self.display_state.table_sort = TableSort::Title;
+                self.nav.table_sort = TableSort::Title;
                 self.search.input.clear();
-                self.display_state.mode = Mode::Search;
-                self.display_state.pane = Pane::Search;
+                self.nav.mode = Mode::Search;
+                self.nav.pane = Pane::Search;
             }
             Mode::QUIT => {
                 let _ = self.save_state();
-                self.display_state.mode = Mode::QUIT;
+                self.nav.mode = Mode::QUIT;
             }
         }
-    }
-
-    pub fn get_selected_idx(&self) -> Result<usize> {
-        self.display_state
-            .table_pos
-            .selected()
-            .ok_or_else(|| anyhow!("No song selected"))
     }
 
     pub fn get_selected_song(&mut self) -> Result<Arc<SimpleSong>> {
         if self.legal_songs.is_empty() {
-            self.display_state.table_pos.select(None);
+            self.nav.table_pos.select(None);
             bail!("No songs to select!");
         }
 
-        match self.display_state.mode {
+        match self.nav.mode {
             Mode::Power | Mode::Library(_) | Mode::Search | Mode::Queue => {
-                let idx = self.get_selected_idx()?;
+                let idx = self.nav.get_table_idx()?;
                 Ok(Arc::clone(&self.legal_songs[idx]))
             }
             _ => Err(anyhow!("Should not be reachable")),
@@ -182,31 +185,23 @@ impl UiState {
     }
 
     pub fn get_selected_album(&self) -> Option<&Album> {
-        self.display_state
+        self.nav
             .album_pos
             .selected()
             .and_then(|idx| self.albums.get(idx))
     }
 
     pub fn get_selected_playlist(&self) -> Option<&Playlist> {
-        self.display_state
+        self.nav
             .playlist_pos
             .selected()
             .and_then(|idx| self.playlists.get(idx))
     }
 
-    pub fn get_album_sort(&self) -> &AlbumSort {
-        &self.display_state.album_sort
-    }
-
-    pub fn get_table_sort(&self) -> &TableSort {
-        &self.display_state.table_sort
-    }
-
     pub fn toggle_album_sort(&mut self, next: bool) {
-        self.display_state.album_sort = match next {
-            true => self.display_state.album_sort.next(),
-            false => self.display_state.album_sort.prev(),
+        self.nav.album_sort = match next {
+            true => self.nav.album_sort.next(),
+            false => self.nav.album_sort.prev(),
         };
         self.sort_albums();
         self.set_legal_songs();
@@ -220,7 +215,7 @@ impl UiState {
             .cloned()
             .collect::<Vec<Album>>();
 
-        match self.display_state.album_sort {
+        match self.nav.album_sort {
             AlbumSort::Artist => self.albums.sort_by(|a, b| {
                 a.artist
                     .to_lowercase()
@@ -234,26 +229,22 @@ impl UiState {
         }
     }
 
-    pub fn get_album_sort_string(&self) -> String {
-        self.display_state.album_sort.to_string()
-    }
-
     pub(crate) fn next_song_column(&mut self) {
-        if self.get_search_len() < 1 {
-            self.display_state.table_sort = self.display_state.table_sort.next();
+        if self.search.len() < 1 {
+            self.nav.table_sort = self.nav.table_sort.next();
             self.set_legal_songs();
         }
     }
 
     pub(crate) fn prev_song_column(&mut self) {
-        if self.get_search_len() < 1 {
-            self.display_state.table_sort = self.display_state.table_sort.prev();
+        if self.search.len() < 1 {
+            self.nav.table_sort = self.nav.table_sort.prev();
             self.set_legal_songs();
         }
     }
 
     fn sort_by_table_column(&mut self) {
-        match self.display_state.table_sort {
+        match self.nav.table_sort {
             TableSort::Title => {
                 self.legal_songs.sort_by(|a, b| a.title.cmp(&b.title));
             }
@@ -280,14 +271,14 @@ impl UiState {
 
             let album_idx = self.albums.iter().position(|a| a.id == album_id);
 
-            self.display_state.album_pos.select(album_idx);
+            self.nav.album_pos.select(album_idx);
             self.set_mode(Mode::Library(LibraryView::Albums));
             self.set_pane(Pane::TrackList);
             self.set_legal_songs();
 
             let idx = self.legal_songs.iter().position(|s| s.id == np.id);
 
-            self.display_state.table_pos.select(idx);
+            self.nav.table_pos.select(idx);
         }
 
         Ok(())
@@ -299,7 +290,7 @@ impl UiState {
             bail!("OUT OF RANGE")
         }
 
-        self.display_state.table_pos.select(Some(count - 1));
+        self.nav.table_pos.select(Some(count - 1));
 
         Ok(())
     }
@@ -331,9 +322,9 @@ impl UiState {
 
             self.legal_songs = album.get_tracklist();
 
-            self.display_state.album_pos.select(Some(album_pos));
-            self.display_state.table_pos.select(Some(track_pos));
-            *self.display_state.table_pos.offset_mut() = 0;
+            self.nav.album_pos.select(Some(album_pos));
+            self.nav.table_pos.select(Some(track_pos));
+            *self.nav.table_pos.offset_mut() = 0;
         } else {
             self.set_mode(Mode::Library(LibraryView::Albums));
             self.set_pane(Pane::SideBar);
@@ -347,21 +338,21 @@ impl UiState {
     }
 
     pub(crate) fn set_legal_songs(&mut self) {
-        match &self.display_state.mode {
+        match &self.nav.mode {
             Mode::Power => {
                 self.legal_songs = self.library.get_all_songs().to_vec();
                 self.sort_by_table_column();
             }
             Mode::Library(view) => match view {
                 LibraryView::Albums => {
-                    if let Some(idx) = self.display_state.album_pos.selected() {
+                    if let Some(idx) = self.nav.album_pos.selected() {
                         if let Some(album) = self.albums.get(idx) {
                             self.legal_songs = album.get_tracklist();
                         }
                     }
                 }
                 LibraryView::Playlists => {
-                    if let Some(idx) = self.display_state.playlist_pos.selected() {
+                    if let Some(idx) = self.nav.playlist_pos.selected() {
                         if let Some(playlist) = self.playlists.get(idx) {
                             self.legal_songs = playlist.get_tracklist()
                         }
@@ -372,7 +363,7 @@ impl UiState {
             },
             Mode::Queue => self.legal_songs = self.playback.get_queue(),
 
-            Mode::Search => match self.get_search_len() > 1 {
+            Mode::Search => match self.search.len() > 1 {
                 true => self.filter_songs_by_search(),
                 false => self.sort_by_table_column(),
             },
@@ -380,16 +371,16 @@ impl UiState {
         }
 
         // Autoselect first entry if table_pos selection is none
-        if !self.legal_songs.is_empty() && self.display_state.table_pos.selected().is_none() {
-            self.display_state.table_pos.select(Some(0));
+        if !self.legal_songs.is_empty() && self.nav.table_pos.selected().is_none() {
+            self.nav.table_pos.select(Some(0));
         }
     }
 
     pub fn revert_fullscreen(&mut self) {
         if matches!(self.get_mode(), Mode::Fullscreen) {
-            if let Some(mode) = &self.display_state.mode_cached {
+            if let Some(mode) = &self.nav.mode_cached {
                 self.set_mode(mode.to_owned());
-                self.display_state.mode_cached = None;
+                self.nav.mode_cached = None;
             }
         }
     }
@@ -397,7 +388,7 @@ impl UiState {
 
 impl UiState {
     pub fn scroll(&mut self, director: Director) {
-        match self.display_state.pane {
+        match self.nav.pane {
             Pane::SideBar => self.scroll_sidebar(&director),
             Pane::TrackList => match director {
                 Director::Top => self.scroll_to_top(),
@@ -411,7 +402,7 @@ impl UiState {
     fn scroll_tracklist(&mut self, director: &Director) {
         if !self.legal_songs.is_empty() {
             let len = self.legal_songs.len();
-            let selected_idx = self.display_state.table_pos.selected();
+            let selected_idx = self.nav.table_pos.selected();
 
             let new_pos = match director {
                 Director::Up(x) => selected_idx
@@ -420,14 +411,14 @@ impl UiState {
                 Director::Down(x) => selected_idx.map(|idx| (idx + x) % len).unwrap_or(0),
                 _ => unreachable!(),
             };
-            self.display_state.table_pos.select(Some(new_pos));
+            self.nav.table_pos.select(Some(new_pos));
         }
     }
 
     fn scroll_sidebar(&mut self, director: &Director) {
-        let (items_len, state) = match self.display_state.sidebar_view {
-            LibraryView::Albums => (self.albums.len(), &mut self.display_state.album_pos),
-            LibraryView::Playlists => (self.playlists.len(), &mut self.display_state.playlist_pos),
+        let (items_len, state) = match self.nav.sidebar_view {
+            LibraryView::Albums => (self.albums.len(), &mut self.nav.album_pos),
+            LibraryView::Playlists => (self.playlists.len(), &mut self.nav.playlist_pos),
         };
 
         if items_len == 0 {
@@ -443,20 +434,20 @@ impl UiState {
         };
 
         state.select(Some(new_pos));
-        *self.display_state.table_pos.offset_mut() = 0;
+        *self.nav.table_pos.offset_mut() = 0;
         self.set_legal_songs();
     }
 
     fn scroll_to_top(&mut self) {
-        match &self.display_state.pane {
-            Pane::TrackList => self.display_state.table_pos.select_first(),
+        match &self.nav.pane {
+            Pane::TrackList => self.nav.table_pos.select_first(),
             _ => (),
         }
     }
 
     fn scroll_to_bottom(&mut self) {
-        match self.display_state.pane {
-            Pane::TrackList => self.display_state.table_pos.select_last(),
+        match self.nav.pane {
+            Pane::TrackList => self.nav.table_pos.select_last(),
             _ => (),
         }
     }
@@ -517,27 +508,15 @@ impl UiState {
     pub fn adjust_sidebar_size(&mut self, x: isize) {
         match x > 0 {
             true => {
-                if self.display_state.sidebar_percent < 44 {
-                    self.display_state.sidebar_percent += x as u16;
+                if self.nav.sidebar_percent < 49 {
+                    self.nav.sidebar_percent += x as u16;
                 }
             }
             false => {
-                if self.display_state.sidebar_percent >= 16 {
-                    self.display_state.sidebar_percent -= -x as u16;
+                if self.nav.sidebar_percent >= 16 {
+                    self.nav.sidebar_percent -= -x as u16;
                 }
             }
         }
-    }
-
-    pub fn set_buffer_count(&mut self, count: Option<usize>) {
-        self.display_state.key_buffer = count
-    }
-
-    pub fn get_buffer_count(&self) -> Option<usize> {
-        self.display_state.key_buffer
-    }
-
-    pub fn clear_key_buffer(&mut self) {
-        self.display_state.key_buffer = None
     }
 }

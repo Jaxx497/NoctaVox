@@ -6,7 +6,7 @@ use voxio::{BinMetric, Waveform, WaveformOptions};
 use crate::{
     key_handler::Incrementor,
     library::{SimpleSong, SongDatabase},
-    ui_state::UiState,
+    visualization::Visualizer,
 };
 
 const WF_BIN_LEN: usize = 500;
@@ -83,20 +83,21 @@ impl WaveformManager {
     }
 }
 
+// Internal waveform methods
 impl WaveformManager {
-    pub fn clear(&mut self) {
+    fn clear(&mut self) {
         self.reciever = None;
         self.smoothed_view.clear();
         self.bins = None;
     }
 
-    pub fn apply_smoothing(&mut self) {
+    fn apply_smoothing(&mut self) {
         if let Some(bins) = &mut self.bins {
             self.smoothed_view = smooth_waveform(bins, self.smoothing_factor);
         }
     }
 
-    pub fn increment_smoothness(&mut self, direction: Incrementor) {
+    fn increment_smoothness(&mut self, direction: Incrementor) {
         match direction {
             Incrementor::Up => {
                 if self.smoothing_factor < 3.9 {
@@ -118,7 +119,7 @@ impl WaveformManager {
     }
 }
 
-impl UiState {
+impl Visualizer {
     pub fn request_waveform(&mut self, song: &SimpleSong) {
         self.waveform.request(song);
     }
@@ -157,7 +158,7 @@ impl UiState {
 }
 
 /// Apply a smoothing filter to the waveform with float smoothing factor
-pub fn smooth_waveform(waveform: &[f32], smoothing_factor: f32) -> Vec<f32> {
+fn smooth_waveform(waveform: &[f32], smoothing_factor: f32) -> Vec<f32> {
     if waveform.len() <= (smoothing_factor.ceil() as usize * 2 + 1) {
         return waveform.to_vec();
     }

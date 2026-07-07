@@ -145,7 +145,7 @@ impl UiState {
     pub fn set_theme(&mut self, theme: ThemeConfig) {
         self.theme_manager.cached_focused = ThemeManager::set_display_theme(&theme, true);
         self.theme_manager.cached_unfocused = ThemeManager::set_display_theme(&theme, false);
-        self.spectrum.decay_factor = theme.spectrum.decay;
+        self.viz.spectrum_mut().set_decay(theme.spectrum.decay);
         self.theme_manager.active = theme;
     }
 

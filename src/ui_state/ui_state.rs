@@ -1,20 +1,19 @@
 use super::{DisplayState, search_state::SearchState};
 
 use crate::{
-    Library, PlaybackSession, TAP_BUFFER_CAPACITY,
+    Library, PlaybackSession,
     database::DbWorker,
-    key_handler::InputContext,
+    key_handler::{InputContext, KeyBuffer},
     library::{SimpleSong, SongInfo},
     ui_state::{
-        LayoutStyle, LibraryView, Mode, Pane, PlaylistAction, ProgressDisplay, SettingsMode,
-        ThemeManager, UiState, WaveformManager,
+        LayoutStyle, LibraryView, Mode, Pane, PlaylistAction, SettingsMode, ThemeManager, UiState,
         popup::{PopupState, PopupType},
-        spectrum::SpectrumState,
         stats::VoxStats,
     },
+    visualization::Visualizer,
 };
 use anyhow::{Error, Result};
-use std::{collections::VecDeque, sync::Arc, time::Duration};
+use std::sync::Arc;
 use voxio::{TapHandle, Vox};
 
 impl UiState {
@@ -23,25 +22,24 @@ impl UiState {
             library,
             db_worker: DbWorker::new()
                 .expect("Could not establish connection to database for UiState!"),
+
+            nav: DisplayState::new(),
             search: SearchState::new(),
-            display_state: DisplayState::new(),
-            metrics,
-            tap,
             playback: PlaybackSession::init(),
 
-            waveform: WaveformManager::new(),
-            spectrum: SpectrumState::default(),
-            sample_tap: VecDeque::with_capacity(TAP_BUFFER_CAPACITY),
-            progress_display: ProgressDisplay::Spectrum,
             stats: VoxStats::default(),
-
-            layout: LayoutStyle::Traditional,
+            metrics: Arc::clone(&metrics),
+            viz: Visualizer::new(metrics, tap),
 
             popup: PopupState::new(),
+            layout: LayoutStyle::Traditional,
             theme_manager: ThemeManager::new(),
+
+            key_buffer: KeyBuffer::new(),
+
             albums: Vec::new(),
-            legal_songs: Vec::new(),
             playlists: Vec::new(),
+            legal_songs: Vec::new(),
 
             library_refresh: None,
         }
@@ -49,20 +47,24 @@ impl UiState {
 }
 
 impl UiState {
+    pub fn library(&self) -> &Arc<Library> {
+        &self.library
+    }
+
     pub fn sync_library(&mut self, library: Arc<Library>) -> Result<()> {
         self.library = library;
 
         self.sort_albums();
         match self.albums.is_empty() {
-            true => self.display_state.album_pos.select(None),
+            true => self.nav.album_pos.select(None),
             false => {
                 let album_len = self.albums.len();
-                let current_selection = self.display_state.album_pos.selected().unwrap_or(0);
+                let current_selection = self.nav.album_pos.selected().unwrap_or(0);
 
                 if current_selection > album_len {
-                    self.display_state.album_pos.select(Some(album_len - 1));
-                } else if self.display_state.album_pos.selected().is_none() {
-                    self.display_state.album_pos.select(Some(0));
+                    self.nav.album_pos.select(Some(album_len - 1));
+                } else if self.nav.album_pos.selected().is_none() {
+                    self.nav.album_pos.select(Some(0));
                 };
             }
         }
@@ -130,18 +132,6 @@ impl UiState {
 }
 
 impl UiState {
-    pub fn peek_queue(&self) -> Option<&Arc<SimpleSong>> {
-        self.playback.peek_queue()
-    }
-
-    pub fn queue_is_empty(&self) -> bool {
-        self.playback.queue_is_empty()
-    }
-
-    pub(crate) fn is_paused(&self) -> bool {
-        self.metrics.is_paused()
-    }
-
     pub fn set_now_playing(&mut self, song: Option<Arc<SimpleSong>>) {
         match &song {
             Some(s) => self.db_worker.set_now_playing_db(s.get_id()),
@@ -152,30 +142,6 @@ impl UiState {
 
     pub fn get_now_playing(&self) -> Option<&Arc<SimpleSong>> {
         self.playback.get_now_playing()
-    }
-
-    pub fn get_playback_elapsed(&self) -> Duration {
-        self.metrics.position()
-    }
-
-    pub fn get_elapsed_f32(&self) -> f32 {
-        self.metrics.position().as_secs_f32()
-    }
-
-    pub fn get_duration_f32(&self) -> f32 {
-        self.metrics.duration().as_secs_f32()
-    }
-
-    pub fn player_is_active(&self) -> bool {
-        self.metrics.is_active()
-    }
-
-    pub fn get_layout(&self) -> &LayoutStyle {
-        &self.layout
-    }
-
-    pub fn set_layout(&mut self, layout: LayoutStyle) {
-        self.layout = layout
     }
 
     pub fn swap_layout(&mut self) {

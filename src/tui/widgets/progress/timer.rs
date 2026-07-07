@@ -1,6 +1,5 @@
 use crate::{
-    DurationStyle, get_readable_duration,
-    ui_state::{ProgressDisplay, UiState},
+    DurationStyle, get_readable_duration, ui_state::UiState, visualization::ProgressDisplay,
 };
 use ratatui::{
     layout::Rect,
@@ -19,7 +18,7 @@ impl StatefulWidget for Timer {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let y_pos = match state.get_progress_display() {
+        let y_pos = match state.viz.get_progress_display() {
             ProgressDisplay::ProgressBar | ProgressDisplay::Waveform => {
                 area.y + ((area.height.saturating_sub(1)) / 2)
             }
@@ -28,7 +27,7 @@ impl StatefulWidget for Timer {
 
         let text_color = state.theme_manager.active.text_muted;
 
-        let elapsed = state.get_playback_elapsed();
+        let elapsed = state.metrics.position();
         let elapsed_str = get_readable_duration(elapsed, crate::DurationStyle::Compact);
         let elapsed_str_len = elapsed_str.len() as u16;
 

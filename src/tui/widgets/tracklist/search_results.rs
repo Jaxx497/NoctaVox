@@ -24,9 +24,9 @@ impl StatefulWidget for StandardTable {
 
         let songs = state.get_legal_songs().to_owned();
         let song_len = songs.len();
-        let search_len = state.get_search_len();
+        let search_len = state.search.len();
 
-        let title = match state.get_layout() {
+        let title = match state.layout {
             LayoutStyle::Traditional => match search_len > 1 {
                 true => format!(" Search Results: {} Songs ", song_len),
                 false => format!(" Total: {} Songs ", song_len),
@@ -57,7 +57,7 @@ impl StatefulWidget for StandardTable {
                     }
                 }
 
-                match state.get_layout() {
+                match state.layout {
                     LayoutStyle::Traditional => {
                         Row::new([idx, symbol, title_col, artist_col, album_col, dur_col])
                     }
@@ -68,6 +68,6 @@ impl StatefulWidget for StandardTable {
 
         let table = create_standard_table(rows, title.into(), state, theme, area);
 
-        StatefulWidget::render(table, area, buf, &mut state.display_state.table_pos);
+        StatefulWidget::render(table, area, buf, &mut state.nav.table_pos);
     }
 }

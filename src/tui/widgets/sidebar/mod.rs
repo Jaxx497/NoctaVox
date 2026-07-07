@@ -26,6 +26,7 @@ pub fn create_standard_list<'a>(
     area: Rect,
 ) -> List<'a> {
     let focus = matches!(&state.get_pane(), Pane::SideBar);
+    let layout = &state.layout;
     let theme = state.theme_manager.get_display_theme(focus);
 
     let (sidebar_type, count) = state.get_sidebar_details();
@@ -35,7 +36,7 @@ pub fn create_standard_list<'a>(
         .fg(theme.accent);
 
     let keymaps = if state.get_pane() == Pane::SideBar {
-        match state.display_state.sidebar_view {
+        match state.nav.sidebar_view {
             LibraryView::Albums => Line::from(" [q] Queue Album ")
                 .centered()
                 .fg(theme.text_muted),
@@ -51,7 +52,7 @@ pub fn create_standard_list<'a>(
         Line::default()
     };
 
-    let block = match state.get_layout() {
+    let block = match layout {
         LayoutStyle::Traditional => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
@@ -60,13 +61,13 @@ pub fn create_standard_list<'a>(
             .title_top(title)
             .title_top(sorting_title.unwrap_or_default())
             .title_bottom(Line::from(keymaps).centered().fg(theme.text_muted))
-            .padding(get_padding(state.get_layout(), theme.border_display)),
+            .padding(get_padding(layout, theme.border_display)),
         LayoutStyle::Minimal => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
             .border_style(theme.border)
             .bg(theme.bg_global)
-            .padding(get_padding(state.get_layout(), theme.border_display)),
+            .padding(get_padding(layout, theme.border_display)),
     };
 
     List::new(list_items)

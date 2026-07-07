@@ -16,8 +16,8 @@ impl StatefulWidget for ProgressBar {
     ) {
         let theme = state.theme_manager.get_display_theme(true);
 
-        let elapsed = state.get_elapsed_f32();
-        let duration = state.get_duration_f32();
+        let elapsed = state.metrics.position().as_secs_f32();
+        let duration = state.metrics.duration().as_secs_f32();
 
         // Prevent crash
         let ratio = (elapsed / duration).min(0.9999);
@@ -41,7 +41,7 @@ impl StatefulWidget for ProgressBar {
             &theme.progress_bar.active_color,
         );
 
-        let w_pad = match state.get_layout() {
+        let w_pad = match state.layout {
             LayoutStyle::Traditional => 10,
             LayoutStyle::Minimal => 0,
         };

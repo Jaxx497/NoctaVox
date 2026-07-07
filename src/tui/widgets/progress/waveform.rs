@@ -29,7 +29,7 @@ impl StatefulWidget for Waveform {
             _ => (area.height as f32 * 0.35) as u16,
         };
 
-        let padding = match state.get_layout() {
+        let padding = match state.layout {
             LayoutStyle::Traditional => Padding {
                 left: 10,
                 right: 10,
@@ -44,7 +44,7 @@ impl StatefulWidget for Waveform {
             },
         };
 
-        let waveform = state.get_waveform_as_slice();
+        let waveform = state.viz.get_waveform_as_slice();
         let wf_len = waveform.len();
 
         Canvas::default()
@@ -52,8 +52,8 @@ impl StatefulWidget for Waveform {
             .y_bounds([WAVEFORM_WIDGET_HEIGHT * -1.0, WAVEFORM_WIDGET_HEIGHT])
             .marker(theme.progress_style)
             .paint(|ctx| {
-                let elapsed = state.get_elapsed_f32();
-                let duration = state.get_duration_f32();
+                let elapsed = state.metrics.position().as_secs_f32();
+                let duration = state.metrics.duration().as_secs_f32();
                 let progress = elapsed / duration;
 
                 for (idx, amp) in waveform.iter().enumerate() {

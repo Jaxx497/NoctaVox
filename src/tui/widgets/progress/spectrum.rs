@@ -18,19 +18,20 @@ impl StatefulWidget for SpectrumAnalyzer {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        if state.player_is_active() && !state.is_paused() {
-            state.update_spectrum();
+        if state.metrics.is_active() && !state.metrics.is_paused() {
+            state.viz.update_spectrum();
         }
 
         let theme = state.theme_manager.get_display_theme(true);
-        let elapsed = state.get_elapsed_f32();
+        let elapsed = state.metrics.position().as_secs_f32();
 
         let canvas_width = area.width.max(1) as usize;
         let pixel_width = canvas_width * 2;
 
-        state.spectrum.remap_display(canvas_width);
+        let spectrum = state.viz.spectrum_mut();
+        spectrum.remap_display(canvas_width);
+        let display = spectrum.get_display_bins();
 
-        let display = &state.spectrum.display_bins;
         if display.is_empty() {
             return;
         }

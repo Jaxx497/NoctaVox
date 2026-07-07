@@ -24,10 +24,10 @@ impl StatefulWidget for UserStats {
         state: &mut Self::State,
     ) {
         let theme = state.theme_manager.get_display_theme(true);
-        let stats = state.get_lib_stats();
-        let most_played = state.get_most_played().to_vec();
+        let stats = state.stats.get_lib_stats();
+        let most_played = state.stats.get_most_played();
 
-        let bg = match state.get_layout() {
+        let bg = match state.layout {
             LayoutStyle::Traditional => theme.bg,
             LayoutStyle::Minimal => theme.bg_global,
         };

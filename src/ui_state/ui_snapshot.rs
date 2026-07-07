@@ -1,6 +1,6 @@
 use anyhow::Result;
 
-use crate::ui_state::{LayoutStyle, ProgressDisplay};
+use crate::{ui_state::LayoutStyle, visualization::ProgressDisplay};
 
 use super::{AlbumSort, Mode, Pane, UiState};
 
@@ -97,22 +97,22 @@ impl UiState {
         UiSnapshot {
             mode: self.get_mode().to_string(),
             pane: pane.to_string(),
-            album_sort: self.display_state.album_sort.to_string(),
-            sidebar_percentage: self.display_state.sidebar_percent,
+            album_sort: self.nav.album_sort.to_string(),
+            sidebar_percentage: self.nav.sidebar_percent,
 
             theme_name: self.theme_manager.active.name.to_owned(),
             layout: self.layout.to_string(),
 
-            song_selection: self.display_state.table_pos.selected(),
-            album_selection: self.display_state.album_pos.selected(),
-            playlist_selection: self.display_state.playlist_pos.selected(),
+            song_selection: self.nav.table_pos.selected(),
+            album_selection: self.nav.album_pos.selected(),
+            playlist_selection: self.nav.playlist_pos.selected(),
 
-            song_sel_offset: self.display_state.table_pos.offset(),
-            album_sel_offset: self.display_state.album_pos.offset(),
-            playlist_sel_offset: self.display_state.playlist_pos.offset(),
+            song_sel_offset: self.nav.table_pos.offset(),
+            album_sel_offset: self.nav.album_pos.offset(),
+            playlist_sel_offset: self.nav.playlist_pos.offset(),
 
-            progress_display: self.get_progress_display().to_string(),
-            smoothing_factor: self.get_smoothing_factor(),
+            progress_display: self.viz.get_progress_display().to_string(),
+            smoothing_factor: self.viz.get_smoothing_factor(),
         }
     }
 
@@ -124,8 +124,8 @@ impl UiState {
 
     pub fn restore_state(&mut self) -> Result<()> {
         if let Some(snapshot) = self.db_worker.load_ui_snapshot()? {
-            self.display_state.album_sort = AlbumSort::from_str(&snapshot.album_sort);
-            self.set_layout(LayoutStyle::from_str(&snapshot.layout));
+            self.nav.album_sort = AlbumSort::from_str(&snapshot.album_sort);
+            self.layout = LayoutStyle::from_str(&snapshot.layout);
 
             if !snapshot.theme_name.is_empty() {
                 if let Some(theme) = self.theme_manager.find_theme_by_name(&snapshot.theme_name) {
@@ -135,15 +135,15 @@ impl UiState {
 
             if let Some(pos) = snapshot.album_selection {
                 if pos < self.albums.len() {
-                    self.display_state.album_pos.select(Some(pos));
-                    *self.display_state.album_pos.offset_mut() = snapshot.album_sel_offset
+                    self.nav.album_pos.select(Some(pos));
+                    *self.nav.album_pos.offset_mut() = snapshot.album_sel_offset
                 }
             }
 
             if let Some(pos) = snapshot.playlist_selection {
                 if pos < self.playlists.len() {
-                    self.display_state.playlist_pos.select(Some(pos));
-                    *self.display_state.playlist_pos.offset_mut() = snapshot.playlist_sel_offset
+                    self.nav.playlist_pos.select(Some(pos));
+                    *self.nav.playlist_pos.offset_mut() = snapshot.playlist_sel_offset
                 }
             }
 
@@ -160,16 +160,17 @@ impl UiState {
             self.set_mode(Mode::from_str(mode_to_restore));
             self.set_pane(Pane::from_str(pane_to_restore));
 
-            self.set_smoothing_factor(snapshot.smoothing_factor);
+            self.viz.set_smoothing_factor(snapshot.smoothing_factor);
 
-            self.set_progress_display(ProgressDisplay::from_str(&snapshot.progress_display));
+            self.viz
+                .set_progress_display(ProgressDisplay::from_str(&snapshot.progress_display));
 
-            self.display_state.sidebar_percent = snapshot.sidebar_percentage;
+            self.nav.sidebar_percent = snapshot.sidebar_percentage;
 
             if let Some(pos) = snapshot.song_selection {
                 if pos < self.legal_songs.len() {
-                    self.display_state.table_pos.select(Some(pos));
-                    *self.display_state.table_pos.offset_mut() = snapshot.song_sel_offset
+                    self.nav.table_pos.select(Some(pos));
+                    *self.nav.table_pos.offset_mut() = snapshot.song_sel_offset
                 }
             }
         }

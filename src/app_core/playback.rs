@@ -69,7 +69,7 @@ impl NoctaVox {
     }
 
     pub fn remove_from_queue(&mut self) -> Result<()> {
-        let idx = self.ui.get_selected_idx()?;
+        let idx = self.ui.nav.get_table_idx()?;
         self.ui.playback.remove_from_queue(idx);
 
         self.force_sync();
@@ -111,7 +111,7 @@ impl NoctaVox {
     }
 
     fn shift_qposition_single(&mut self, dir: Incrementor) -> Result<()> {
-        let display_idx = self.ui.get_selected_idx()?;
+        let display_idx = self.ui.nav.get_table_idx()?;
 
         let target_idx = match dir {
             Incrementor::Up if display_idx > 0 => display_idx - 1,

@@ -3,38 +3,33 @@ mod domain;
 mod multi_select;
 mod playlist;
 mod popup;
-mod progress_display;
 mod search_state;
 mod settings;
-mod spectrum;
 mod stats;
 mod theme;
 mod ui_snapshot;
 mod ui_state;
-mod waveform;
 
-use std::{collections::VecDeque, sync::Arc};
+use std::sync::Arc;
 
 pub use display_state::DisplayState;
 pub use domain::{AlbumSort, LibraryView, Mode, Pane, TableSort};
 pub use playlist::PlaylistAction;
 pub use popup::PopupType;
-pub use progress_display::ProgressDisplay;
 pub use search_state::MatchField;
 pub use settings::SettingsMode;
 pub use stats::LibraryStats;
 pub use theme::DisplayTheme;
 pub use ui_snapshot::UiSnapshot;
-use voxio::{TapHandle, Vox};
-pub use waveform::WaveformManager;
+use voxio::Vox;
 
 use crate::{
     Library, PlaybackSession,
     database::DbWorker,
+    key_handler::KeyBuffer,
     library::{Album, Playlist, RefreshProgress, SimpleSong},
-    ui_state::{
-        popup::PopupState, search_state::SearchState, spectrum::SpectrumState, stats::VoxStats,
-    },
+    ui_state::{popup::PopupState, search_state::SearchState, stats::VoxStats},
+    visualization::Visualizer,
 };
 
 #[derive(PartialEq)]
@@ -65,28 +60,24 @@ pub struct UiState {
     library: Arc<Library>,
     db_worker: DbWorker,
 
-    pub(crate) playback: PlaybackSession,
     pub(crate) metrics: Arc<Vox>,
-    pub(crate) tap: TapHandle,
+    pub(crate) playback: PlaybackSession,
+    pub(crate) nav: DisplayState,
 
-    search: SearchState,
+    pub(crate) search: SearchState,
     pub(crate) popup: PopupState,
     pub(crate) theme_manager: ThemeManager,
-    pub(crate) display_state: DisplayState,
-
-    pub(crate) sample_tap: VecDeque<f32>,
-    pub(crate) spectrum: SpectrumState,
 
     pub(crate) layout: LayoutStyle,
-    waveform: WaveformManager,
-    progress_display: ProgressDisplay,
-    stats: VoxStats,
+    pub(crate) stats: VoxStats,
+    pub(crate) viz: Visualizer,
 
-    legal_songs: Vec<Arc<SimpleSong>>,
     pub(crate) albums: Vec<Album>,
     pub(crate) playlists: Vec<Playlist>,
+    legal_songs: Vec<Arc<SimpleSong>>,
 
     pub library_refresh: Option<Arc<RefreshProgress>>,
+    pub key_buffer: KeyBuffer,
 }
 
 pub use theme::*;

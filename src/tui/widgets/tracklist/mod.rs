@@ -30,7 +30,7 @@ const DURATION_SPACING: u16 = 7;
 const COLUMN_SPACING: u16 = 2;
 
 pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
-    let layout = state.get_layout();
+    let layout = &state.layout;
 
     match state.get_mode() {
         Mode::Power | Mode::Search => match layout {
@@ -101,7 +101,7 @@ pub fn create_standard_table<'a>(
         x => format!("{x:>3} {} ", SELECTED).fg(theme.border).into(),
     };
 
-    let block = match state.get_layout() {
+    let block = match state.layout {
         LayoutStyle::Traditional => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
@@ -340,7 +340,7 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
 }
 
 fn get_padding(state: &UiState, theme: &DisplayTheme, area: Rect) -> Padding {
-    let layout = &state.get_layout();
+    let layout = &state.layout;
     let borders = theme.border_display;
     let song_len = (state.get_legal_songs().len()) as u16;
 

@@ -1,11 +1,9 @@
 use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum, windows::hann_window};
 
-use crate::TAP_BUFFER_CAPACITY;
-
 pub struct SpectrumState {
-    pub bins: Vec<f32>,
-    pub display_bins: Vec<f32>,
-    pub decay_factor: f32,
+    bins: Vec<f32>,
+    display_bins: Vec<f32>,
+    decay_factor: f32,
     bands: Vec<(f32, f32)>,
     band_peaks: Vec<f32>,
     sample_rate: u32,
@@ -19,7 +17,7 @@ impl SpectrumState {
             return;
         }
 
-        let fft_size = TAP_BUFFER_CAPACITY;
+        let fft_size = super::TAP_BUFFER_CAPACITY;
 
         if self.sample_rate != sample_rate {
             self.sample_rate = sample_rate;
@@ -120,6 +118,14 @@ impl SpectrumState {
             .collect();
         self.last_display_width = width;
         self.bins_dirty = false;
+    }
+
+    pub fn get_display_bins(&self) -> &[f32] {
+        &self.display_bins
+    }
+
+    pub fn set_decay(&mut self, d: f32) {
+        self.decay_factor = d
     }
 }
 

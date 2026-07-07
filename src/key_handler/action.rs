@@ -1,9 +1,7 @@
 use crate::{
     config::timing,
-    key_handler::{key_buffer::KeyBuffer, *},
-    ui_state::{
-        LibraryView, Mode, Pane, PlaylistAction, PopupType, ProgressDisplay, SettingsMode, UiState,
-    },
+    key_handler::*,
+    ui_state::{LibraryView, Mode, Pane, PlaylistAction, PopupType, SettingsMode, UiState},
 };
 use anyhow::Result;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent};
@@ -11,18 +9,17 @@ use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent};
 use KeyCode::*;
 
 #[rustfmt::skip]
-pub fn handle_key_event(key_event: KeyEvent, state: &mut UiState, buffer: &mut KeyBuffer) -> Option<Action> {
+pub fn handle_key_event(key_event: KeyEvent, state: &mut UiState) -> Option<Action> {
 
     if !matches!(state.get_input_context(), InputContext::Search | InputContext::Popup(_)) {
         if let KeyCode::Char(c) = key_event.code && key_event.modifiers == KeyModifiers::NONE {
-            if buffer.push_digit(c) {
-                state.set_buffer_count(buffer.get_count());
+            if state.key_buffer.push_digit(c) {
                 return None;
             }
         }
     }
 
-    let buffer_count = buffer.take_count();
+    let buffer_count = state.key_buffer.take_count();
 
     if let Some(action) = global_commands(&key_event, &state, buffer_count) {
         return Some(action);
@@ -141,9 +138,9 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
             Some(Action::GoToTrack(buf_count))
         }
 
-        (X, Left) | (X, Char('h') | Tab) => Some(Action::ChangeMode(Mode::Library(
-            state.display_state.sidebar_view,
-        ))),
+        (X, Left) | (X, Char('h') | Tab) => {
+            Some(Action::ChangeMode(Mode::Library(state.nav.sidebar_view)))
+        }
         _ => None,
     };
 
@@ -232,9 +229,7 @@ fn handle_playlist_browswer(key: &KeyEvent) -> Option<Action> {
 
 fn handle_search_pane(key: &KeyEvent, state: &UiState) -> Option<Action> {
     match (key.modifiers, key.code) {
-        (X, Esc) => Some(Action::ChangeMode(Mode::Library(
-            state.display_state.sidebar_view,
-        ))),
+        (X, Esc) => Some(Action::ChangeMode(Mode::Library(state.nav.sidebar_view))),
         (X, Tab) | (X, Enter) => Some(Action::SendSearch),
         (C, Char('a')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
 

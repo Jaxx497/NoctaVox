@@ -58,14 +58,14 @@ impl NoctaVox {
             Action::MultiSelect(x)   => self.ui.toggle_multi_selection(x)?,
             Action::MultiSelectAll   => self.ui.multi_select_all()?,
             Action::ClearMultiSelect => self.ui.clear_multi_select(),
-            Action::ClearKeyBuffer   => self.key_buffer.clear(),
+            Action::ClearKeyBuffer   => self.ui.key_buffer.clear(),
 
             Action::ShiftPosition(direction) => self.shift_position(direction)?,
-            Action::IncrementWFSmoothness(direction) => self.ui.increment_wf_smoothness(direction),
+            Action::IncrementWFSmoothness(direction) => self.ui.viz.increment_wf_smoothness(direction),
             Action::IncrementSidebarSize(x) => self.ui.adjust_sidebar_size(x),
 
-            Action::NextProgressDisplay     => self.ui.next_progress_display(),
-            Action::SetProgressDisplay(p)   => self.ui.set_progress_display(p),
+            Action::NextProgressDisplay     => self.ui.viz.next_progress_display(),
+            Action::SetProgressDisplay(p)   => self.ui.viz.set_progress_display(p),
             Action::RevertFullscreen        => self.ui.revert_fullscreen(),
 
             Action::SwapLayout      => self.ui.swap_layout(),
@@ -92,8 +92,7 @@ impl NoctaVox {
 
             _ => (),
         }
-        self.key_buffer.clear();
-        self.ui.clear_key_buffer();
+        self.ui.key_buffer.clear();
         Ok(())
     }
 }

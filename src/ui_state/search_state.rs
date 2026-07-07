@@ -32,6 +32,18 @@ impl SearchState {
             match_fields: HashMap::new(),
         }
     }
+
+    pub fn len(&self) -> usize {
+        self.get().len()
+    }
+
+    fn get(&self) -> &str {
+        &self.input.lines()[0]
+    }
+
+    pub fn get_widget_mut(&mut self) -> &mut TextArea<'static> {
+        &mut self.input
+    }
 }
 
 impl UiState {
@@ -41,7 +53,7 @@ impl UiState {
     // Assuming the score is higher than the threshold, the
     // result is valid. Results are ordered by score.
     pub(crate) fn filter_songs_by_search(&mut self) {
-        let raw_search_str = self.read_search();
+        let raw_search_str = self.search.get();
         let query = strip_diacritics(raw_search_str);
 
         let mut scored_songs: Vec<(Arc<SimpleSong>, i64)> = self
@@ -96,14 +108,6 @@ impl UiState {
             .collect();
     }
 
-    pub fn get_search_widget(&mut self) -> &mut TextArea<'static> {
-        &mut self.search.input
-    }
-
-    pub fn get_search_len(&self) -> usize {
-        self.search.input.lines()[0].len()
-    }
-
     pub fn send_search(&mut self) {
         match !self.legal_songs.is_empty() {
             true => self.set_pane(Pane::TrackList),
@@ -115,13 +119,9 @@ impl UiState {
         self.search.input.input(k);
         self.set_legal_songs();
         match self.legal_songs.is_empty() {
-            true => self.display_state.table_pos.select(None),
-            false => self.display_state.table_pos.select(Some(0)),
+            true => self.nav.table_pos.select(None),
+            false => self.nav.table_pos.select(Some(0)),
         }
-    }
-
-    pub fn read_search(&self) -> &str {
-        &self.search.input.lines()[0]
     }
 
     pub fn get_match_fields(&self, song_id: u64) -> Option<MatchField> {

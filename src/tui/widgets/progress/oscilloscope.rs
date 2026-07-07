@@ -20,8 +20,9 @@ impl StatefulWidget for Oscilloscope {
         state: &mut Self::State,
     ) {
         let theme = state.theme_manager.get_display_theme(true);
-        let elapsed = state.get_elapsed_f32();
-        let samples = state.sample_tap.make_contiguous();
+        let elapsed = state.metrics.position().as_secs_f32();
+
+        let samples = state.viz.display_tap();
 
         let n = OSCILLO_LIMITER.min(samples.len());
         let samples = &samples[samples.len() - n..];

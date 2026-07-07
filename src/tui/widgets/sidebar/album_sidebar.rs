@@ -23,11 +23,10 @@ impl StatefulWidget for SideBarAlbum {
         let theme = &state.theme_manager.get_display_theme(focus);
 
         let albums = &state.albums;
-        let pane_sort = state.get_album_sort_string();
-        let pane_sort = format!(" {pane_sort:<10}");
-        let album_sort = state.get_album_sort();
+        let album_sort = state.nav.get_album_sort();
+        let sort_label = format!(" {:<10}", album_sort.to_string());
 
-        let selected_album_idx = state.display_state.album_pos.selected();
+        let selected_album_idx = state.nav.album_pos.selected();
         let selected_artist = state.get_selected_album().map(|a| a.get_album_artist());
 
         let mut list_items = Vec::with_capacity(albums.len());
@@ -60,9 +59,9 @@ impl StatefulWidget for SideBarAlbum {
                 _ => theme.text_secondary,
             };
 
-            let indent = match state.get_album_sort() == AlbumSort::Artist {
-                true => "  ",
-                false => "",
+            let indent_len = match album_sort.eq(&AlbumSort::Artist) {
+                true => 2,
+                false => 0,
             };
 
             let is_selected = selected_album_idx == Some(idx);
@@ -89,19 +88,19 @@ impl StatefulWidget for SideBarAlbum {
                         year.clear();
                     }
                     list_items.push(ListItem::new(Line::from_iter([
-                        Span::from(indent),
+                        Span::from(" ".repeat(indent_len)),
                         Span::from(album_title.to_string()).fg(theme.text_primary),
                         Span::from(" ".repeat(area.width.saturating_sub(
                             (album_title.width() + year.width()) as u16
                                 + padding
-                                + indent.len() as u16,
+                                + indent_len as u16,
                         ) as usize)),
                         Span::from(year).fg(fade_color(theme.dark, theme.accent, 0.7)),
                     ])))
                 }
 
                 LayoutStyle::Traditional => list_items.push(ListItem::new(Line::from_iter([
-                    Span::from(format!("{}{: >4} ", indent, year)).fg(year_color),
+                    Span::from(format!("{}{: >4} ", " ".repeat(indent_len), year)).fg(year_color),
                     Span::from(format!("{decorator} ")).fg(theme.text_muted),
                     Span::from(album_title).fg(theme.text_primary),
                 ]))),
@@ -116,7 +115,7 @@ impl StatefulWidget for SideBarAlbum {
 
         // Sync offset to ensure selection is visible
         if let Some(idx) = selected_display_idx {
-            let current_offset = state.display_state.album_pos.offset();
+            let current_offset = state.nav.album_pos.offset();
             let visible_height = area.height.saturating_sub(4) as usize;
 
             if idx < current_offset {
@@ -129,7 +128,7 @@ impl StatefulWidget for SideBarAlbum {
         }
 
         let sorting_title = Some(
-            Line::from(pane_sort)
+            Line::from(sort_label)
                 .right_aligned()
                 .fg(theme.text_secondary),
         );
@@ -141,6 +140,6 @@ impl StatefulWidget for SideBarAlbum {
         );
 
         // Sync offset back
-        *state.display_state.album_pos.offset_mut() = render_state.offset();
+        *state.nav.album_pos.offset_mut() = render_state.offset();
     }
 }

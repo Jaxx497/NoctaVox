@@ -1,4 +1,7 @@
-use crate::ui_state::{Mode, ProgressDisplay, UiState};
+use crate::{
+    ui_state::{Mode, UiState},
+    visualization::ProgressDisplay,
+};
 use ratatui::layout::{Constraint, Layout, Rect};
 
 pub struct LayoutTraditional {
@@ -10,9 +13,9 @@ pub struct LayoutTraditional {
 
 impl LayoutTraditional {
     pub fn new(area: Rect, state: &mut UiState) -> Self {
-        let prog_height = match state.is_progress_display() {
+        let prog_height = match state.metrics.is_active() {
             false => 0,
-            true => match (state.get_progress_display(), area.height > 20) {
+            true => match (state.viz.get_progress_display(), area.height > 20) {
                 (ProgressDisplay::ProgressBar, _) | (_, false) => 3,
                 _ => {
                     let h = (area.height as f32 * 0.15).ceil() as u16;
@@ -30,7 +33,7 @@ impl LayoutTraditional {
             Layout::vertical([Constraint::Min(16), Constraint::Length(prog_height)]).areas(area);
 
         let [sidebar, upper_block] = Layout::horizontal([
-            Constraint::Percentage(state.display_state.sidebar_percent),
+            Constraint::Percentage(state.nav.sidebar_percent),
             Constraint::Fill(1),
         ])
         .areas(upper_block);

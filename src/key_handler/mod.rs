@@ -16,8 +16,8 @@ use ratatui::crossterm::event::KeyModifiers;
 use crate::ui_state::Mode;
 use crate::ui_state::Pane;
 use crate::ui_state::PopupType;
-use crate::ui_state::ProgressDisplay;
 use crate::user_config;
+use crate::visualization::ProgressDisplay;
 
 static ILLEGAL_CHARS: LazyLock<HashSet<char>> = LazyLock::new(|| HashSet::from([';']));
 

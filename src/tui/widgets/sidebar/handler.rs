@@ -12,7 +12,7 @@ impl StatefulWidget for SideBarHandler {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        match state.get_sidebar_view() {
+        match state.nav.get_sidebar_view() {
             LibraryView::Albums => SideBarAlbum.render(area, buf, state),
             LibraryView::Playlists => SideBarPlaylist.render(area, buf, state),
         }

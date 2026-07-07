@@ -55,7 +55,7 @@ impl StatefulWidget for BufferLine {
             ])
             .areas(area);
 
-        let buffer = state.get_buffer_count();
+        let buffer = state.key_buffer.pending();
 
         get_buffer_count(buffer, &theme).render(left, buf);
         playing_title(state, &theme, center.width as usize).render(center, buf);
@@ -74,7 +74,7 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
         false => &state.get_decorator(),
     };
 
-    let separator = match state.is_paused() {
+    let separator = match state.metrics.is_paused() {
         true => Span::from(format!(" {PAUSE_ICON} "))
             .fg(theme.text_primary)
             .rapid_blink(),
@@ -117,7 +117,7 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
             .centered(),
         )
     } else {
-        match state.is_paused() {
+        match state.metrics.is_paused() {
             true => {
                 let truncated_title = truncate_at_last_space(&title, title_len - SEPARATOR_LEN);
                 Some(
@@ -138,9 +138,9 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
     }
 }
 
-fn get_buffer_count(size: Option<usize>, theme: &DisplayTheme) -> Option<Line<'static>> {
+fn get_buffer_count(size: Option<&str>, theme: &DisplayTheme) -> Option<Line<'static>> {
     if let Some(x) = size {
-        if x == 0 {
+        if x == "" {
             return None;
         }
 
@@ -155,7 +155,7 @@ fn get_buffer_count(size: Option<usize>, theme: &DisplayTheme) -> Option<Line<'s
 
 const BAD_WIDTH: usize = 22;
 fn queue_display(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<Line<'static>> {
-    let up_next_str = state.peek_queue()?.get_title();
+    let up_next_str = state.playback.peek_queue()?.get_title();
 
     let truncated = truncate_at_last_space(up_next_str, width - 5);
 

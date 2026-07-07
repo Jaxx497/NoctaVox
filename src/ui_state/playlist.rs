@@ -42,7 +42,7 @@ impl UiState {
     }
 
     pub fn create_playlist_popup(&mut self) {
-        if self.get_sidebar_view() == &LibraryView::Playlists {
+        if self.nav.get_sidebar_view() == &LibraryView::Playlists {
             self.show_popup(PopupType::Playlist(PlaylistAction::Create));
         }
     }
@@ -67,7 +67,7 @@ impl UiState {
         self.get_playlists()?;
 
         if !self.playlists.is_empty() {
-            self.display_state.playlist_pos.select_first();
+            self.nav.playlist_pos.select_first();
         }
 
         self.set_legal_songs();
@@ -106,7 +106,7 @@ impl UiState {
         self.get_playlists()?;
 
         if !self.playlists.is_empty() {
-            self.display_state.playlist_pos.select_first();
+            self.nav.playlist_pos.select_first();
         }
 
         self.close_popup();
@@ -120,7 +120,7 @@ impl UiState {
     }
 
     pub fn delete_playlist(&mut self) -> Result<()> {
-        let current_playlist = self.display_state.playlist_pos.selected();
+        let current_playlist = self.nav.playlist_pos.selected();
         // let playlist_len =
 
         if let Some(idx) = current_playlist {
@@ -132,7 +132,7 @@ impl UiState {
         }
 
         if self.playlists.is_empty() {
-            self.display_state.playlist_pos.select(None);
+            self.nav.playlist_pos.select(None);
             self.legal_songs.clear();
         }
 
