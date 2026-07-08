@@ -14,9 +14,9 @@ pub use search_results::StandardTable;
 use crate::{
     DurationStyle, get_readable_duration,
     library::{SimpleSong, SongInfo},
+    theme::{DisplayTheme, fade_color},
     truncate_at_last_space,
-    tui::widgets::{MUSIC_NOTE, QUEUED, SELECTED},
-    ui_state::{DisplayTheme, LayoutStyle, LibraryView, Mode, Pane, UiState, fade_color},
+    ui_state::{LayoutStyle, LibraryView, Mode, Pane, UiState},
 };
 use ratatui::{
     layout::{Constraint, Flex, HorizontalAlignment, Rect},
@@ -88,7 +88,7 @@ pub fn create_standard_table<'a>(
 ) -> Table<'a> {
     let mode = state.get_mode();
     let pane = state.get_pane();
-    let decorator = &state.get_decorator();
+    let decorator = &state.theme.icons().decorator;
 
     let widths = get_widths(state);
     let keymaps = match pane {
@@ -96,9 +96,11 @@ pub fn create_standard_table<'a>(
         _ => String::default(),
     };
 
+    let selected = &state.theme.icons().selected;
+
     let ms_count = match state.get_multi_select_indices().len() {
         0 => Line::default(),
-        x => format!("{x:>3} {} ", SELECTED).fg(theme.border).into(),
+        x => format!("{x:>3} {selected} ").fg(theme.border).into(),
     };
 
     let block = match state.layout {
@@ -147,18 +149,21 @@ pub struct CellFactory;
 impl CellFactory {
     pub fn status_cell(song: &Arc<SimpleSong>, state: &UiState, ms: bool) -> Cell<'static> {
         let focus = matches!(state.get_pane(), Pane::TrackList);
-        let theme = state.theme_manager.get_display_theme(focus);
+        let theme = state.theme.get_display_theme(focus);
 
         let is_playing = state.get_now_playing().as_ref().map(|s| s.id) == Some(song.id);
         let is_queued = state.playback.is_queued(song.id);
 
+        let note = state.theme.icons().playing.to_string();
+        let queued = state.theme.icons().queued.to_string();
+
         Cell::from(if is_playing {
-            MUSIC_NOTE.fg(match ms {
+            note.fg(match ms {
                 true => theme.accent,
                 false => theme.text_secondary,
             })
         } else if is_queued && !matches!(state.get_mode(), Mode::Queue) {
-            QUEUED.fg(match ms {
+            queued.fg(match ms {
                 true => theme.text_selected,
                 false => theme.text_secondary,
             })
@@ -287,7 +292,7 @@ static SUPERSCRIPT: LazyLock<HashMap<u32, &str>> = LazyLock::new(|| {
 
 fn get_title(state: &UiState, area: Rect) -> Line<'static> {
     let focus = matches!(state.get_pane(), Pane::TrackList);
-    let theme = state.theme_manager.get_display_theme(focus);
+    let theme = state.theme.get_display_theme(focus);
     match state.get_mode() {
         &Mode::Queue => {
             let q = state.playback.queue_len();

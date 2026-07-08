@@ -1,8 +1,9 @@
 use crate::{
     DurationStyle,
     library::SongInfo,
+    theme::fade_color,
     tui::widgets::tracklist::{CellFactory, create_standard_table},
-    ui_state::{LayoutStyle, MatchField, Pane, UiState, fade_color},
+    ui_state::{LayoutStyle, MatchField, Pane, UiState},
 };
 use ratatui::{
     style::Stylize,
@@ -20,7 +21,7 @@ impl StatefulWidget for StandardTable {
         state: &mut Self::State,
     ) {
         let focus = matches!(state.get_pane(), Pane::TrackList | Pane::Search);
-        let theme = &state.theme_manager.get_display_theme(focus);
+        let theme = &state.theme.get_display_theme(focus);
 
         let songs = state.get_legal_songs().to_owned();
         let song_len = songs.len();

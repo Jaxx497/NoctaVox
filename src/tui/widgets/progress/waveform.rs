@@ -1,7 +1,4 @@
-use crate::{
-    tui::widgets::WAVEFORM_WIDGET_HEIGHT,
-    ui_state::{LayoutStyle, UiState},
-};
+use crate::ui_state::{LayoutStyle, UiState};
 use ratatui::{
     style::{Color, Stylize},
     widgets::{
@@ -9,6 +6,8 @@ use ratatui::{
         canvas::{Canvas, Context, Line, Rectangle},
     },
 };
+
+const WAVEFORM_WIDGET_HEIGHT: f64 = 50.0;
 
 pub struct Waveform;
 impl StatefulWidget for Waveform {
@@ -20,7 +19,7 @@ impl StatefulWidget for Waveform {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
 
         let padding_vertical = match area.height {
             0..=6 => 0,

@@ -21,7 +21,7 @@ impl StatefulWidget for AlbumView {
         state: &mut Self::State,
     ) {
         let focus = matches!(state.get_pane(), Pane::TrackList);
-        let theme = &state.theme_manager.get_display_theme(focus);
+        let theme = &state.theme.get_display_theme(focus);
 
         if state.albums.is_empty() {
             create_empty_block(theme, "0 Songs").render(area, buf);
@@ -60,7 +60,7 @@ impl StatefulWidget for AlbumView {
                             format,
                             duration,
                         ])
-                        .bg(state.theme_manager.active.accent_inactive),
+                        .bg(state.theme.active.accent_inactive),
                         false => Row::new([
                             track_disc_no,
                             symbol,
@@ -72,14 +72,14 @@ impl StatefulWidget for AlbumView {
                     },
                     LayoutStyle::Minimal => match is_m_selected {
                         true => Row::new([track_no, symbol, title.into(), duration])
-                            .bg(state.theme_manager.active.accent_inactive),
+                            .bg(state.theme.active.accent_inactive),
                         false => Row::new([track_no, symbol, title.into(), duration]),
                     },
                 }
             })
             .collect::<Vec<Row>>();
 
-        let decorator = &state.get_decorator();
+        let decorator = &state.theme.icons().decorator;
 
         let year_str = album
             .year

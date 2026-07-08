@@ -27,6 +27,6 @@ mirror              = true
 display             = false
 style         = "rounded"
 
-[extras]
-is_dark = false
+[meta]
+dark = false
 

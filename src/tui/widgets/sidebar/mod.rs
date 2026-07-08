@@ -27,7 +27,7 @@ pub fn create_standard_list<'a>(
 ) -> List<'a> {
     let focus = matches!(&state.get_pane(), Pane::SideBar);
     let layout = &state.layout;
-    let theme = state.theme_manager.get_display_theme(focus);
+    let theme = state.theme.get_display_theme(focus);
 
     let (sidebar_type, count) = state.get_sidebar_details();
 

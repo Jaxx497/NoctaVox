@@ -30,7 +30,8 @@ mirror              = true
 display             = true
 style               = "thick"
 
-[extras]
-is_dark             = false
-decorator           = "󱁂"
+[meta]
+dark = false
 
+[icons]
+decorator = "󱁂"

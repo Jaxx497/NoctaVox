@@ -32,5 +32,5 @@ symbol_unplayed     = "─"
 [progress.spectrum]
 mirror              = true
 
-[extras]
-decorator           = "󰳶"
+[icons]
+decorator = "󰳶"

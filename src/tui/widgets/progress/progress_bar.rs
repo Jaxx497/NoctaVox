@@ -14,7 +14,7 @@ impl StatefulWidget for ProgressBar {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
 
         let elapsed = state.metrics.position().as_secs_f32();
         let duration = state.metrics.duration().as_secs_f32();

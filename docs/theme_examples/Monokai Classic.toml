@@ -30,5 +30,5 @@ unplayed            = "still"
 waveform_style      = "block8"
 oscilloscope_style  = "blocky"
 
-[extras]
-decorator           = "󰓏"
+[icons]
+decorator = "󰓏"

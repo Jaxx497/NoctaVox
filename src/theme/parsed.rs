@@ -1,10 +1,7 @@
-use crate::ui_state::{
-    InactiveGradient, ProgressGradient,
-    theme::{
-        BAR_SYMBOL_PLAYED, BAR_SYMBOL_UNPLAYED, NONWAVEFORM_SPEED, SPECTRUM_DECAY, SPECTRUM_MIRROR,
-        WAVEFORM_SPEED,
-        import::{OscilloScheme, ProgressBarScheme, SpectrumScheme, WaveformScheme},
-    },
+use crate::theme::{
+    BAR_SYMBOL_PLAYED, BAR_SYMBOL_UNPLAYED, InactiveGradient, NONWAVEFORM_SPEED, ProgressGradient,
+    SPECTRUM_DECAY, SPECTRUM_MIRROR, WAVEFORM_SPEED,
+    import::{OscilloScheme, ProgressBarScheme, SpectrumScheme, WaveformScheme},
 };
 use anyhow::Result;
 

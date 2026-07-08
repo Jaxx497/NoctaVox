@@ -22,7 +22,7 @@ impl NoctaVox {
 
         let (mut vox, events) = Vox::new()?;
         let tap = vox.take_tap().expect("Vox yields its tap on first call");
-        vox.set_replaygain(user_config().replay_gain);
+        vox.set_replaygain(user_config().general.replay_gain);
         let vox = Arc::new(vox);
 
         let player = PlayerHandle::new(Arc::clone(&vox), events)?;
@@ -100,6 +100,7 @@ impl NoctaVox {
         let fps = USER_CONFIG
             .get()
             .expect("Failed to read user config")
+            .general
             .framerate;
         let _ = TIMING.set(Timing::from_fps(fps));
     }
@@ -126,7 +127,7 @@ impl NoctaVox {
 
                 self.player.seek_to(elapsed_secs);
 
-                if !user_config().auto_resume {
+                if !user_config().general.auto_resume {
                     self.player.pause();
                 }
             }

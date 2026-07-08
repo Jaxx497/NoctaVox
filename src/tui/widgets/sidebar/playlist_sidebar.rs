@@ -23,7 +23,7 @@ impl StatefulWidget for SideBarPlaylist {
         state: &mut Self::State,
     ) {
         let focus = matches!(&state.get_pane(), Pane::SideBar);
-        let theme = state.theme_manager.get_display_theme(focus);
+        let theme = state.theme.get_display_theme(focus);
         let playlists = &state.playlists;
 
         if playlists.is_empty() {

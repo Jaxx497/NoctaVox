@@ -24,6 +24,5 @@ style               = "rounded"
 color             = [ "#ff4646", "#fcfcfc", "#444446"]
 unplayed            = "dimmed"
 
-[extras]
-decorator           = "☆"
-
+[icons]
+decorator = "☆"

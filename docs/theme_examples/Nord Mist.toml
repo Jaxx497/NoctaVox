@@ -19,5 +19,5 @@ accent_inactive     = "#5E81AC"
 [borders]
 display             = false
 
-[extras]
-decorator           = ""
+[icons]
+decorator = ""

@@ -1,10 +1,10 @@
 use super::{DisplayState, search_state::SearchState};
-
 use crate::{
     Library, PlaybackSession,
     database::DbWorker,
-    key_handler::{InputContext, KeyBuffer},
+    key_handler::{Incrementor, InputContext, KeyBuffer},
     library::{SimpleSong, SongInfo},
+    theme::ThemeConfig,
     ui_state::{
         LayoutStyle, LibraryView, Mode, Pane, PlaylistAction, SettingsMode, ThemeManager, UiState,
         popup::{PopupState, PopupType},
@@ -12,7 +12,9 @@ use crate::{
     },
     visualization::Visualizer,
 };
+use anyhow::anyhow;
 use anyhow::{Error, Result};
+use ratatui::widgets::Borders;
 use std::sync::Arc;
 use voxio::{TapHandle, Vox};
 
@@ -33,7 +35,7 @@ impl UiState {
 
             popup: PopupState::new(),
             layout: LayoutStyle::Traditional,
-            theme_manager: ThemeManager::new(),
+            theme: ThemeManager::new(),
 
             key_buffer: KeyBuffer::new(),
 
@@ -167,5 +169,64 @@ impl UiState {
     pub fn update_now_playing_elapsed(&self) {
         let elapsed = self.metrics.position().as_secs_f32();
         self.db_worker.update_now_playing(elapsed);
+    }
+
+    pub fn borders_enabled(&self) -> bool {
+        self.theme.active.border_display != Borders::NONE
+    }
+
+    pub fn set_theme(&mut self, theme: ThemeConfig) {
+        self.theme.cached_focused = ThemeManager::set_display_theme(&theme, true);
+        self.theme.cached_unfocused = ThemeManager::set_display_theme(&theme, false);
+        self.viz.spectrum_mut().set_decay(theme.spectrum.decay);
+        self.theme.active = theme;
+    }
+
+    pub fn refresh_current_theme(&mut self) {
+        self.theme.update_themes();
+
+        match self.theme.get_current_theme_index() {
+            Some(idx) => {
+                let theme = self.theme.get_theme_at_index(idx).unwrap_or_default();
+                self.set_theme(theme);
+            }
+            _ => self.set_error(anyhow!(
+                "Formatting error in theme!\n\nFalling back to last loaded"
+            )),
+        }
+    }
+
+    pub fn open_theme_manager(&mut self) {
+        self.theme.update_themes();
+
+        if let Some(idx) = self.theme.get_current_theme_index() {
+            let theme = self.theme.get_theme_at_index(idx).unwrap_or_default();
+
+            self.set_theme(theme);
+            self.popup.selection.select(Some(idx));
+        }
+
+        self.show_popup(PopupType::ThemeManager);
+    }
+
+    pub fn cycle_theme(&mut self, dir: Incrementor) {
+        let len = self.theme.theme_lib.len();
+        if len < 2 {
+            return;
+        }
+
+        let idx = self.theme.get_current_theme_index().unwrap_or(0);
+        let new_idx = match dir {
+            Incrementor::Up => (idx + len - 1) % len,
+            Incrementor::Down => (idx + 1) % len,
+        };
+
+        self.set_theme(
+            self.theme
+                .theme_lib
+                .get(new_idx)
+                .cloned()
+                .unwrap_or_default(),
+        );
     }
 }

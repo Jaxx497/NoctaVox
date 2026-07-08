@@ -1,9 +1,6 @@
-use anyhow::anyhow;
-
 use crate::{
     THEME_DIR,
-    key_handler::Incrementor,
-    ui_state::{DisplayTheme, PopupType, ThemeConfig, UiState, fade_color},
+    theme::{DisplayTheme, ThemeConfig, ThemeIcons, fade_color},
 };
 
 pub struct ThemeManager {
@@ -39,6 +36,10 @@ impl ThemeManager {
 
     pub fn get_themes(&self) -> &[ThemeConfig] {
         &self.theme_lib
+    }
+
+    pub fn icons(&self) -> &ThemeIcons {
+        &self.active.icons
     }
 
     pub fn update_themes(&mut self) {
@@ -79,7 +80,7 @@ impl ThemeManager {
         themes
     }
 
-    fn set_display_theme(theme: &ThemeConfig, focused: bool) -> DisplayTheme {
+    pub(crate) fn set_display_theme(theme: &ThemeConfig, focused: bool) -> DisplayTheme {
         let is_dark = theme.is_dark;
 
         let progress_style = theme.progress_style;
@@ -138,68 +139,5 @@ impl ThemeManager {
                 waveform,
             },
         }
-    }
-}
-
-impl UiState {
-    pub fn set_theme(&mut self, theme: ThemeConfig) {
-        self.theme_manager.cached_focused = ThemeManager::set_display_theme(&theme, true);
-        self.theme_manager.cached_unfocused = ThemeManager::set_display_theme(&theme, false);
-        self.viz.spectrum_mut().set_decay(theme.spectrum.decay);
-        self.theme_manager.active = theme;
-    }
-
-    pub fn refresh_current_theme(&mut self) {
-        self.theme_manager.update_themes();
-
-        match self.theme_manager.get_current_theme_index() {
-            Some(idx) => {
-                let theme = self
-                    .theme_manager
-                    .get_theme_at_index(idx)
-                    .unwrap_or_default();
-                self.set_theme(theme);
-            }
-            _ => self.set_error(anyhow!(
-                "Formatting error in theme!\n\nFalling back to last loaded"
-            )),
-        }
-    }
-
-    pub fn open_theme_manager(&mut self) {
-        self.theme_manager.update_themes();
-
-        if let Some(idx) = self.theme_manager.get_current_theme_index() {
-            let theme = self
-                .theme_manager
-                .get_theme_at_index(idx)
-                .unwrap_or_default();
-
-            self.set_theme(theme);
-            self.popup.selection.select(Some(idx));
-        }
-
-        self.show_popup(PopupType::ThemeManager);
-    }
-
-    pub fn cycle_theme(&mut self, dir: Incrementor) {
-        let len = self.theme_manager.theme_lib.len();
-        if len < 2 {
-            return;
-        }
-
-        let idx = self.theme_manager.get_current_theme_index().unwrap_or(0);
-        let new_idx = match dir {
-            Incrementor::Up => (idx + len - 1) % len,
-            Incrementor::Down => (idx + 1) % len,
-        };
-
-        self.set_theme(
-            self.theme_manager
-                .theme_lib
-                .get(new_idx)
-                .cloned()
-                .unwrap_or_default(),
-        );
     }
 }

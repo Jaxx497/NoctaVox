@@ -27,6 +27,5 @@ speed               = 2
 display             = true
 style               = "rounded"
 
-[extras]
-decorator           = ""
-
+[icons]
+decorator = ""

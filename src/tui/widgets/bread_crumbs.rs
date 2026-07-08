@@ -1,4 +1,7 @@
-use crate::ui_state::{LibraryView, Mode, Pane, UiState, fade_color};
+use crate::{
+    theme::fade_color,
+    ui_state::{LibraryView, Mode, Pane, UiState},
+};
 use ratatui::{
     style::Stylize,
     text::{Line, Span},
@@ -21,7 +24,7 @@ impl StatefulWidget for BreadCrumbs {
             return;
         }
 
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
         let top_level = state.nav.get_sidebar_view();
         let sidebar = top_level.to_string();
 
@@ -41,7 +44,7 @@ impl StatefulWidget for BreadCrumbs {
                         .saturating_sub(right_label.width() as u16) as usize;
 
                 vec![
-                    Span::from(&sidebar).fg(bc_highlight),
+                    Span::from(&sidebar).fg(bc_highlight).underlined(),
                     Span::raw(" ".repeat(padding)),
                     Span::from(right_label).fg(dimmed),
                 ]
@@ -54,7 +57,9 @@ impl StatefulWidget for BreadCrumbs {
                     Vec::from([
                         Span::from(top_level.to_str()).fg(theme.text_muted),
                         Span::from("  ").fg(theme.text_muted),
-                        Span::from(album.title.as_ref()).fg(bc_highlight),
+                        Span::from(album.title.as_ref())
+                            .fg(bc_highlight)
+                            .underlined(),
                         Span::from(" [").fg(theme.text_muted),
                         Span::from(album.get_album_artist()).fg(theme.text_muted),
                         Span::from("]").fg(theme.text_muted),

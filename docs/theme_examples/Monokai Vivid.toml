@@ -27,6 +27,5 @@ color               = "#00ff41"
 symbol_played       = "▰"
 symbol_unplayed     = "▱"
 
-[extras]
-decorator           = ""
-
+[icons]
+decorator = ""

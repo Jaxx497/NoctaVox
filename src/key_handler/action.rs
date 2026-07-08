@@ -80,7 +80,7 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             // NAVIGATION
             (X, Char('/')) => Some(Action::ChangeMode(Mode::Search)),
             (X, Char('=')) => Some(Action::GoToNowPlaying),
-            (_, Char('?')) => Some(Action::ShowStats),
+            (_, Char('\\')) => Some(Action::ShowStats),
 
             (X, Char('m')) => Some(Action::SwapLayout),
 

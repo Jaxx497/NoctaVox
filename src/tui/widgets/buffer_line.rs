@@ -1,8 +1,8 @@
 use crate::{
     library::{RefreshStage, SongInfo},
+    theme::DisplayTheme,
     truncate_at_last_space,
-    tui::widgets::{PAUSE_ICON, QUEUE_ICON, REPEAT_ICON},
-    ui_state::{DisplayTheme, UiState},
+    ui_state::UiState,
 };
 use ratatui::{
     layout::{Constraint, Direction, Layout},
@@ -22,7 +22,7 @@ impl StatefulWidget for BufferLine {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
 
         if let Some(refresh) = &state.library_refresh {
             let percent = refresh.percent();
@@ -70,12 +70,14 @@ const MIN_ARTIST_LEN: usize = 15;
 fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<Line<'static>> {
     let song = state.get_now_playing()?;
     let decorator = match state.playback.repeat_is_enabled() {
-        true => REPEAT_ICON,
-        false => &state.get_decorator(),
+        true => &state.theme.icons().repeat,
+        false => &state.theme.icons().decorator,
     };
 
+    let paused = &state.theme.icons().paused;
+
     let separator = match state.metrics.is_paused() {
-        true => Span::from(format!(" {PAUSE_ICON} "))
+        true => Span::from(format!(" {paused} "))
             .fg(theme.text_primary)
             .rapid_blink(),
         false => Span::from(format!(" {decorator} ")).fg(theme.text_muted),
@@ -159,20 +161,21 @@ fn queue_display(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
 
     let truncated = truncate_at_last_space(up_next_str, width - 5);
 
-    let up_next_line = Span::from(truncated).fg(state.theme_manager.active.accent_inactive);
+    let up_next_line = Span::from(truncated).fg(state.theme.active.accent_inactive);
 
     let total = state.playback.queue_len();
     let queue_total = format!(" [{total}] ").fg(theme.text_muted);
+    let queue_icon = state.theme.icons().queued.to_string();
 
     match width < BAD_WIDTH {
         true => Some(
-            Line::from_iter([Span::from(QUEUE_ICON).fg(theme.text_muted), queue_total])
+            Line::from_iter([Span::from(queue_icon).fg(theme.text_muted), queue_total])
                 .right_aligned(),
         ),
 
         false => Some(
             Line::from_iter([
-                Span::from(QUEUE_ICON).fg(theme.text_muted),
+                Span::from(queue_icon).fg(theme.text_muted),
                 " ".into(),
                 up_next_line,
                 queue_total,

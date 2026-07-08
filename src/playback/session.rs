@@ -22,7 +22,7 @@ impl PlaybackSession {
             repeat: false,
 
             queue: VecDeque::new(),
-            history: VecDeque::with_capacity(user_config().history_capacity as usize),
+            history: VecDeque::with_capacity(user_config().general.history_capacity as usize),
             queue_ids: HashSet::new(),
             now_playing: None,
         }
@@ -143,7 +143,7 @@ impl PlaybackSession {
 
     pub(crate) fn push_history(&mut self, song: &Arc<SimpleSong>) {
         self.history.push_front(Arc::clone(song));
-        if self.history.len() > user_config().history_capacity as usize {
+        if self.history.len() > user_config().general.history_capacity as usize {
             self.history.pop_back();
         }
     }

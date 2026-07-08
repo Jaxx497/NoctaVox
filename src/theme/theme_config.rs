@@ -1,6 +1,10 @@
-use crate::ui_state::{
-    ParsedBar, ParsedOscillo, ParsedSpectrum, ParsedWaveform, ProgressGradient, ThemeImport,
-    theme::theme_utils::{parse_borders, parse_display},
+use crate::{
+    config::UserIcons,
+    theme::{
+        ParsedBar, ParsedOscillo, ParsedSpectrum, ParsedWaveform, ProgressGradient, ThemeImport,
+        theme_utils::{parse_borders, parse_display},
+    },
+    user_config,
 };
 use anyhow::{Result, anyhow};
 use ratatui::{
@@ -48,7 +52,19 @@ pub struct ThemeConfig {
 
     pub progress_style: Marker,
 
-    pub decorator: Rc<String>,
+    pub icons: ThemeIcons,
+}
+
+#[derive(Clone)]
+pub struct ThemeIcons {
+    pub decorator: Rc<str>,
+    pub selector: Rc<str>,
+    pub playing: Rc<str>,
+    pub paused: Rc<str>,
+    pub queued: Rc<str>,
+    pub repeat: Rc<str>,
+    pub upcoming: Rc<str>,
+    pub selected: Rc<str>,
 }
 
 impl ThemeConfig {
@@ -84,6 +100,9 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
 
         let speed = progress.and_then(|p| p.speed);
 
+        let fallback_icons = &user_config().icons;
+        let config_icons = config.icons.as_ref();
+
         Ok(ThemeConfig {
             name: String::new(),
 
@@ -111,6 +130,7 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
                     .and_then(|b| b.display)
                     .unwrap_or(true),
             ),
+
             border_type: config
                 .borders
                 .as_ref()
@@ -120,36 +140,78 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
             progress_style: parse_display(progress.and_then(|p| p.style.as_deref())),
 
             bar: ParsedBar::parse(progress.and_then(|p| p.bar.as_ref()), &pcolor, speed)?,
+
             oscillo: ParsedOscillo::parse(
                 progress.and_then(|p| p.oscilloscope.as_ref()),
                 &pcolor,
                 speed,
             )?,
+
             spectrum: ParsedSpectrum::parse(
                 progress.and_then(|p| p.spectrum.as_ref()),
                 &pcolor,
                 speed,
             )?,
+
             waveform: ParsedWaveform::parse(
                 progress.and_then(|p| p.waveform.as_ref()),
                 &pcolor,
                 speed,
             )?,
 
-            decorator: Rc::from(
-                config
-                    .extras
-                    .as_ref()
-                    .and_then(|e| e.decorator.as_deref())
-                    .unwrap_or("✧")
-                    .to_owned(),
-            ),
+            icons: ThemeIcons {
+                decorator: Rc::from(
+                    config_icons
+                        .and_then(|e| e.decorator.as_deref())
+                        .unwrap_or(&fallback_icons.decorator),
+                ),
 
-            is_dark: config
-                .extras
-                .as_ref()
-                .and_then(|e| e.is_dark)
-                .unwrap_or(true),
+                selector: {
+                    let x = config_icons
+                        .and_then(|e| e.selector.as_deref())
+                        .unwrap_or(&fallback_icons.selector);
+
+                    Rc::from(format!("{x}  "))
+                },
+
+                playing: Rc::from(
+                    config_icons
+                        .and_then(|e| e.playing.as_deref())
+                        .unwrap_or(&fallback_icons.playing),
+                ),
+
+                paused: Rc::from(
+                    config_icons
+                        .and_then(|e| e.paused.as_deref())
+                        .unwrap_or(&fallback_icons.paused),
+                ),
+
+                queued: Rc::from(
+                    config_icons
+                        .and_then(|e| e.queued.as_deref())
+                        .unwrap_or(&fallback_icons.queued),
+                ),
+
+                repeat: Rc::from(
+                    config_icons
+                        .and_then(|e| e.repeat.as_deref())
+                        .unwrap_or(&fallback_icons.repeat),
+                ),
+
+                upcoming: Rc::from(
+                    config_icons
+                        .and_then(|e| e.upcoming.as_deref())
+                        .unwrap_or(&fallback_icons.upcoming),
+                ),
+
+                selected: Rc::from(
+                    config_icons
+                        .and_then(|e| e.selected.as_deref())
+                        .unwrap_or(&fallback_icons.selected),
+                ),
+            },
+
+            is_dark: config.meta.dark.unwrap_or(true),
         })
     }
 }
@@ -217,7 +279,57 @@ impl Default for ThemeConfig {
                 speed: WAVEFORM_SPEED / 10.0,
             },
 
-            decorator: Rc::from("✧".to_string()),
+            icons: ThemeIcons {
+                decorator: Rc::from(UserIcons::DECORATOR),
+                selector: Rc::from(format!("{}  ", UserIcons::SELECTOR)),
+                playing: Rc::from(UserIcons::PLAYING),
+                paused: Rc::from(UserIcons::PAUSED),
+                queued: Rc::from(UserIcons::QUEUED),
+                repeat: Rc::from(UserIcons::REPEAT),
+                upcoming: Rc::from(UserIcons::UPCOMING),
+                selected: Rc::from(UserIcons::SELECTED),
+            },
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{USER_CONFIG, UserConfig};
+    use std::path::Path;
+
+    /// Every theme shipped in `docs/theme_examples/` must parse through the
+    /// full import pipeline, and the `[Light]` ones must resolve `dark = false`.
+    #[test]
+    fn example_themes_parse() {
+        // `TryFrom` reads the global icon config; seed it for the test.
+        let _ = USER_CONFIG.set(UserConfig::default());
+
+        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/theme_examples");
+        let mut count = 0;
+        let mut saw_light = false;
+
+        for entry in std::fs::read_dir(&dir).expect("theme_examples dir") {
+            let path = entry.unwrap().path();
+            if path.extension().and_then(|s| s.to_str()) != Some("toml") {
+                continue;
+            }
+
+            let theme = ThemeConfig::load_from_file(&path)
+                .unwrap_or_else(|e| panic!("{} failed to parse: {e}", path.display()));
+
+            if theme.name.contains("[Light]") {
+                assert!(!theme.is_dark, "{} should resolve dark = false", theme.name);
+                saw_light = true;
+            }
+            count += 1;
+        }
+
+        assert!(count > 0, "no example themes found");
+        assert!(
+            saw_light,
+            "expected at least one [Light] theme to verify [meta].dark"
+        );
     }
 }

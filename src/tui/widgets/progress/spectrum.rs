@@ -1,4 +1,4 @@
-use crate::ui_state::{UiState, fade_color};
+use crate::{theme::fade_color, ui_state::UiState};
 use ratatui::{
     style::{Color, Stylize},
     widgets::{
@@ -22,7 +22,7 @@ impl StatefulWidget for SpectrumAnalyzer {
             state.viz.update_spectrum();
         }
 
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
         let elapsed = state.metrics.position().as_secs_f32();
 
         let canvas_width = area.width.max(1) as usize;

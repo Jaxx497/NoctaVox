@@ -1,10 +1,10 @@
-use crate::ui_state::{
-    ProgressGradientRaw, fade_color,
-    theme::{color_utils::get_gradient_color, theme_utils::parse_color},
-};
 use anyhow::Result;
 use ratatui::style::Color;
 use std::sync::Arc;
+
+use crate::theme::{
+    ProgressGradientRaw, color_utils::get_gradient_color, fade_color, theme_utils::parse_color,
+};
 
 #[derive(Clone)]
 pub enum ProgressGradient {

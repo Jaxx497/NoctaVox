@@ -17,15 +17,6 @@ pub use search::SearchBar;
 pub use sidebar::SideBarHandler;
 pub use song_window::SongTable;
 
-const PAUSE_ICON: &str = "󰏤";
-const SELECTOR: &str = "⮞  ";
-const QUEUE_ICON: &str = "󰐑";
-const REPEAT_ICON: &str = "";
-const MUSIC_NOTE: &str = "♫";
-const QUEUED: &str = "";
-const SELECTED: &str = "󱕣";
-const WAVEFORM_WIDGET_HEIGHT: f64 = 50.0;
-
 static POPUP_PADDING: ratatui::widgets::Padding = ratatui::widgets::Padding {
     left: 5,
     right: 5,

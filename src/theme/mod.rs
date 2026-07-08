@@ -12,13 +12,13 @@ pub use display_theme::DisplayTheme;
 pub use gradients::{InactiveGradient, ProgressGradient};
 pub use import::{ProgressGradientRaw, ThemeImport};
 pub use parsed::*;
-pub use theme_config::ThemeConfig;
+pub use theme_config::{ThemeConfig, ThemeIcons};
 pub use theme_manager::ThemeManager;
 
 use ratatui::style::Color;
 
-const BAR_SYMBOL_PLAYED: &'static str = "━";
-const BAR_SYMBOL_UNPLAYED: &'static str = "─";
+const BAR_SYMBOL_PLAYED: &str = "━";
+const BAR_SYMBOL_UNPLAYED: &str = "─";
 const NONWAVEFORM_SPEED: f32 = 0.0;
 const WAVEFORM_SPEED: f32 = 4.0;
 const SPECTRUM_MIRROR: bool = false;

@@ -369,7 +369,7 @@ impl Database {
 
             tx.execute(
                 HISTORY_CLEANUP,
-                params![user_config().history_capacity as u16],
+                params![user_config().general.history_capacity as u16],
             )?;
         }
 
@@ -386,7 +386,7 @@ impl Database {
         let mut history = VecDeque::new();
 
         let mut stmt = self.conn.prepare(LOAD_HISTORY)?;
-        let rows = stmt.query_map(params![user_config().history_capacity], |row| {
+        let rows = stmt.query_map(params![user_config().general.history_capacity], |row| {
             Ok(convert_from_bytes(row.get("song_id")?))
         })?;
 

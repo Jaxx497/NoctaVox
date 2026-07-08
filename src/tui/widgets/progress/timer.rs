@@ -25,7 +25,7 @@ impl StatefulWidget for Timer {
             _ => area.y + 1,
         };
 
-        let text_color = state.theme_manager.active.text_muted;
+        let text_color = state.theme.active.text_muted;
 
         let elapsed = state.metrics.position();
         let elapsed_str = get_readable_duration(elapsed, crate::DurationStyle::Compact);

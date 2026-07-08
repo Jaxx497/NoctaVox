@@ -99,11 +99,12 @@ irm https://raw.githubusercontent.com/Jaxx497/NoctaVox/master/scripts/get-themes
 ## Config
 
 NoctaVox allows for global configuration adjustments. This is an in-progress
-feature. Default values are supplied if no config file is present or if a field
-is missing/invalid. To adjust the configurations, create a `config.toml` file
-inside of the `$CONFIG/noctavox/` directory. 
+feature, expect breakage. Default values are supplied if no config file is
+present or if a field is missing/invalid. To adjust the configurations, edit
+the `config.toml` file auto-generated inside of `$CONFIG/noctavox/`
 
 ```toml
+[general]
 framerate = 120         # INTEGER | accepts values from 20 to 360 
                         # default: 60 | recommended: monitor hz
 

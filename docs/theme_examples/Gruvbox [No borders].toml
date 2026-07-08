@@ -37,6 +37,5 @@ decay               = 0.83
 [progress.waveform]
 speed               = -4
 
-[extras]
-decorator           = "󰯆"
-
+[icons]
+decorator = "󰯆"

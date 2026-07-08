@@ -25,8 +25,8 @@ const X: KeyModifiers = KeyModifiers::NONE;
 const S: KeyModifiers = KeyModifiers::SHIFT;
 const C: KeyModifiers = KeyModifiers::CONTROL;
 
-static SEEK_SMALL: LazyLock<f64> = LazyLock::new(|| user_config().seek_small);
-static SEEK_LARGE: LazyLock<f64> = LazyLock::new(|| user_config().seek_large);
+static SEEK_SMALL: LazyLock<f64> = LazyLock::new(|| user_config().general.seek_small);
+static SEEK_LARGE: LazyLock<f64> = LazyLock::new(|| user_config().general.seek_large);
 
 const SCROLL_MID: usize = 5;
 const SCROLL_XTRA: usize = 20;

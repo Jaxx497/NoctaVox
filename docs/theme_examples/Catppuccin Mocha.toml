@@ -32,5 +32,5 @@ symbol_unplayed     = "─"
 [progress.spectrum]
 decay               = 0.88
 
-[extras]
-decorator           = "♥"
+[icons]
+decorator = "♥"

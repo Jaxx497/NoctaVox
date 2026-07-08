@@ -6,7 +6,6 @@ mod popup;
 mod search_state;
 mod settings;
 mod stats;
-mod theme;
 mod ui_snapshot;
 mod ui_state;
 
@@ -19,7 +18,6 @@ pub use popup::PopupType;
 pub use search_state::MatchField;
 pub use settings::SettingsMode;
 pub use stats::LibraryStats;
-pub use theme::DisplayTheme;
 pub use ui_snapshot::UiSnapshot;
 use voxio::Vox;
 
@@ -28,6 +26,7 @@ use crate::{
     database::DbWorker,
     key_handler::KeyBuffer,
     library::{Album, Playlist, RefreshProgress, SimpleSong},
+    theme::ThemeManager,
     ui_state::{popup::PopupState, search_state::SearchState, stats::VoxStats},
     visualization::Visualizer,
 };
@@ -66,7 +65,7 @@ pub struct UiState {
 
     pub(crate) search: SearchState,
     pub(crate) popup: PopupState,
-    pub(crate) theme_manager: ThemeManager,
+    pub(crate) theme: ThemeManager,
 
     pub(crate) layout: LayoutStyle,
     pub(crate) stats: VoxStats,
@@ -79,8 +78,6 @@ pub struct UiState {
     pub library_refresh: Option<Arc<RefreshProgress>>,
     pub key_buffer: KeyBuffer,
 }
-
-pub use theme::*;
 
 fn new_textarea(placeholder: &str) -> ratatui_textarea::TextArea<'static> {
     let mut search = ratatui_textarea::TextArea::default();

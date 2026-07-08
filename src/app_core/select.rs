@@ -78,7 +78,7 @@ impl NoctaVox {
     fn sync_media_controls_position(&mut self) {
         self.tick_sync = self.tick_sync.wrapping_add(1);
 
-        if user_config().broadcast
+        if user_config().general.broadcast
             && self.player.is_active()
             && self.tick_sync % timing().db_tick == 0
         {

@@ -1,6 +1,5 @@
 use crate::{
     strip_win_prefix,
-    tui::widgets::SELECTOR,
     ui_state::{SettingsMode, UiState},
 };
 use ratatui::{
@@ -23,7 +22,7 @@ impl StatefulWidget for RootManager {
         state: &mut Self::State,
     ) {
         let settings_mode = state.get_settings_mode();
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
 
         let padding_h = (area.height as f32 * 0.2) as u16;
         let padding_w = (area.width as f32 * 0.2) as u16;
@@ -79,7 +78,7 @@ fn render_roots_list(
     state: &mut UiState,
 ) {
     let roots = state.get_roots();
-    let theme = state.theme_manager.get_display_theme(true);
+    let theme = state.theme.get_display_theme(true);
 
     if roots.is_empty() {
         Paragraph::new("No music library configured.\nPress 'a' to add a parent directory.")
@@ -97,9 +96,11 @@ fn render_roots_list(
         })
         .collect();
 
+    let selector = state.theme.icons().selector.to_string();
+
     let list = List::new(items)
-        .fg(state.theme_manager.active.text_muted)
-        .highlight_symbol(SELECTOR)
+        .fg(state.theme.active.text_muted)
+        .highlight_symbol(selector)
         .highlight_style(Style::new().fg(theme.accent))
         .highlight_spacing(HighlightSpacing::Always);
 
@@ -119,11 +120,11 @@ fn render_add_root(
     .split(area);
 
     Paragraph::new("Enter the path to a directory containing music files:")
-        .fg(state.theme_manager.active.accent)
+        .fg(state.theme.active.accent)
         .wrap(Wrap { trim: true })
         .render(chunks[0], buf);
 
-    let theme = state.theme_manager.get_display_theme(true);
+    let theme = state.theme.get_display_theme(true);
 
     state.popup.input.set_block(
         Block::bordered()
@@ -155,7 +156,7 @@ fn render_remove_root(
     buf: &mut ratatui::prelude::Buffer,
     state: &UiState,
 ) {
-    let theme = state.theme_manager.get_display_theme(true);
+    let theme = state.theme.get_display_theme(true);
     let roots = state.get_roots();
 
     if roots.is_empty() {

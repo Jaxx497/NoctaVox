@@ -19,7 +19,7 @@ impl StatefulWidget for GenericView {
         state: &mut Self::State,
     ) {
         let focus = matches!(state.get_pane(), Pane::TrackList);
-        let theme = &state.theme_manager.get_display_theme(focus);
+        let theme = &state.theme.get_display_theme(focus);
         let songs = state.get_legal_songs();
 
         let rows = songs
@@ -40,13 +40,13 @@ impl StatefulWidget for GenericView {
                     LayoutStyle::Traditional => match is_m_selected {
                         true => Row::new([index, symbol, title, artist, filetype, duration])
                             .fg(theme.text_selected)
-                            .bg(state.theme_manager.active.accent_inactive),
+                            .bg(state.theme.active.accent_inactive),
                         false => Row::new([index, symbol, title, artist, filetype, duration]),
                     },
                     LayoutStyle::Minimal => match is_m_selected {
                         true => Row::new([index, symbol, title, duration])
                             .fg(theme.text_selected)
-                            .bg(state.theme_manager.active.accent_inactive),
+                            .bg(state.theme.active.accent_inactive),
                         false => Row::new([index, symbol, title, duration]),
                     },
                 }

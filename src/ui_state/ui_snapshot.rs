@@ -100,7 +100,7 @@ impl UiState {
             album_sort: self.nav.album_sort.to_string(),
             sidebar_percentage: self.nav.sidebar_percent,
 
-            theme_name: self.theme_manager.active.name.to_owned(),
+            theme_name: self.theme.active.name.to_owned(),
             layout: self.layout.to_string(),
 
             song_selection: self.nav.table_pos.selected(),
@@ -128,7 +128,7 @@ impl UiState {
             self.layout = LayoutStyle::from_str(&snapshot.layout);
 
             if !snapshot.theme_name.is_empty() {
-                if let Some(theme) = self.theme_manager.find_theme_by_name(&snapshot.theme_name) {
+                if let Some(theme) = self.theme.find_theme_by_name(&snapshot.theme_name) {
                     self.set_theme(theme.clone());
                 }
             }

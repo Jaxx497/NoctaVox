@@ -61,7 +61,7 @@ impl Library {
     pub fn init_and_build() -> Result<Self> {
         let mut lib = Self::init()?;
 
-        match user_config().update_on_start {
+        match user_config().general.update_on_start {
             true => lib.build_library()?,
             false => {
                 lib.collect_songs()?;

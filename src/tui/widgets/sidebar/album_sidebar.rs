@@ -1,6 +1,7 @@
 use crate::{
+    theme::fade_color,
     tui::widgets::sidebar::{KILL_WIDTH_ALBUM, PADDING_L, PADDING_R, create_standard_list},
-    ui_state::{AlbumSort, LayoutStyle, Pane, UiState, fade_color},
+    ui_state::{AlbumSort, LayoutStyle, Pane, UiState},
 };
 use ratatui::{
     style::{Style, Stylize},
@@ -20,7 +21,7 @@ impl StatefulWidget for SideBarAlbum {
         state: &mut Self::State,
     ) {
         let focus = matches!(&state.get_pane(), Pane::SideBar);
-        let theme = &state.theme_manager.get_display_theme(focus);
+        let theme = &state.theme.get_display_theme(focus);
 
         let albums = &state.albums;
         let album_sort = state.nav.get_album_sort();
@@ -68,7 +69,7 @@ impl StatefulWidget for SideBarAlbum {
             if is_selected {
                 selected_display_idx = Some(current_display_idx);
             }
-            let decorator = &state.get_decorator();
+            let decorator = &state.theme.icons().decorator;
 
             let album_title = match album.title.is_empty() {
                 true => album.get_album_artist().to_string() + " [Unknown Album]",

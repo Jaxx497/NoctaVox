@@ -2,12 +2,27 @@
 
 ## Current Unreleased Chagnes
 
+### BREAKING:
+**CONFIG.TOML** now has 2 headers **\[general\]** and **\[icons\]**
+- All existing config must now include the `[general]` header above it.
+- Stats now accessed by `\ (backslash)` key
+
+### Added: 
+  - `config.toml` creates itself if it doesn't exist
+  - added `[icons]` section to `config.toml`
+  - added `[icons]` section to theme spec
+  - added `[meta]` section in theme config
+  - More icon control in themes
+
 ### Changed:
-  - sidebar max size moved to 49%
+  - `config.toml` existing settings must sit behind \[general\] header
+  - Sidebar max size capped at 49% instead of 40%
   - Reworked live update logic and library refresh process
+  - Breadcrumb widget has underlines now
   - Shaved off library clone
-  - Minor refactor of UI handler
+  - Minor refactor of UI engine
   - Improved encapsulation acrossed modules
+  - Themes now it's own module
 
 ## [0.3.1] Voxio Updates
 > #### **2026-06-30**  

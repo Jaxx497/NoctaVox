@@ -27,6 +27,7 @@ pub mod library;
 pub mod media_controls;
 pub mod playback;
 pub mod player;
+pub mod theme;
 pub mod tui;
 pub mod ui_state;
 pub mod visualization;
@@ -37,12 +38,18 @@ pub use database::Database;
 pub use library::{Library, SimpleSong};
 pub use playback::PlaybackSession;
 
+use crate::config::GeneralConfig;
+
 pub type SongMap = IndexMap<u64, Arc<SimpleSong>, BuildNoHashHasher<u64>>;
 
 pub static USER_CONFIG: OnceLock<UserConfig> = OnceLock::new();
 
 pub fn user_config() -> &'static UserConfig {
     USER_CONFIG.get().expect("Failed to initialize user config")
+}
+
+pub fn gen_config() -> &'static GeneralConfig {
+    &user_config().general
 }
 
 static CONFIG_DIR: LazyLock<PathBuf> = LazyLock::new(|| {

@@ -458,7 +458,7 @@ impl UiState {
         let list_len = match popup_type {
             PopupType::Settings(_) => self.get_roots().len(),
             PopupType::Playlist(_) => self.playlists.len(),
-            PopupType::ThemeManager => self.theme_manager.theme_lib.len(),
+            PopupType::ThemeManager => self.theme.theme_lib.len(),
             _ => return,
         };
 
@@ -482,7 +482,7 @@ impl UiState {
         let list_len = match popup_type {
             PopupType::Settings(_) => self.get_roots().len(),
             PopupType::Playlist(_) => self.playlists.len(),
-            PopupType::ThemeManager => self.theme_manager.theme_lib.len(),
+            PopupType::ThemeManager => self.theme.theme_lib.len(),
             _ => return,
         };
 
@@ -499,7 +499,7 @@ impl UiState {
 
     fn switch_theme(&mut self) {
         if let Some(idx) = self.popup.selection.selected() {
-            if let Some(theme) = self.theme_manager.theme_lib.get(idx) {
+            if let Some(theme) = self.theme.theme_lib.get(idx) {
                 self.set_theme(theme.clone());
             }
         }

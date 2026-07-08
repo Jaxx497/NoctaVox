@@ -29,6 +29,8 @@ color               = "#644ac9"
 symbol_played       = "━"
 symbol_unplayed     = "─"
 
-[extras]
-is_dark             = false
-decorator           = "✦"
+[meta]
+dark = false
+
+[icons]
+decorator = "✦"

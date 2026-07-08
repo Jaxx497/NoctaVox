@@ -4,10 +4,7 @@ use ratatui::{
     widgets::{Block, List, StatefulWidget},
 };
 
-use crate::{
-    tui::widgets::{POPUP_PADDING, SELECTOR},
-    ui_state::UiState,
-};
+use crate::{tui::widgets::POPUP_PADDING, ui_state::UiState};
 
 pub struct ThemeManager;
 impl StatefulWidget for ThemeManager {
@@ -19,10 +16,12 @@ impl StatefulWidget for ThemeManager {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = &state.theme_manager.get_display_theme(true);
+        let theme = &state.theme.get_display_theme(true);
+
+        let selector = state.theme.icons().selector.to_string();
 
         let theme_names = state
-            .theme_manager
+            .theme
             .theme_lib
             .iter()
             .map(|t| t.name.clone())
@@ -41,7 +40,7 @@ impl StatefulWidget for ThemeManager {
             .block(block)
             .scroll_padding(area.height as usize - 3)
             .fg(theme.text_muted)
-            .highlight_symbol(SELECTOR)
+            .highlight_symbol(selector)
             .highlight_style(theme.accent);
 
         StatefulWidget::render(list, area, buf, &mut state.popup.selection);

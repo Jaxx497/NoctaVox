@@ -24,7 +24,7 @@ impl StatefulWidget for ErrorMsg {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = &state.theme_manager.get_display_theme(true);
+        let theme = &state.theme.get_display_theme(true);
 
         let block = Block::bordered()
             .border_type(theme.border_type)

@@ -1,17 +1,17 @@
-use std::{sync::Arc, u32};
-
 use ratatui::{
     layout::{Constraint, HorizontalAlignment, Layout, Rect},
     style::Stylize,
     text::{Line, Span},
     widgets::{Block, Padding, Paragraph, StatefulWidget, Widget},
 };
+use std::{sync::Arc, u32};
 use unicode_width::UnicodeWidthStr;
 
 use crate::{
     SimpleSong,
     library::SongInfo,
-    ui_state::{DisplayTheme, LayoutStyle, LibraryStats, UiState, fade_color},
+    theme::{DisplayTheme, fade_color},
+    ui_state::{LayoutStyle, LibraryStats, UiState},
 };
 
 pub struct UserStats;
@@ -23,7 +23,7 @@ impl StatefulWidget for UserStats {
         buf: &mut ratatui::prelude::Buffer,
         state: &mut Self::State,
     ) {
-        let theme = state.theme_manager.get_display_theme(true);
+        let theme = state.theme.get_display_theme(true);
         let stats = state.stats.get_lib_stats();
         let most_played = state.stats.get_most_played();
 

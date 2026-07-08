@@ -29,5 +29,5 @@ color               = "#268bd2"
 symbol_played       = "━"
 symbol_unplayed     = "─"
 
-[extras]
-decorator           = "☀"
+[icons]
+decorator = "☀"

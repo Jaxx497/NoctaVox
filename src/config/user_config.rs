@@ -1,124 +1,21 @@
+use crate::{
+    CONFIG_DIR,
+    config::{GeneralConfig, icons::UserIcons},
+};
 use anyhow::Context;
 use serde::Deserialize;
+use std::fmt::Write as _;
 use std::fs;
 use voxio::ReplayGainMode;
 
-use crate::CONFIG_DIR;
-
-#[derive(serde::Deserialize)]
+#[derive(Deserialize, Default)]
 #[serde(default, deny_unknown_fields)]
 pub struct UserConfig {
-    #[serde(
-        default = "defaults::framerate",
-        deserialize_with = "deserialize_framerate"
-    )]
-    pub framerate: u16,
+    #[serde(default = "GeneralConfig::default")]
+    pub general: GeneralConfig,
 
-    #[serde(
-        default = "defaults::history",
-        deserialize_with = "deserialize_history"
-    )]
-    pub history_capacity: u32,
-
-    #[serde(
-        default = "defaults::seek_small",
-        deserialize_with = "deserialize_seek"
-    )]
-    pub seek_small: f64,
-
-    #[serde(
-        default = "defaults::seek_large",
-        deserialize_with = "deserialize_seek"
-    )]
-    pub seek_large: f64,
-
-    #[serde(default = "defaults::update_on_start")]
-    pub update_on_start: bool,
-
-    #[serde(default = "defaults::auto_resume")]
-    pub auto_resume: bool,
-
-    #[serde(
-        default = "defaults::replay_gain",
-        deserialize_with = "deserialize_replay_gain"
-    )]
-    pub replay_gain: ReplayGainMode,
-
-    #[serde(default = "defaults::broadcast")]
-    pub broadcast: bool,
-}
-
-mod defaults {
-    use voxio::ReplayGainMode;
-
-    pub fn seek_small() -> f64 {
-        5.0
-    }
-
-    pub fn seek_large() -> f64 {
-        30.0
-    }
-
-    pub fn framerate() -> u16 {
-        60
-    }
-
-    pub fn history() -> u32 {
-        64
-    }
-
-    pub fn update_on_start() -> bool {
-        true
-    }
-
-    pub fn auto_resume() -> bool {
-        false
-    }
-
-    pub fn broadcast() -> bool {
-        false
-    }
-
-    pub fn replay_gain() -> ReplayGainMode {
-        ReplayGainMode::Off
-    }
-}
-
-fn deserialize_seek<'de, D: serde::Deserializer<'de>>(d: D) -> Result<f64, D::Error> {
-    f64::deserialize(d).map(|x| x.clamp(0.5, 3600.0))
-}
-
-fn deserialize_framerate<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u16, D::Error> {
-    u16::deserialize(d).map(|x| x.clamp(20, 360))
-}
-
-fn deserialize_history<'de, D: serde::Deserializer<'de>>(d: D) -> Result<u32, D::Error> {
-    u32::deserialize(d).map(|x| x.clamp(8, 1024))
-}
-
-fn deserialize_replay_gain<'de, D: serde::Deserializer<'de>>(
-    d: D,
-) -> Result<ReplayGainMode, D::Error> {
-    String::deserialize(d).map(|s| match s.to_lowercase().as_str() {
-        "album" => ReplayGainMode::Album,
-        "track" => ReplayGainMode::Track,
-        _ => ReplayGainMode::Off,
-    })
-}
-
-impl Default for UserConfig {
-    fn default() -> Self {
-        Self {
-            framerate: defaults::framerate(),
-            history_capacity: defaults::history(),
-            seek_small: defaults::seek_small(),
-            seek_large: defaults::seek_large(),
-            update_on_start: defaults::update_on_start(),
-            auto_resume: defaults::auto_resume(),
-            broadcast: defaults::broadcast(),
-            replay_gain: ReplayGainMode::Off,
-        }
-    }
+    #[serde(default = "UserIcons::default")]
+    pub icons: UserIcons,
 }
 
 impl UserConfig {
@@ -128,8 +25,58 @@ impl UserConfig {
             Ok(s) => {
                 toml::from_str(&s).with_context(|| format!("Failed to parse {}", path.display()))
             }
-            Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(Self::default()),
-            Err(e) => Err(e).with_context(|| format!("Failed to parse {}", path.display())),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+                fs::write(&path, default_config())
+                    .with_context(|| format!("Failed to write {}", path.display()))?;
+                Ok(Self::default())
+            }
+            Err(e) => Err(e).with_context(|| format!("Failed to read from {}", path.display())),
         }
     }
+}
+
+fn default_config() -> String {
+    let general = GeneralConfig::default();
+    let icons = UserIcons::default();
+
+    let replay_gain = match general.replay_gain {
+        ReplayGainMode::Track => "track",
+        ReplayGainMode::Album => "album",
+        _ => "off",
+    };
+
+    let mut conf = String::from(
+        "# NoctaVox base configuration\n\
+         # Uncomment any value to override its default.\n\n\
+         [general]\n",
+    );
+
+    let _ = writeln!(conf, "# {:<17}= {}", "framerate", general.framerate);
+    let _ = writeln!(
+        conf,
+        "# {:<17}= {}",
+        "history_capacity", general.history_capacity
+    );
+    let _ = writeln!(conf, "# {:<17}= {:?}", "seek_small", general.seek_small);
+    let _ = writeln!(conf, "# {:<17}= {:?}", "seek_large", general.seek_large);
+    let _ = writeln!(
+        conf,
+        "# {:<17}= {}",
+        "update_on_start", general.update_on_start
+    );
+    let _ = writeln!(conf, "# {:<17}= {}", "auto_resume", general.auto_resume);
+    let _ = writeln!(conf, "# {:<17}= \"{}\"", "replay_gain", replay_gain);
+    let _ = writeln!(conf, "# {:<17}= {}", "broadcast", general.broadcast);
+
+    conf.push_str("\n[icons]\n");
+
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "selector", icons.selector);
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "playing", icons.playing);
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "paused", icons.paused);
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "queued", icons.queued);
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "repeat", icons.repeat);
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "upcoming", icons.upcoming);
+    let _ = writeln!(conf, "# {:<9}= \"{}\"", "selected", icons.selected);
+
+    conf
 }

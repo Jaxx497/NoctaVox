@@ -90,7 +90,8 @@ A theme file may contain the following sections:
 [progress.oscilloscope]     # Settings for oscilloscope widget  (overrides [progress])
 [progress.spectrum]         # Settings for spectrum widget      (overrides [progress])
 
-[extras]                    # Miscellaneous settings
+[meta]                      # Theme metadata (dark hint, author, name)
+[icons]                     # Glyph overrides (decorator, selector, ...)
 ```
 
 --------------------------------------------------
@@ -216,15 +217,36 @@ symbol_unplayed = "▱"
 
 --------------------------------------------------
 
-#### [extras]
+#### [meta]
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| is_dark | bool | true | Dark/light hint |
-| decorator | string | ✧ | Decorative glyph |
+| dark | bool | true | Dark/light hint |
+| author | string | — | Theme author (optional, informational) |
+| name | string | — | Display name (optional, informational) |
 
-> **Tip:** The `is_dark` field tells the engine if the theme is considered to be a dark
-theme or light theme. This affects how colors are dimmed.
+> **Tip:** The `dark` field tells the engine if the theme is considered to be a dark
+theme or light theme. This affects how colors are dimmed. `author` and `name` are
+accepted for organization but not yet surfaced in-app. Unknown keys anywhere in a
+theme file are ignored, so extra metadata never breaks loading.
+
+--------------------------------------------------
+
+#### [icons]
+
+Overrides the global glyphs (see `config.toml`'s `[icons]`) for this theme only.
+Any field you omit falls back to your global config, then to the built-in default.
+
+| Field | Type | Default | Description |
+|---|---|---|---|
+| decorator | string | ✧ | Decorative glyph |
+| selector | string | ⮞ | Selection arrow (list highlight) |
+| playing | string | ♫ | Now-playing marker |
+| paused | string | 󰏤 | Paused marker |
+| queued | string | _(Nerd Font)_ | Queued-track marker |
+| repeat | string | _(Nerd Font)_ | Repeat indicator |
+| upcoming | string | 󰐑 | Up-next / queue icon |
+| selected | string | 󱕣 | Multi-select marker |
 
 --------------------------------------------------
 
@@ -262,7 +284,7 @@ The `InactiveColor` type controls how unplayed portions of widget is colored.
 
 | Value | Description |
 |---|---|
-| `"dimmed"` | The active gradient, darkened based on `is_dark` and audio amplitude. |
+| `"dimmed"` | The active gradient, darkened based on `dark` and audio amplitude. |
 | `"still"` | A frozen (non-animated) version of the active gradient, also darkened. |
 | `"#rrggbb"` / `"rgb(...)"` | A solid single color. |
 | `["#...", "#...", ...]` | An independent gradient, unrelated to the active color. |

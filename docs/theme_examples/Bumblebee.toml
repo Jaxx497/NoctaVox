@@ -33,5 +33,5 @@ symbol_unplayed     = "▱"
 mirror              = true
 decay               = 0.86
 
-[extras]
-decorator           = "▣"
+[icons]
+decorator = "▣"

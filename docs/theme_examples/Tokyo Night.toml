@@ -35,5 +35,5 @@ speed               = 4
 mirror              = true
 decay               = 0.88
 
-[extras]
-decorator           = "✺"
+[icons]
+decorator = "✺"

@@ -1,9 +1,4 @@
-use std::rc::Rc;
-
-use crate::ui_state::{
-    ParsedOscillo, UiState,
-    theme::parsed::{ParsedBar, ParsedSpectrum, ParsedWaveform},
-};
+use crate::theme::{ParsedBar, ParsedOscillo, ParsedSpectrum, ParsedWaveform};
 use ratatui::{
     style::Color,
     symbols::Marker,
@@ -38,15 +33,5 @@ pub struct DisplayTheme {
 impl DisplayTheme {
     pub fn has_borders(&self) -> bool {
         self.border_display != Borders::NONE
-    }
-}
-
-impl UiState {
-    pub fn get_decorator(&self) -> Rc<String> {
-        Rc::clone(&self.theme_manager.active.decorator)
-    }
-
-    pub fn borders_enabled(&self) -> bool {
-        self.theme_manager.active.border_display != Borders::NONE
     }
 }

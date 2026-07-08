@@ -36,5 +36,5 @@ speed               = 4
 mirror              = true
 decay               = 0.9
 
-[extras]
-decorator           = "波"
+[icons]
+decorator = "波"

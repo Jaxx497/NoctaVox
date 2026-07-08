@@ -1,4 +1,7 @@
-use crate::ui_state::{LayoutStyle, Pane, UiState, fade_color};
+use crate::{
+    theme::fade_color,
+    ui_state::{LayoutStyle, Pane, UiState},
+};
 use ratatui::{
     style::Stylize,
     widgets::{Block, Borders, Padding, StatefulWidget, Widget},
@@ -16,7 +19,7 @@ impl StatefulWidget for SearchBar {
     ) {
         let focus = matches!(&state.get_pane(), Pane::Search);
         let layout = &state.layout;
-        let theme = &state.theme_manager.get_display_theme(focus);
+        let theme = &state.theme.get_display_theme(focus);
         let (border_display, border_type, border_style, highlight, bg) = {
             (
                 theme.border_display,
