@@ -73,12 +73,15 @@ impl ThemeConfig {
         let config = toml::from_str::<ThemeImport>(&file_str)?;
         let mut theme = Self::try_from(&config)?;
 
-        theme.name = path
-            .as_ref()
-            .file_stem()
-            .and_then(|s| s.to_str())
-            .ok_or(anyhow!("Could not identify theme name"))?
-            .to_string();
+        theme.name = match config.meta.name.as_deref().map(str::trim) {
+            Some(name) if !name.is_empty() => name.to_string(),
+            _ => path
+                .as_ref()
+                .file_stem()
+                .and_then(|s| s.to_str())
+                .ok_or(anyhow!("Could not identify theme name"))?
+                .to_string(),
+        };
 
         Ok(theme)
     }

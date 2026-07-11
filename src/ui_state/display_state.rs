@@ -1,6 +1,6 @@
 use super::{AlbumSort, LibraryView, Mode, Pane, TableSort, UiState};
 use crate::{
-    key_handler::Director,
+    key_handler::{Director, Incrementor},
     library::{Album, Playlist, SimpleSong, SongInfo},
     ui_state::PopupType,
 };
@@ -452,8 +452,23 @@ impl UiState {
         }
     }
 
-    pub(crate) fn popup_scroll_up(&mut self) {
+    pub(crate) fn popup_scroll(&mut self, i: Incrementor) {
+        match i {
+            Incrementor::Up => self.popup_scroll_up(),
+            Incrementor::Down => self.popup_scroll_down(),
+        }
+    }
+
+    fn popup_scroll_up(&mut self) {
         let popup_type = &self.popup.current;
+
+        // The keymap guide scrolls by a raw line offset (no selection cursor,
+        // no wrap); the widget clamps the top end at render.
+        if matches!(popup_type, PopupType::KeymapGuide) {
+            let current = self.popup.selection.selected().unwrap_or(0);
+            self.popup.selection.select(Some(current.saturating_sub(1)));
+            return;
+        }
 
         let list_len = match popup_type {
             PopupType::Settings(_) => self.get_roots().len(),
@@ -476,8 +491,16 @@ impl UiState {
         }
     }
 
-    pub(crate) fn popup_scroll_down(&mut self) {
+    fn popup_scroll_down(&mut self) {
         let popup_type = &self.popup.current;
+
+        // The keymap guide scrolls by a raw line offset (no selection cursor,
+        // no wrap); the widget clamps the bottom end at render.
+        if matches!(popup_type, PopupType::KeymapGuide) {
+            let current = self.popup.selection.selected().unwrap_or(0);
+            self.popup.selection.select(Some(current + 1));
+            return;
+        }
 
         let list_len = match popup_type {
             PopupType::Settings(_) => self.get_roots().len(),
@@ -513,7 +536,7 @@ impl UiState {
                 }
             }
             false => {
-                if self.nav.sidebar_percent >= 16 {
+                if self.nav.sidebar_percent >= 9 {
                     self.nav.sidebar_percent -= -x as u16;
                 }
             }

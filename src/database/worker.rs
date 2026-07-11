@@ -2,7 +2,7 @@ use crate::{
     SongMap,
     database::{DB_BOUND, Database},
     library::SimpleSong,
-    ui_state::{LibraryStats, UiSnapshot},
+    ui_state::LibraryStats,
 };
 use anyhow::{Result, anyhow};
 use indexmap::IndexMap;
@@ -128,12 +128,12 @@ impl DbWorker {
         self.execute_sync(move |db| db.build_playlists())
     }
 
-    pub fn save_ui_snapshot(&self, snapshot: UiSnapshot) -> Result<()> {
-        self.execute_sync(move |db| db.save_ui_snapshot(snapshot))
+    pub fn save_snapshot(&self, snapshot: Vec<(&'static str, String)>) -> Result<()> {
+        self.execute_sync(move |db| db.save_snapshot(snapshot))
     }
 
-    pub fn load_ui_snapshot(&self) -> Result<Option<UiSnapshot>> {
-        self.execute_sync(move |db| db.load_ui_snapshot())
+    pub fn load_snapshot(&self, prefix: &'static str) -> Result<Vec<(String, String)>> {
+        self.execute_sync(move |db| db.load_snapshot(prefix))
     }
 
     pub fn get_all_songs(&self) -> Result<SongMap> {

@@ -1,6 +1,6 @@
 # Noctavox Theming
 
-> **Specification Version: v0.8**
+> **Specification Version: v0.9**
 
 This document describes the full Noctavox theme specification.
 
@@ -221,9 +221,9 @@ symbol_unplayed = "▱"
 
 | Field | Type | Default | Description |
 |---|---|---|---|
-| dark | bool | true | Dark/light hint |
-| author | string | — | Theme author (optional, informational) |
 | name | string | — | Display name (optional, informational) |
+| author | string | — | Theme author (optional, informational) |
+| dark | bool | true | Dark/light hint |
 
 > **Tip:** The `dark` field tells the engine if the theme is considered to be a dark
 theme or light theme. This affects how colors are dimmed. `author` and `name` are
@@ -234,8 +234,8 @@ theme file are ignored, so extra metadata never breaks loading.
 
 #### [icons]
 
-Overrides the global glyphs (see `config.toml`'s `[icons]`) for this theme only.
-Any field you omit falls back to your global config, then to the built-in default.
+These values override the global glyphs (see `config.toml`'s `[icons]`). Any
+field you omit falls back to your global config, then to the built-in default.
 
 | Field | Type | Default | Description |
 |---|---|---|---|
@@ -243,8 +243,8 @@ Any field you omit falls back to your global config, then to the built-in defaul
 | selector | string | ⮞ | Selection arrow (list highlight) |
 | playing | string | ♫ | Now-playing marker |
 | paused | string | 󰏤 | Paused marker |
-| queued | string | _(Nerd Font)_ | Queued-track marker |
-| repeat | string | _(Nerd Font)_ | Repeat indicator |
+| queued | string |  | Queued-track marker |
+| repeat | string |  | Repeat indicator |
 | upcoming | string | 󰐑 | Up-next / queue icon |
 | selected | string | 󱕣 | Multi-select marker |
 

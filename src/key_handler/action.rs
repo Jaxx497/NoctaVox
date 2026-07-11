@@ -59,7 +59,7 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (X, Esc) => Some(Action::SoftReset),
             (X, Backspace) => Some(Action::ClearKeyBuffer),
 
-            (S, Char('C')) => Some(Action::ThemeManager),
+            (_, Char('C')) => Some(Action::ThemeManager),
             (X, F(6)) => Some(Action::ThemeRefresh),
 
             (C, Char('t')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
@@ -71,16 +71,20 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (X, Char(' ')) => Some(Action::TogglePlayback),
             (C, Char('s')) => Some(Action::Stop),
 
-            (X, Char('n')) => Some(Action::SeekForward(*SEEK_SMALL)),
-            (S, Char('N')) => Some(Action::SeekForward(*SEEK_LARGE)),
+            (X, Char('n')) => Some(Action::Seek(*SEEK_SMALL)),
+            (_, Char('N')) => Some(Action::Seek(*SEEK_LARGE)),
 
-            (X, Char('p')) => Some(Action::SeekBack(*SEEK_SMALL)),
-            (S, Char('P')) => Some(Action::SeekBack(*SEEK_LARGE)),
+            (X, Char('p')) => Some(Action::Seek(-*SEEK_SMALL)),
+            (_, Char('P')) => Some(Action::Seek(-*SEEK_LARGE)),
 
             // NAVIGATION
             (X, Char('/')) => Some(Action::ChangeMode(Mode::Search)),
             (X, Char('=')) => Some(Action::GoToNowPlaying),
             (_, Char('\\')) => Some(Action::ShowStats),
+            (_, Char('?')) => Some(Action::ShowKeymaps),
+
+            (_, Char('+')) => Some(Action::VolumeShift(VOLUME_STEP)),
+            (_, Char('-')) => Some(Action::VolumeShift(-VOLUME_STEP)),
 
             (X, Char('m')) => Some(Action::SwapLayout),
 
@@ -94,9 +98,9 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (X, Char('k')) | (X, Up) => Some(Action::Scroll(Director::Up(buf_count))),
             (X, Char('d')) => Some(Action::Scroll(Director::Down(SCROLL_MID))),
             (X, Char('u')) => Some(Action::Scroll(Director::Up(SCROLL_MID))),
-            (S, Char('D')) => Some(Action::Scroll(Director::Down(SCROLL_XTRA))),
-            (S, Char('U')) => Some(Action::Scroll(Director::Up(SCROLL_XTRA))),
-            (S, Char('G')) => Some(Action::Scroll(Director::Bottom)),
+            (_, Char('D')) => Some(Action::Scroll(Director::Down(SCROLL_XTRA))),
+            (_, Char('U')) => Some(Action::Scroll(Director::Up(SCROLL_XTRA))),
+            (_, Char('G')) => Some(Action::Scroll(Director::Bottom)),
 
             (X, Char('[')) => Some(Action::IncrementSidebarSize(-SIDEBAR_INCREMENT)),
             (X, Char(']')) => Some(Action::IncrementSidebarSize(SIDEBAR_INCREMENT)),
@@ -104,16 +108,16 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (_, Char('{')) => Some(Action::IncrementWFSmoothness(Incrementor::Down)),
             (_, Char('}')) => Some(Action::IncrementWFSmoothness(Incrementor::Up)),
 
-            (_, Char('<')) => Some(Action::CycleTheme(Incrementor::Up)),
-            (_, Char('>')) => Some(Action::CycleTheme(Incrementor::Down)),
+            (_, Char('<')) | (_, Char(',')) => Some(Action::CycleTheme(Incrementor::Up)),
+            (_, Char('>')) | (_, Char('.')) => Some(Action::CycleTheme(Incrementor::Down)),
 
-            (X, Char('f')) | (S, Char('F')) => Some(Action::ChangeMode(Mode::Fullscreen)),
+            (X, Char('f')) | (_, Char('F')) => Some(Action::ChangeMode(Mode::Fullscreen)),
 
             (X, Char('w')) => Some(Action::NextProgressDisplay),
-            (S, Char('W')) => Some(Action::SetProgressDisplay(ProgressDisplay::Waveform)),
-            (S, Char('O')) => Some(Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)),
-            (S, Char('S')) => Some(Action::SetProgressDisplay(ProgressDisplay::Spectrum)),
-            (S, Char('B')) => Some(Action::SetProgressDisplay(ProgressDisplay::ProgressBar)),
+            (_, Char('W')) => Some(Action::SetProgressDisplay(ProgressDisplay::Waveform)),
+            (_, Char('O')) => Some(Action::SetProgressDisplay(ProgressDisplay::Oscilloscope)),
+            (_, Char('S')) => Some(Action::SetProgressDisplay(ProgressDisplay::Spectrum)),
+            (_, Char('B')) => Some(Action::SetProgressDisplay(ProgressDisplay::ProgressBar)),
             (C, Char('u')) | (X, F(5)) => Some(Action::UpdateLibrary),
 
             _ => None,
@@ -150,13 +154,13 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
 
     match state.get_mode() {
         Mode::Library(_) => match (key.modifiers, key.code) {
-            (S, Char('K')) => Some(Action::ShiftPosition(Incrementor::Up)),
-            (S, Char('J')) => Some(Action::ShiftPosition(Incrementor::Down)),
-            (S, Char('Q')) => Some(Action::QueueMany {
+            (_, Char('K')) => Some(Action::ShiftPosition(Incrementor::Up)),
+            (_, Char('J')) => Some(Action::ShiftPosition(Incrementor::Down)),
+            (_, Char('Q')) => Some(Action::QueueMany {
                 sel_type: SelectionType::Legal,
                 shuffle: false,
             }),
-            (S, Char('V')) => Some(Action::MultiSelectAll),
+            (_, Char('V')) => Some(Action::MultiSelectAll),
             (X, Char('x')) => Some(Action::RemoveSong),
             _ => None,
         },
@@ -164,10 +168,10 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
         Mode::Queue => match (key.modifiers, key.code) {
             (X, Char('x')) => Some(Action::RemoveSong),
             (X, Char('s')) => Some(Action::ShuffleElements),
-            (S, Char('V')) => Some(Action::MultiSelectAll),
+            (_, Char('V')) => Some(Action::MultiSelectAll),
 
-            (S, Char('K')) => Some(Action::ShiftPosition(Incrementor::Up)),
-            (S, Char('J')) => Some(Action::ShiftPosition(Incrementor::Down)),
+            (_, Char('K')) => Some(Action::ShiftPosition(Incrementor::Up)),
+            (_, Char('J')) => Some(Action::ShiftPosition(Incrementor::Down)),
             _ => None,
         },
 
@@ -247,18 +251,18 @@ fn handle_fullscreen(key: &KeyEvent) -> Option<Action> {
         (X, Char(' ')) => Action::TogglePlayback,
         (X, F(6)) => Action::ThemeRefresh,
 
-        (X, Char('n')) => Action::SeekForward(*SEEK_SMALL),
-        (S, Char('N')) => Action::SeekForward(*SEEK_LARGE),
+        (X, Char('n')) => Action::Seek(*SEEK_SMALL),
+        (_, Char('N')) => Action::Seek(*SEEK_LARGE),
 
-        (X, Char('p')) => Action::SeekBack(*SEEK_SMALL),
-        (S, Char('P')) => Action::SeekBack(*SEEK_LARGE),
+        (X, Char('p')) => Action::Seek(-*SEEK_SMALL),
+        (_, Char('P')) => Action::Seek(-*SEEK_LARGE),
 
         (X, Char('w')) => Action::NextProgressDisplay,
 
-        (S, Char('W')) => Action::SetProgressDisplay(ProgressDisplay::Waveform),
-        (S, Char('O')) => Action::SetProgressDisplay(ProgressDisplay::Oscilloscope),
-        (S, Char('S')) => Action::SetProgressDisplay(ProgressDisplay::Spectrum),
-        (S, Char('B')) => Action::SetProgressDisplay(ProgressDisplay::ProgressBar),
+        (_, Char('W')) => Action::SetProgressDisplay(ProgressDisplay::Waveform),
+        (_, Char('O')) => Action::SetProgressDisplay(ProgressDisplay::Oscilloscope),
+        (_, Char('S')) => Action::SetProgressDisplay(ProgressDisplay::Spectrum),
+        (_, Char('B')) => Action::SetProgressDisplay(ProgressDisplay::ProgressBar),
 
         (_, Char('<')) => Action::CycleTheme(Incrementor::Up),
         (_, Char('>')) => Action::CycleTheme(Incrementor::Down),
@@ -277,6 +281,7 @@ fn handle_popup(key: &KeyEvent, popup: &PopupType) -> Option<Action> {
         PopupType::Settings(s) => root_manager(key, s),
         PopupType::Playlist(p) => handle_playlist(key, p),
         PopupType::ThemeManager => handle_themeing(key),
+        PopupType::KeymapGuide => handle_themeing(key),
         _ => Some(Action::ClosePopup),
     }
 }
@@ -287,8 +292,8 @@ fn root_manager(key: &KeyEvent, variant: &SettingsMode) -> Option<Action> {
         ViewRoots => match key.code {
             Char('a') => Some(Action::RootAdd),
             Char('d') => Some(Action::RootRemove),
-            Up | Char('k') => Some(Action::PopupScrollUp),
-            Down | Char('j') => Some(Action::PopupScrollDown),
+            Up | Char('k') => Some(Action::PopupScroll(Incrementor::Up)),
+            Down | Char('j') => Some(Action::PopupScroll(Incrementor::Down)),
             Char('~') | Char('`') => Some(Action::ClosePopup),
             Esc => Some(Action::ClosePopup),
             _ => None,
@@ -323,8 +328,8 @@ fn handle_playlist(key: &KeyEvent, variant: &PlaylistAction) -> Option<Action> {
             _ => Some(Action::PopupInput(*key)),
         },
         AddSong => match key.code {
-            Up | Char('k') => Some(Action::PopupScrollUp),
-            Down | Char('j') => Some(Action::PopupScrollDown),
+            Up | Char('k') => Some(Action::PopupScroll(Incrementor::Up)),
+            Down | Char('j') => Some(Action::PopupScroll(Incrementor::Down)),
             Enter | Char('a') => Some(Action::AddToPlaylistConfirm),
             Char('c') => Some(Action::CreatePlaylistWithSongs),
             _ => None,
@@ -342,8 +347,8 @@ fn handle_playlist(key: &KeyEvent, variant: &PlaylistAction) -> Option<Action> {
 
 fn handle_themeing(key: &KeyEvent) -> Option<Action> {
     match key.code {
-        Up | Char('k') => Some(Action::PopupScrollUp),
-        Down | Char('j') => Some(Action::PopupScrollDown),
+        Up | Char('k') => Some(Action::PopupScroll(Incrementor::Up)),
+        Down | Char('j') => Some(Action::PopupScroll(Incrementor::Down)),
         _ => Some(Action::ClosePopup),
     }
 }

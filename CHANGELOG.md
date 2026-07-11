@@ -1,16 +1,28 @@
 # CHANGELOG
 
-## Current Unreleased Chagnes
+## [0.3.2] - Keymap helper, config changes, volume adjustment
+> #### **2026-07-10**
 
 ### BREAKING:
 **CONFIG.TOML** now has 2 headers **\[general\]** and **\[icons\]**
 - All existing config must now include the `[general]` header above it.
 - Stats now accessed by `\ (backslash)` key
+- `?` now maps to keymap helper
+
+**THEME SPEC**: `[extras]` replaced by `[meta]` and `[icons]`
+- `is_dark` is now `dark` under the `[meta]` section
+- `decorator` moved to the `[icons]` section
+- Old `[extras]` sections are silently ignored — light themes should update
+  or they will fall back to `dark = true`
 
 ### Added: 
+  - Keymap guide popup, accessed with `?`
+  - `+` and `-` can now be used to adjust volume (persists sessions)
+  - volume meter in traditional view
+  - `,` and `.` can now be used to cycle themes 
   - `config.toml` creates itself if it doesn't exist
   - added `[icons]` section to `config.toml`
-  - added `[icons]` section to theme spec
+  - added `[icons]` section to theme spec (override config)
   - added `[meta]` section in theme config
   - More icon control in themes
 
@@ -19,10 +31,13 @@
   - Sidebar max size capped at 49% instead of 40%
   - Reworked live update logic and library refresh process
   - Breadcrumb widget has underlines now
+  - Condensed internal action handling
   - Shaved off library clone
   - Minor refactor of UI engine
   - Improved encapsulation acrossed modules
-  - Themes now it's own module
+  - Themes moved to its own module
+  - Enhanced device recovery logic (from voxio version bump)
+  - Crossbeam-channel version bump
 
 ## [0.3.1] Voxio Updates
 > #### **2026-06-30**  

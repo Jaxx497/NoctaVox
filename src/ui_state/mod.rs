@@ -1,6 +1,7 @@
 mod display_state;
 mod domain;
 mod multi_select;
+mod player_snapshot;
 mod playlist;
 mod popup;
 mod search_state;
@@ -13,6 +14,7 @@ use std::sync::Arc;
 
 pub use display_state::DisplayState;
 pub use domain::{AlbumSort, LibraryView, Mode, Pane, TableSort};
+pub use player_snapshot::PlayerSnapshot;
 pub use playlist::PlaylistAction;
 pub use popup::PopupType;
 pub use search_state::MatchField;

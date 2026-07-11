@@ -128,10 +128,10 @@ pub const UPDATE_PLAY_COUNT: &str = "
         WHERE song_id = ?1
 ";
 
-pub const GET_UI_SNAPSHOT: &str = "
+pub const GET_SESSION_PREFIX: &str = "
     SELECT key, value 
         FROM session_state 
-        WHERE key LIKE 'ui_%'";
+        WHERE key LIKE ?";
 
 pub const SET_SESSION_STATE: &str = "
     INSERT OR REPLACE INTO session_state (key, value)

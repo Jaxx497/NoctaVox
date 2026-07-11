@@ -2,10 +2,10 @@ use crate::{
     library::{RefreshStage, SongInfo},
     theme::DisplayTheme,
     truncate_at_last_space,
-    ui_state::UiState,
+    ui_state::{LayoutStyle, UiState},
 };
 use ratatui::{
-    layout::{Constraint, Direction, Layout},
+    layout::{Constraint, Direction, Layout, Rect},
     style::Stylize,
     text::{Line, Span},
     widgets::{Block, Borders, Gauge, StatefulWidget, Widget},
@@ -46,10 +46,11 @@ impl StatefulWidget for BufferLine {
             return;
         }
 
-        let [left, center, right] = Layout::default()
+        let [_, left, center, right] = Layout::default()
             .direction(Direction::Horizontal)
             .constraints([
-                Constraint::Percentage(20),
+                Constraint::Percentage(2),
+                Constraint::Percentage(18),
                 Constraint::Percentage(60),
                 Constraint::Percentage(20),
             ])
@@ -57,7 +58,14 @@ impl StatefulWidget for BufferLine {
 
         let buffer = state.key_buffer.pending();
 
-        get_buffer_count(buffer, &theme).render(left, buf);
+        if state.layout == LayoutStyle::Traditional {
+            let mut line = Line::from(volume_slider(state, &theme, area));
+            if let Some(count) = get_buffer_count(buffer, &theme) {
+                line.push_span(" ");
+                line.push_span(count);
+            }
+            line.render(left, buf);
+        }
         playing_title(state, &theme, center.width as usize).render(center, buf);
         queue_display(state, &theme, right.width as usize).render(right, buf);
     }
@@ -140,17 +148,70 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
     }
 }
 
-fn get_buffer_count(size: Option<&str>, theme: &DisplayTheme) -> Option<Line<'static>> {
+fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Vec<Span<'static>> {
+    let width = (area.width / 10).clamp(4, 11) as usize;
+    let ratio = (state.metrics.volume() / 1.0).clamp(0.0, 1.0);
+    let pos = (ratio * (width - 1) as f32).round() as usize;
+    let pct = (state.metrics.volume() * 100.0).round() as usize;
+    let percent = match area.width >= 80 {
+        true => format!(" {pct}%"),
+        false => String::default(),
+    };
+
+    let left_track = "─".repeat(pos);
+    let right_track = "─".repeat(width - 1 - pos);
+
+    vec![
+        Span::from(format!(" {left_track}")).fg(theme.text_muted),
+        Span::from("○").fg(theme.accent),
+        Span::from(format!("{right_track}{percent} ")).fg(theme.text_muted),
+    ]
+    // let track: String = (0..width)
+    //     .map(|i| if i == pos { '○' } else { '─' })
+    //     .collect();
+    // Span::from(format!(" {track}{percent} ")).fg(theme.text_muted)
+}
+
+fn volume_meter(state: &UiState, theme: &DisplayTheme) -> Line<'static> {
+    const MAX: f32 = 1.5; // voxio clamps perceptual volume to 0.0..=1.5
+    const CELLS: usize = 12; // one bar cell per 12.5%
+    const BOOST_CELL: usize = 8; // unity (100%) lands here: 1.0 / 1.5 * 12 = 8
+    const BLOCKS: [char; 9] = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉', '█'];
+    const TRACK: char = '░';
+
+    let vol = state.metrics.volume().clamp(0.0, MAX);
+    let eighths = (vol / MAX * (CELLS * 8) as f32).round() as usize; // filled 1/8ths, 0..=96
+
+    let mut spans: Vec<Span<'static>> = (0..CELLS)
+        .map(|cell| {
+            let fill = eighths.saturating_sub(cell * 8).min(8);
+            let (ch, color) = match fill {
+                0 => (TRACK, theme.text_muted), // unfilled track
+                f if cell >= BOOST_CELL => (BLOCKS[f], theme.bg_error), // boost zone (>100%)
+                f => (BLOCKS[f], theme.accent), // normal zone
+            };
+            Span::from(ch.to_string()).fg(color)
+        })
+        .collect();
+
+    let pct = (vol * 100.0).round() as usize;
+    let pct_color = if vol > 1.0 {
+        theme.bg_error
+    } else {
+        theme.text_muted
+    };
+    spans.push(Span::from(format!(" {pct}%")).fg(pct_color));
+
+    Line::from_iter(spans)
+}
+
+fn get_buffer_count(size: Option<&str>, theme: &DisplayTheme) -> Option<Span<'static>> {
     if let Some(x) = size {
         if x == "" {
             return None;
         }
 
-        return Some(
-            format!("{x:>3}")
-                .fg(theme.text_muted)
-                .into_left_aligned_line(),
-        );
+        return Some(format!("{x} ").fg(theme.text_muted));
     }
     None
 }
@@ -165,7 +226,7 @@ fn queue_display(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
 
     let total = state.playback.queue_len();
     let queue_total = format!(" [{total}] ").fg(theme.text_muted);
-    let queue_icon = state.theme.icons().queued.to_string();
+    let queue_icon = state.theme.icons().upcoming.to_string();
 
     match width < BAD_WIDTH {
         true => Some(

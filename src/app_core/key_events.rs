@@ -11,10 +11,10 @@ impl NoctaVox {
             Action::Play(c)         => self.play_selected_song(c)?,
             Action::TogglePlayback  => self.player.toggle_playback(),
             Action::Stop            => self.stop(),
-            Action::SeekForward(s)  => self.player.seek_forward(s),
-            Action::SeekBack(s)     => self.player.seek_back(s),
+            Action::Seek(s)         => self.player.seek(s),
             Action::PlayNext        => self.play_next()?,
             Action::PlayPrev        => self.play_prev()?,
+            Action::VolumeShift(v)  => self.player.adjust_volume(v),
 
             // UI 
             Action::Scroll(s)       => self.ui.scroll(s),
@@ -77,6 +77,7 @@ impl NoctaVox {
             // Ops
 
             Action::ShowStats       => self.ui.show_stats_popup()?,
+            Action::ShowKeymaps     => self.ui.show_keymap_guide(),
             Action::PopupInput(key) => self.ui.process_popup_input(&key),
             Action::ClosePopup      => self.ui.close_popup(),
             Action::SoftReset       => self.ui.soft_reset(),
@@ -84,8 +85,7 @@ impl NoctaVox {
             Action::QUIT            => self.ui.set_mode(Mode::QUIT),
 
             Action::ViewSettings    => self.activate_settings(),
-            Action::PopupScrollUp   => self.ui.popup_scroll_up(),
-            Action::PopupScrollDown => self.ui.popup_scroll_down(),
+            Action::PopupScroll(i)  => self.ui.popup_scroll(i),
             Action::RootAdd         => self.settings_add_root(),
             Action::RootRemove      => self.settings_remove_root(),
             Action::RootConfirm     => self.settings_root_confirm()?,

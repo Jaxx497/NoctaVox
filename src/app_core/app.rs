@@ -50,7 +50,7 @@ impl NoctaVox {
     pub fn run(&mut self) {
         match ratatui::run(|t| -> anyhow::Result<()> {
             self.preload_lib();
-            self.restore_ui();
+            self.restore_last_session();
             let _ = self.restore_last_played();
 
             if self.ui.library().roots.is_empty() {
@@ -113,8 +113,8 @@ impl NoctaVox {
         let _ = self.ui.playback.load_history(lib.get_songs_map());
     }
 
-    fn restore_ui(&mut self) {
-        let _ = self.ui.restore_state();
+    fn restore_last_session(&mut self) {
+        let _ = self.ui.restore_last_state();
     }
 
     fn restore_last_played(&mut self) -> Result<()> {

@@ -76,7 +76,7 @@ impl ThemeManager {
                 }
             }
         }
-        themes.sort_by(|a, b| a.name.cmp(&b.name));
+        themes.sort_by_key(|t| t.name.to_lowercase());
         themes
     }
 

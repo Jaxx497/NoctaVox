@@ -1,5 +1,6 @@
 mod action;
 mod key_buffer;
+mod keymap_help;
 
 use std::cell::RefCell;
 use std::collections::HashSet;
@@ -10,6 +11,7 @@ use std::time::Instant;
 pub use action::handle_key_event;
 pub use action::next_event;
 pub use key_buffer::KeyBuffer;
+pub use keymap_help::{HelpRow, help_rows};
 use ratatui::crossterm::event::KeyEvent;
 use ratatui::crossterm::event::KeyModifiers;
 
@@ -25,8 +27,10 @@ const X: KeyModifiers = KeyModifiers::NONE;
 const S: KeyModifiers = KeyModifiers::SHIFT;
 const C: KeyModifiers = KeyModifiers::CONTROL;
 
-static SEEK_SMALL: LazyLock<f64> = LazyLock::new(|| user_config().general.seek_small);
-static SEEK_LARGE: LazyLock<f64> = LazyLock::new(|| user_config().general.seek_large);
+pub static SEEK_SMALL: LazyLock<f64> = LazyLock::new(|| user_config().general.seek_small);
+pub static SEEK_LARGE: LazyLock<f64> = LazyLock::new(|| user_config().general.seek_large);
+
+const VOLUME_STEP: f32 = 0.1;
 
 const SCROLL_MID: usize = 5;
 const SCROLL_XTRA: usize = 20;
@@ -39,8 +43,8 @@ pub enum Action {
     TogglePlayback,
     PlayNext,
     PlayPrev,
-    SeekForward(f64),
-    SeekBack(f64),
+    Seek(f64),
+    VolumeShift(f32),
 
     // Queue & Playlist Actions
     QueueSong,
@@ -105,10 +109,10 @@ pub enum Action {
     ToggleProgressDisplay,
     RevertFullscreen,
 
-    PopupScrollUp,
-    PopupScrollDown,
+    PopupScroll(Incrementor),
     PopupInput(KeyEvent),
     ShowStats,
+    ShowKeymaps,
 
     ClosePopup,
 

@@ -1,8 +1,13 @@
-use crossbeam_channel::{Receiver, select};
+use crossbeam_channel::{Receiver, never, select};
 use ratatui::crossterm::event::KeyEvent;
 use souvlaki::{MediaControlEvent, SeekDirection};
 
-use crate::{app_core::NoctaVox, config::timing, key_handler, user_config};
+use crate::{
+    app_core::NoctaVox,
+    config::timing,
+    key_handler::{self, SEEK_SMALL},
+    user_config,
+};
 
 impl NoctaVox {
     #[inline]
@@ -61,13 +66,13 @@ impl NoctaVox {
             MediaControlEvent::Next => self.play_next()?,
             MediaControlEvent::Previous => self.play_prev()?,
             MediaControlEvent::Stop => self.stop(),
-            MediaControlEvent::Seek(SeekDirection::Forward) => self.player.seek_forward(5.0),
-            MediaControlEvent::Seek(SeekDirection::Backward) => self.player.seek_back(5.0),
+            MediaControlEvent::Seek(SeekDirection::Forward) => self.player.seek(*SEEK_SMALL),
+            MediaControlEvent::Seek(SeekDirection::Backward) => self.player.seek(-*SEEK_SMALL),
             MediaControlEvent::SeekBy(SeekDirection::Forward, dur) => {
-                self.player.seek_forward(dur.as_secs_f64())
+                self.player.seek(dur.as_secs_f64())
             }
             MediaControlEvent::SeekBy(SeekDirection::Backward, dur) => {
-                self.player.seek_back(dur.as_secs_f64())
+                self.player.seek(dur.as_secs_f64())
             }
             _ => {}
         }
@@ -96,9 +101,4 @@ impl NoctaVox {
             }
         }
     }
-}
-
-#[inline]
-fn never<T>() -> Receiver<T> {
-    crossbeam_channel::never()
 }

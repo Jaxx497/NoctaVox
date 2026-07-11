@@ -1,8 +1,9 @@
-use anyhow::Result;
-
-use crate::{ui_state::LayoutStyle, visualization::ProgressDisplay};
-
 use super::{AlbumSort, Mode, Pane, UiState};
+use crate::{
+    ui_state::{LayoutStyle, PlayerSnapshot},
+    visualization::ProgressDisplay,
+};
+use anyhow::Result;
 
 #[derive(Default)]
 pub struct UiSnapshot {
@@ -87,7 +88,7 @@ impl UiSnapshot {
 }
 
 impl UiState {
-    pub fn create_snapshot(&self) -> UiSnapshot {
+    pub fn create_ui_snapshot(&self) -> UiSnapshot {
         let orig_pane = self.get_pane();
         let pane = match orig_pane {
             Pane::Popup => &self.popup.cached,
@@ -116,62 +117,78 @@ impl UiState {
         }
     }
 
+    pub fn create_player_snapshot(&self) -> PlayerSnapshot {
+        PlayerSnapshot {
+            volume: self.metrics.volume(),
+        }
+    }
+
     pub fn save_state(&self) -> Result<()> {
-        let snapshot = self.create_snapshot();
-        self.db_worker.save_ui_snapshot(snapshot)?;
+        let mut snapshot = self.create_ui_snapshot().to_pairs();
+        snapshot.extend(self.create_player_snapshot().to_pairs());
+        self.db_worker.save_snapshot(snapshot)?;
         Ok(())
     }
 
-    pub fn restore_state(&mut self) -> Result<()> {
-        if let Some(snapshot) = self.db_worker.load_ui_snapshot()? {
-            self.nav.album_sort = AlbumSort::from_str(&snapshot.album_sort);
-            self.layout = LayoutStyle::from_str(&snapshot.layout);
+    pub fn restore_last_state(&mut self) -> Result<()> {
+        let player_snap = PlayerSnapshot::from_values(self.db_worker.load_snapshot("player_%")?);
 
-            if !snapshot.theme_name.is_empty() {
-                if let Some(theme) = self.theme.find_theme_by_name(&snapshot.theme_name) {
-                    self.set_theme(theme.clone());
-                }
+        let vol = player_snap.volume;
+        self.metrics.set_volume(vol);
+
+        let ui_pairs = self.db_worker.load_snapshot("ui_%")?;
+        if ui_pairs.is_empty() {
+            return Ok(());
+        }
+
+        let ui_snapshot = UiSnapshot::from_values(ui_pairs);
+        self.nav.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
+        self.layout = LayoutStyle::from_str(&ui_snapshot.layout);
+
+        if !ui_snapshot.theme_name.is_empty() {
+            if let Some(theme) = self.theme.find_theme_by_name(&ui_snapshot.theme_name) {
+                self.set_theme(theme.clone());
             }
+        }
 
-            if let Some(pos) = snapshot.album_selection {
-                if pos < self.albums.len() {
-                    self.nav.album_pos.select(Some(pos));
-                    *self.nav.album_pos.offset_mut() = snapshot.album_sel_offset
-                }
+        if let Some(pos) = ui_snapshot.album_selection {
+            if pos < self.albums.len() {
+                self.nav.album_pos.select(Some(pos));
+                *self.nav.album_pos.offset_mut() = ui_snapshot.album_sel_offset
             }
+        }
 
-            if let Some(pos) = snapshot.playlist_selection {
-                if pos < self.playlists.len() {
-                    self.nav.playlist_pos.select(Some(pos));
-                    *self.nav.playlist_pos.offset_mut() = snapshot.playlist_sel_offset
-                }
+        if let Some(pos) = ui_snapshot.playlist_selection {
+            if pos < self.playlists.len() {
+                self.nav.playlist_pos.select(Some(pos));
+                *self.nav.playlist_pos.offset_mut() = ui_snapshot.playlist_sel_offset
             }
+        }
 
-            let mode_to_restore = match snapshot.mode.as_str() {
-                "search" | "queue" => "library_album",
-                _ => &snapshot.mode,
-            };
+        let mode_to_restore = match ui_snapshot.mode.as_str() {
+            "search" | "queue" => "library_album",
+            _ => &ui_snapshot.mode,
+        };
 
-            let pane_to_restore = match snapshot.pane.as_str() {
-                "search" => "tracklist",
-                _ => &snapshot.pane,
-            };
+        let pane_to_restore = match ui_snapshot.pane.as_str() {
+            "search" => "tracklist",
+            _ => &ui_snapshot.pane,
+        };
 
-            self.set_mode(Mode::from_str(mode_to_restore));
-            self.set_pane(Pane::from_str(pane_to_restore));
+        self.set_mode(Mode::from_str(mode_to_restore));
+        self.set_pane(Pane::from_str(pane_to_restore));
 
-            self.viz.set_smoothing_factor(snapshot.smoothing_factor);
+        self.viz.set_smoothing_factor(ui_snapshot.smoothing_factor);
 
-            self.viz
-                .set_progress_display(ProgressDisplay::from_str(&snapshot.progress_display));
+        self.viz
+            .set_progress_display(ProgressDisplay::from_str(&ui_snapshot.progress_display));
 
-            self.nav.sidebar_percent = snapshot.sidebar_percentage;
+        self.nav.sidebar_percent = ui_snapshot.sidebar_percentage;
 
-            if let Some(pos) = snapshot.song_selection {
-                if pos < self.legal_songs.len() {
-                    self.nav.table_pos.select(Some(pos));
-                    *self.nav.table_pos.offset_mut() = snapshot.song_sel_offset
-                }
+        if let Some(pos) = ui_snapshot.song_selection {
+            if pos < self.legal_songs.len() {
+                self.nav.table_pos.select(Some(pos));
+                *self.nav.table_pos.offset_mut() = ui_snapshot.song_sel_offset
             }
         }
 

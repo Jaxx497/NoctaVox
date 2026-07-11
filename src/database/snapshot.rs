@@ -2,17 +2,16 @@ use anyhow::Result;
 use rusqlite::params;
 
 use crate::{
-    database::queries::{GET_UI_SNAPSHOT, SET_SESSION_STATE},
-    ui_state::UiSnapshot,
     Database,
+    database::queries::{GET_SESSION_PREFIX, SET_SESSION_STATE},
 };
 
 impl Database {
-    pub fn save_ui_snapshot(&mut self, snapshot: UiSnapshot) -> Result<()> {
+    pub fn save_snapshot(&mut self, snapshot: Vec<(&'static str, String)>) -> Result<()> {
         let tx = self.conn.transaction()?;
         {
             let mut stmt = tx.prepare(SET_SESSION_STATE)?;
-            for (key, value) in snapshot.to_pairs() {
+            for (key, value) in snapshot {
                 stmt.execute(params![key, value])?;
             }
         }
@@ -20,17 +19,12 @@ impl Database {
         Ok(())
     }
 
-    pub fn load_ui_snapshot(&mut self) -> Result<Option<UiSnapshot>> {
-        let mut stmt = self.conn.prepare(GET_UI_SNAPSHOT)?;
+    pub fn load_snapshot(&mut self, prefix: &'static str) -> Result<Vec<(String, String)>> {
+        let mut stmt = self.conn.prepare(GET_SESSION_PREFIX)?;
 
-        let values: Vec<(String, String)> = stmt
-            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))?
+        Ok(stmt
+            .query_map(params![prefix], |row| Ok((row.get(0)?, row.get(1)?)))?
             .filter_map(Result::ok)
-            .collect();
-
-        match values.is_empty() {
-            true => Ok(None),
-            false => Ok(Some(UiSnapshot::from_values(values))),
-        }
+            .collect())
     }
 }

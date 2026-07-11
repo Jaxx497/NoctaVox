@@ -209,6 +209,12 @@ impl UiState {
         self.show_popup(PopupType::ThemeManager);
     }
 
+    pub fn show_keymap_guide(&mut self) {
+        // Always open at the top; the guide is read top-to-bottom.
+        self.popup.selection.select(Some(0));
+        self.show_popup(PopupType::KeymapGuide);
+    }
+
     pub fn cycle_theme(&mut self, dir: Incrementor) {
         let len = self.theme.theme_lib.len();
         if len < 2 {

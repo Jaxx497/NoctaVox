@@ -71,7 +71,8 @@ to scan. Roots can be added or removed from this menu at anytime via the `` `
 **Add to queue**: `q`  
 **Reload library:** `F5` or `Ctrl`+`u`  
 **Reload theme:** `F6`  
-**Toggle minimal mode:** `m`
+**Toggle minimal mode:** `m`  
+**Keymap guide:** `?`
 
 See the complete [keymap documentation](./docs/keymaps.md) for much more
 
@@ -129,6 +130,17 @@ replay_gain = "off"     # STRING | enables reading of ReplayGain tags, specifies
 broadcast = false       # BOOLEAN | enable broadcast features for scrobbling/Discord rich presence addons
                         # default: false
 
+[icons]                 # Override the default glyphs used throughout the UI.
+                        # Every field is optional; themes may override these
+                        # per-theme via their own [icons] section.
+selector = "⮞"          # Selection arrow (list highlight)
+playing = "♫"           # Now-playing marker
+paused = "󰏤"            # Paused marker
+queued = ""            # Queued-track marker
+repeat = ""            # Repeat indicator
+upcoming = "󰐑"          # Up-next / queue icon
+selected = "󱕣"          # Multi-select marker
+decorator = "✧"         # Decorative glyph
 ```
 
 ## Addons
@@ -223,7 +235,7 @@ If this doesn't fix the issues, file a bug report!
 
 ## Roadmap 
 
-- Keymap helper popup
+- Custom keymaps
 - Write Scrobbling Addon
 - Write Discord Rich Presence Addon
 - Lyrics feature
@@ -236,3 +248,14 @@ fundamentals, including but not limited to multi-threading, atomics, string
 interning, database integration, de/serialization, memory management, integrity
 hashing, session persistence, OS operations, modular design, view models, state
 management, user customization, cross-platform development and much more. 
+
+## Special Thanks
+ - [cpal](https://github.com/RustAudio/cpal) - Rust based I/O audio output
+   library
+ - [ratatui](https://ratatui.rs/) - Rust based TUI library
+ - [poketex](https://github.com/ckaznable/poketex) - Helped me understand many
+   ratatui principles in practice
+ - [termusic](https://github.com/tramhao/termusic) - Excellent codebase from
+   which lots of inspiration was drawn
+
+

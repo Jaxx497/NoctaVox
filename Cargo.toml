@@ -1,6 +1,6 @@
 [package]
 name = "noctavox"
-version = "0.3.1"
+version = "0.3.2"
 edition = "2024"
 rust-version = "1.95"
 authors = ["Jaxx497"]
@@ -14,26 +14,26 @@ readme = "README.md"
 [dependencies]
 anyhow = "1.0.102"
 clap = { version = "4.6.1", features = ["derive"] }
-crossbeam-channel = "0.5.15"
+crossbeam-channel = "0.5.16"
 dirs = "6.0.0"
 fuzzy-matcher = "0.3.7"
 indexmap = "2.14.0"
 nohash-hasher = "0.2.0"
-rand = "0.10.1"
+rand = "0.10.2"
 ratatui = { version = "0.30.2" }
 ratatui-textarea = "0.9.1"
 rayon = "1.12.0"
 rusqlite = { version = "0.40.0", features = ["bundled"] }
 serde = { version = "1.0.228", features = ["derive"]}
-spectrum-analyzer = "1.7.0"
+spectrum-analyzer = "1.8.0"
 symphonia = {version = "0.6.0", features = ["aac", "aiff", "alac", "mp3", "isomp4"]}
 toml = "1.0.3"
 walkdir = "2.5.0"
 unicode-normalization = "0.1.25"
 unicode-width = "0.2.2"
-voxio = { path = "../voxio", version = "0.2.1", features = ["waveform"] }
+voxio = { version = "0.2.3", features = ["waveform"] }
 souvlaki = "0.7"
-xxhash-rust = { version = "0.8.15", features = ["xxh3"] }
+xxhash-rust = { version = "0.8.16", features = ["xxh3"] }
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [
@@ -64,4 +64,3 @@ opt-level = 3
 lto = false
 debug = true
 codegen-units = 16
-

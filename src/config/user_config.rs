@@ -70,13 +70,14 @@ fn default_config() -> String {
 
     conf.push_str("\n[icons]\n");
 
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "selector", icons.selector);
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "playing", icons.playing);
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "paused", icons.paused);
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "queued", icons.queued);
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "repeat", icons.repeat);
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "upcoming", icons.upcoming);
-    let _ = writeln!(conf, "# {:<9}= \"{}\"", "selected", icons.selected);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "decorator", icons.decorator);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "selector", icons.selector);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "playing", icons.playing);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "paused", icons.paused);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "queued", icons.queued);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "repeat", icons.repeat);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "upcoming", icons.upcoming);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "selected", icons.selected);
 
     conf
 }

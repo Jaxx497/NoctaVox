@@ -58,8 +58,11 @@ fn render_traditional(area: Rect, f: &mut Frame, state: &mut UiState) {
     SearchBar.render(layout.search_bar, f.buffer_mut(), state);
     SideBar.render(layout.sidebar, f.buffer_mut(), state);
     SongTable.render(layout.song_window, f.buffer_mut(), state);
-    Progress.render(layout.widget, f.buffer_mut(), state);
-    BufferLine.render(bf_area, f.buffer_mut(), state);
+
+    if state.metrics.is_active() {
+        Progress.render(layout.widget, f.buffer_mut(), state);
+        BufferLine.render(bf_area, f.buffer_mut(), state);
+    }
 }
 
 fn get_breadcrumbs_area(area: Rect) -> Rect {

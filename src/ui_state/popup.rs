@@ -14,6 +14,7 @@ pub enum PopupType {
     Settings(SettingsMode),
     Playlist(PlaylistAction),
     ThemeManager,
+    KeymapGuide,
 }
 
 pub struct PopupState {

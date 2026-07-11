@@ -8,6 +8,8 @@ with the exception of searching as not to affect a user's search query.
 
 **Keymaps are case sensitive.**
 
+> **Tip:** Press `?` at any time to open the in-app keymap guide.
+
 ## Global Keymaps
 
 #### Navigation
@@ -41,18 +43,20 @@ with the exception of searching as not to affect a user's search query.
 #### General
 | Action      | Keymap |
 | ----------- | ----------- |
-| Search | `\`
-| Open Settings | ``` ` ``` |
+| Search | `/` |
+| Keymap Guide | `?` |
+| Statistics | `\` |
+| Volume Up / Down | `+` `-` |
+| Open Settings | ``` ` ``` \| `~` |
 | Clear Popup / Exit Search | `Esc` |
 | Update Library | `F5` \| `Ctrl` + `u` |
 | Hot Reload Current Theme | `F6` |
 | Open Theme Manager | `C`|
-| Cycle Theme | `<` `>`|
+| Cycle Theme | `<` `>` \| `,` `.` |
 | Quit | `Ctrl` + `c`|
 
- > **Note:** The update logic is currently handled in the main thread meaning
- > the UI will hang until the update is complete. This will be addressed in
- > future versions.
+ > **Note:** Library updates run in the background — a progress bar appears in
+ > the buffer line while the refresh is underway.
 
 ## Playback Keymaps
 These keymaps will work in most contexts.
@@ -66,7 +70,9 @@ These keymaps will work in most contexts.
 | Play Prev in History | `Ctrl` + `p`|
 | Stop & Clear Queue | `Ctrl` + `s`|
 
-> **Tip:** To toggle pause while searching or in a popup, use `Ctrl` + `Space`
+> **Tip:** `Ctrl` + `n` and `Ctrl` + `p` work everywhere — even while searching
+> or inside a popup. Seek step sizes are configurable via `seek_small` and
+> `seek_large` in the config.
 
 ## Main Pane Keymaps
 The main pane is defined as the larger pane on the right where individual songs
@@ -118,7 +124,7 @@ These keymaps apply when the album/playlist sidebar is focused.
 | ----------- | ----------- |
 | Create New Playlist | `c` |
 | Rename Playlist | `r` |
-| Delete Playlist | `D` |
+| Delete Playlist | `Ctrl` + `d` |
 
 
 #### Album-View Specific

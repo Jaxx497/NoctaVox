@@ -54,12 +54,20 @@ impl PlayerHandle {
         self.backend.seek_to(secs as f64);
     }
 
-    pub fn seek_forward(&self, dur: f64) {
+    pub fn seek(&self, dur: f64) {
         self.backend.seek_relative(dur as f64);
     }
 
-    pub fn seek_back(&self, dur: f64) {
-        self.backend.seek_relative(dur * -1.0);
+    fn volume(&self) -> f32 {
+        self.backend.volume()
+    }
+
+    pub fn set_volume(&self, vol: f32) {
+        self.backend.set_volume(vol);
+    }
+
+    pub fn adjust_volume(&self, delta: f32) {
+        self.backend.set_volume(self.volume() + delta);
     }
 }
 
