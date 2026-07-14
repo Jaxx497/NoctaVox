@@ -41,7 +41,7 @@ impl StatefulWidget for Oscilloscope {
             .y_bounds([-1.0, 1.0])
             .marker(theme.progress_style)
             .paint(|ctx| {
-                draw_oscilloscope(ctx, &samples, elapsed, &theme);
+                draw_oscilloscope(ctx, samples, elapsed, theme);
             })
             .background_color(theme.bg_global)
             .block(Block::new().bg(theme.bg_global).padding(Padding {

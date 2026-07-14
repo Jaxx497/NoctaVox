@@ -37,21 +37,21 @@ impl StatefulWidget for SideBarAlbum {
 
         for (idx, album) in albums.iter().enumerate() {
             // Add header if artist changed (only for Artist sort)
-            if album_sort == AlbumSort::Artist {
-                if current_artist.as_ref() != Some(&album.get_album_artist()) {
-                    let artist_str = album.get_album_artist();
-                    let is_selected_artist = selected_artist == Some(artist_str);
+            if album_sort == AlbumSort::Artist
+                && current_artist.as_ref() != Some(&album.get_album_artist())
+            {
+                let artist_str = album.get_album_artist();
+                let is_selected_artist = selected_artist == Some(artist_str);
 
-                    let header_style = match is_selected_artist {
-                        true => Style::default().fg(theme.text_secondary).underlined(),
-                        false => Style::default().fg(theme.text_secondary),
-                    };
+                let header_style = match is_selected_artist {
+                    true => Style::default().fg(theme.text_secondary).underlined(),
+                    false => Style::default().fg(theme.text_secondary),
+                };
 
-                    list_items.push(ListItem::new(Span::from(artist_str).style(header_style)));
+                list_items.push(ListItem::new(Span::from(artist_str).style(header_style)));
 
-                    current_artist = Some(artist_str);
-                    current_display_idx += 1;
-                }
+                current_artist = Some(artist_str);
+                current_display_idx += 1;
             }
 
             let mut year = album.year.map_or("????".to_string(), |y| format!("{y}"));

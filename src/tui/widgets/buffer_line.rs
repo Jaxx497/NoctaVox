@@ -59,15 +59,15 @@ impl StatefulWidget for BufferLine {
         let buffer = state.key_buffer.pending();
 
         if state.layout == LayoutStyle::Traditional {
-            let mut line = Line::from(volume_slider(state, &theme, area));
-            if let Some(count) = get_buffer_count(buffer, &theme) {
+            let mut line = Line::from(volume_slider(state, theme, area));
+            if let Some(count) = get_buffer_count(buffer, theme) {
                 line.push_span(" ");
                 line.push_span(count);
             }
             line.render(left, buf);
         }
-        playing_title(state, &theme, center.width as usize).render(center, buf);
-        queue_display(state, &theme, right.width as usize).render(right, buf);
+        playing_title(state, theme, center.width as usize).render(center, buf);
+        queue_display(state, theme, right.width as usize).render(right, buf);
     }
 }
 
@@ -102,7 +102,7 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
             Line::from_iter([
                 " ".into(),
                 Span::from(title.to_string()).fg(theme.text_secondary),
-                Span::from(separator),
+                separator,
                 Span::from(artist.to_string()).fg(theme.text_muted),
                 " ".into(),
             ])
@@ -113,8 +113,8 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
         let title_space = (available_space * 2) / 3;
         let artist_space = available_space.saturating_sub(title_space);
 
-        let truncated_title = truncate_at_last_space(&title, title_space);
-        let truncated_artist = truncate_at_last_space(&artist, artist_space);
+        let truncated_title = truncate_at_last_space(title, title_space);
+        let truncated_artist = truncate_at_last_space(artist, artist_space);
 
         Some(
             Line::from_iter([
@@ -129,7 +129,7 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
     } else {
         match state.metrics.is_paused() {
             true => {
-                let truncated_title = truncate_at_last_space(&title, title_len - SEPARATOR_LEN);
+                let truncated_title = truncate_at_last_space(title, title_len - SEPARATOR_LEN);
                 Some(
                     Line::from_iter([
                         " ".into(),
@@ -141,7 +141,7 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
                 )
             }
             false => {
-                let truncated_title = truncate_at_last_space(&title, width);
+                let truncated_title = truncate_at_last_space(title, width);
                 Some(Line::from(Span::from(truncated_title).fg(theme.text_secondary)).centered())
             }
         }
@@ -207,7 +207,7 @@ fn volume_meter(state: &UiState, theme: &DisplayTheme) -> Line<'static> {
 
 fn get_buffer_count(size: Option<&str>, theme: &DisplayTheme) -> Option<Span<'static>> {
     if let Some(x) = size {
-        if x == "" {
+        if x.is_empty() {
             return None;
         }
 

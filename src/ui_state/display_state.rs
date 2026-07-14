@@ -94,15 +94,12 @@ impl UiState {
 
     pub fn set_mode(&mut self, mode: Mode) {
         self.clear_multi_select();
-        match self.nav.mode {
-            Mode::Power => {
-                self.nav.table_pos_cached = self
-                    .nav
-                    .table_pos
-                    .selected()
-                    .unwrap_or(self.nav.table_pos_cached)
-            }
-            _ => (),
+        if let Mode::Power = self.nav.mode {
+            self.nav.table_pos_cached = self
+                .nav
+                .table_pos
+                .selected()
+                .unwrap_or(self.nav.table_pos_cached)
         }
 
         match mode {
@@ -216,16 +213,11 @@ impl UiState {
             .collect::<Vec<Album>>();
 
         match self.nav.album_sort {
-            AlbumSort::Artist => self.albums.sort_by(|a, b| {
-                a.artist
-                    .to_lowercase()
-                    .cmp(&b.artist.to_lowercase())
-                    .then(a.year.cmp(&b.year))
-            }),
-            AlbumSort::Title => self
+            AlbumSort::Artist => self
                 .albums
-                .sort_by(|a, b| a.title.to_lowercase().cmp(&b.title.to_lowercase())),
-            AlbumSort::Year => self.albums.sort_by(|a, b| a.year.cmp(&b.year)),
+                .sort_by_cached_key(|a| (a.artist.to_lowercase(), a.year)),
+            AlbumSort::Title => self.albums.sort_by_cached_key(|s| s.title.to_lowercase()),
+            AlbumSort::Year => self.albums.sort_by_key(|s| s.year),
         }
     }
 
@@ -248,25 +240,19 @@ impl UiState {
             TableSort::Title => {
                 self.legal_songs.sort_by(|a, b| a.title.cmp(&b.title));
             }
-
-            TableSort::Artist => self.legal_songs.sort_by(|a, b| {
-                let artist_a = a.get_artist().to_lowercase();
-                let artist_b = b.get_artist().to_lowercase();
-                artist_a.cmp(&artist_b)
-            }),
-            TableSort::Album => self.legal_songs.sort_by(|a, b| {
-                let album_a = a.get_album().to_lowercase();
-                let album_b = b.get_album().to_lowercase();
-
-                album_a.cmp(&album_b)
-            }),
+            TableSort::Artist => self
+                .legal_songs
+                .sort_by_cached_key(|s| s.get_artist().to_lowercase()),
+            TableSort::Album => self
+                .legal_songs
+                .sort_by_cached_key(|s| s.get_album().to_lowercase()),
             TableSort::Duration => self.legal_songs.sort_by_key(|s| s.get_duration()),
         };
     }
 
     pub(crate) fn go_to_now_playing(&mut self) -> Result<()> {
         if let Some(np) = &self.get_now_playing() {
-            let np = Arc::clone(&np);
+            let np = Arc::clone(np);
             let album_id = np.album_id;
 
             let album_idx = self.albums.iter().position(|a| a.id == album_id);
@@ -334,7 +320,7 @@ impl UiState {
     }
 
     pub fn get_legal_songs(&self) -> &[Arc<SimpleSong>] {
-        &self.legal_songs.as_slice()
+        self.legal_songs.as_slice()
     }
 
     pub(crate) fn set_legal_songs(&mut self) {
@@ -345,17 +331,17 @@ impl UiState {
             }
             Mode::Library(view) => match view {
                 LibraryView::Albums => {
-                    if let Some(idx) = self.nav.album_pos.selected() {
-                        if let Some(album) = self.albums.get(idx) {
-                            self.legal_songs = album.get_tracklist();
-                        }
+                    if let Some(idx) = self.nav.album_pos.selected()
+                        && let Some(album) = self.albums.get(idx)
+                    {
+                        self.legal_songs = album.get_tracklist();
                     }
                 }
                 LibraryView::Playlists => {
-                    if let Some(idx) = self.nav.playlist_pos.selected() {
-                        if let Some(playlist) = self.playlists.get(idx) {
-                            self.legal_songs = playlist.get_tracklist()
-                        }
+                    if let Some(idx) = self.nav.playlist_pos.selected()
+                        && let Some(playlist) = self.playlists.get(idx)
+                    {
+                        self.legal_songs = playlist.get_tracklist()
                     } else {
                         self.legal_songs.clear()
                     }
@@ -377,11 +363,11 @@ impl UiState {
     }
 
     pub fn revert_fullscreen(&mut self) {
-        if matches!(self.get_mode(), Mode::Fullscreen) {
-            if let Some(mode) = &self.nav.mode_cached {
-                self.set_mode(mode.to_owned());
-                self.nav.mode_cached = None;
-            }
+        if matches!(self.get_mode(), Mode::Fullscreen)
+            && let Some(mode) = &self.nav.mode_cached
+        {
+            self.set_mode(mode.to_owned());
+            self.nav.mode_cached = None;
         }
     }
 }
@@ -439,16 +425,14 @@ impl UiState {
     }
 
     fn scroll_to_top(&mut self) {
-        match &self.nav.pane {
-            Pane::TrackList => self.nav.table_pos.select_first(),
-            _ => (),
+        if let Pane::TrackList = &self.nav.pane {
+            self.nav.table_pos.select_first()
         }
     }
 
     fn scroll_to_bottom(&mut self) {
-        match self.nav.pane {
-            Pane::TrackList => self.nav.table_pos.select_last(),
-            _ => (),
+        if let Pane::TrackList = self.nav.pane {
+            self.nav.table_pos.select_last()
         }
     }
 
@@ -521,10 +505,10 @@ impl UiState {
     }
 
     fn switch_theme(&mut self) {
-        if let Some(idx) = self.popup.selection.selected() {
-            if let Some(theme) = self.theme.theme_lib.get(idx) {
-                self.set_theme(theme.clone());
-            }
+        if let Some(idx) = self.popup.selection.selected()
+            && let Some(theme) = self.theme.theme_lib.get(idx)
+        {
+            self.set_theme(theme.clone());
         }
     }
 

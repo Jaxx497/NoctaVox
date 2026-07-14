@@ -55,7 +55,7 @@ impl PlayerHandle {
     }
 
     pub fn seek(&self, dur: f64) {
-        self.backend.seek_relative(dur as f64);
+        self.backend.seek_relative(dur);
     }
 
     fn volume(&self) -> f32 {

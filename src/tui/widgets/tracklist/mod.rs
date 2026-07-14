@@ -92,7 +92,7 @@ pub fn create_standard_table<'a>(
 
     let widths = get_widths(state);
     let keymaps = match pane {
-        Pane::TrackList => get_keymaps(mode, &decorator),
+        Pane::TrackList => get_keymaps(mode, decorator),
         _ => String::default(),
     };
 
@@ -108,17 +108,17 @@ pub fn create_standard_table<'a>(
             .borders(theme.border_display)
             .border_type(theme.border_type)
             .border_style(theme.border)
-            .title_top(Line::from(title).centered())
+            .title_top(title.centered())
             .title_bottom(Line::from(keymaps.fg(theme.text_muted)).centered())
             .title_bottom(ms_count.left_aligned())
-            .padding(get_padding(&state, theme, area))
+            .padding(get_padding(state, theme, area))
             .bg(theme.bg),
 
         LayoutStyle::Minimal => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
             .border_style(theme.border)
-            .padding(get_padding(&state, theme, area))
+            .padding(get_padding(state, theme, area))
             .bg(theme.bg_global),
     };
 
@@ -228,10 +228,10 @@ impl CellFactory {
         ms: bool,
     ) -> Cell<'static> {
         let c = fade_color(theme.dark, theme.accent, 0.7);
-        let mut track_no = Span::from(match song.track_no {
+        let mut track_no = match song.track_no {
             Some(t) => format!("{t:>2}").fg(c),
             None => format!("{:>2}", idx + 1).fg(c),
-        });
+        };
 
         if ms {
             track_no = track_no.fg(theme.text_selected)
@@ -246,25 +246,25 @@ impl CellFactory {
         idx: usize,
         ms: bool,
     ) -> Cell<'static> {
-        let mut track_no = Span::from(match song.track_no {
+        let mut track_no = match song.track_no {
             Some(t) => format!("{t:>2}").fg(theme.accent),
             None => format!("{:>2}", idx + 1).fg(theme.text_muted),
-        });
+        };
 
         if ms {
             track_no = track_no.fg(theme.text_selected)
         };
 
-        let disc_no = Span::from(match song.disc_no {
+        let disc_no = match song.disc_no {
             Some(t) => String::from("ᴰ") + SUPERSCRIPT.get(&t).unwrap_or(&"?"),
             None => "".into(),
-        })
+        }
         .fg(match ms {
             true => theme.text_selected,
             false => theme.text_muted,
         });
 
-        Cell::from(Line::from_iter([track_no, " ".into(), disc_no.into()]))
+        Cell::from(Line::from_iter([track_no, " ".into(), disc_no]))
     }
 }
 
@@ -294,12 +294,12 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
     let focus = matches!(state.get_pane(), Pane::TrackList);
     let theme = state.theme.get_display_theme(focus);
     match state.get_mode() {
-        &Mode::Queue => {
+        Mode::Queue => {
             let q = state.playback.queue_len();
             let queue_len = match q {
-                0 => format!("[0 Songs] "),
-                1 => format!("[1 Song] "),
-                _ => format!("[{q} Songs] "),
+                0 => "[0 Songs] ",
+                1 => "[1 Song] ",
+                _ => "[{q} Songs] ",
             };
 
             Line::from_iter([
@@ -307,7 +307,7 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
                 queue_len.fg(theme.text_muted),
             ])
         }
-        &Mode::Library(LibraryView::Playlists) => {
+        Mode::Library(LibraryView::Playlists) => {
             if state.playlists.is_empty() {
                 return "".into();
             }
@@ -320,7 +320,7 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
             let p = playlist.len();
             let playlist_len = match p {
                 0 => String::default(),
-                1 => format!("1 Song"),
+                1 => "1 Song".to_string(),
                 _ => format!("{p} Songs"),
             };
 
@@ -350,7 +350,7 @@ fn get_padding(state: &UiState, theme: &DisplayTheme, area: Rect) -> Padding {
     let song_len = (state.get_legal_songs().len()) as u16;
 
     let top = match song_len < area.height {
-        true => (area.height.saturating_sub(song_len as u16) / 2)
+        true => (area.height.saturating_sub(song_len) / 2)
             .saturating_sub(2)
             .max(1),
         false => 1,

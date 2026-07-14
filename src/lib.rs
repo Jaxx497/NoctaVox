@@ -165,7 +165,7 @@ fn truncate_at_last_space(s: &str, limit: usize) -> String {
             let char_boundary = s[..byte_limit]
                 .char_indices()
                 .map(|(i, _)| i)
-                .last()
+                .next_back()
                 .unwrap_or(0);
 
             let mut truncated = s[..char_boundary].to_string();

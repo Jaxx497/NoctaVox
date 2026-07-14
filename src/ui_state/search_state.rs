@@ -64,21 +64,21 @@ impl UiState {
                 let title_score = self
                     .search
                     .matcher
-                    .fuzzy_match(&strip_diacritics(&song.get_title()), &query)
+                    .fuzzy_match(&strip_diacritics(song.get_title()), &query)
                     .unwrap_or(0)
                     * 2;
 
                 let artist_score = (self
                     .search
                     .matcher
-                    .fuzzy_match(&strip_diacritics(&song.get_artist()), &query)
+                    .fuzzy_match(&strip_diacritics(song.get_artist()), &query)
                     .unwrap_or(0) as f32
                     * 1.5) as i64;
 
                 let album_score = (self
                     .search
                     .matcher
-                    .fuzzy_match(&strip_diacritics(&song.get_album()), &query)
+                    .fuzzy_match(&strip_diacritics(song.get_album()), &query)
                     .unwrap_or(0) as f32
                     * 1.75) as i64;
 
@@ -96,7 +96,7 @@ impl UiState {
                     self.search.match_fields.insert(song.get_id(), match_field);
                 }
 
-                (best_score > MATCH_THRESHOLD).then(|| (Arc::clone(&song), best_score))
+                (best_score > MATCH_THRESHOLD).then(|| (Arc::clone(song), best_score))
             })
             .collect();
 

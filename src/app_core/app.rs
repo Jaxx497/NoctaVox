@@ -118,18 +118,18 @@ impl NoctaVox {
     }
 
     fn restore_last_played(&mut self) -> Result<()> {
-        if let Ok((song_id, elapsed_secs)) = self.ui.restore_last_played() {
-            if let Some(song) = self.ui.library().get_song_by_id(song_id) {
-                let song = ValidatedSong::new(song)?;
+        if let Ok((song_id, elapsed_secs)) = self.ui.restore_last_played()
+            && let Some(song) = self.ui.library().get_song_by_id(song_id)
+        {
+            let song = ValidatedSong::new(song)?;
 
-                self.restored_song_id = Some(song_id);
-                self.play_song(song.as_ref())?;
+            self.restored_song_id = Some(song_id);
+            self.play_song(song.as_ref())?;
 
-                self.player.seek_to(elapsed_secs);
+            self.player.seek_to(elapsed_secs);
 
-                if !user_config().general.auto_resume {
-                    self.player.pause();
-                }
+            if !user_config().general.auto_resume {
+                self.player.pause();
             }
         }
         Ok(())

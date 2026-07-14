@@ -25,14 +25,14 @@ impl NoctaVox {
 
         let song = self.ui.get_selected_song()?;
 
-        if self.ui.get_mode() == &Mode::Queue {
+        if self.ui.get_mode() == Mode::Queue {
             self.remove_song()?;
         }
 
         let validated = ValidatedSong::new(&song)?;
 
         if let Some(current) = self.ui.playback.get_now_playing() {
-            let song = Arc::clone(&current);
+            let song = Arc::clone(current);
             self.ui.insert_history_entry(&song);
         }
 
@@ -179,7 +179,7 @@ impl NoctaVox {
 
             VoxEvent::Stopped => {
                 if let Some(np) = self.ui.playback.get_now_playing() {
-                    let song = Arc::clone(&np);
+                    let song = Arc::clone(np);
                     self.ui.insert_history_entry(&song);
                 }
 

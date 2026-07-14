@@ -13,7 +13,6 @@ use std::{path::PathBuf, process::Command};
       ArgGroup::new("mode")
           .args(["import_playlist", "export_playlist", "list", "reset"]),
   ))]
-
 struct Cli {
     /// Import a playlist from a csv or m3u file
     #[arg(long, short)]
@@ -43,8 +42,6 @@ pub fn parse_args() {
         let _ = run_addon(ADDON_TRANSPOSE, &["--list"]);
     } else if cli.reset {
         let _ = reset_noctavox();
-    } else {
-        return;
     };
 }
 
@@ -78,8 +75,7 @@ fn addon_path(name: &str) -> PathBuf {
         }
     }
 
-    let exact = ADDON_DIR.join(format!("{name}{}", std::env::consts::EXE_SUFFIX));
-    exact
+    ADDON_DIR.join(format!("{name}{}", std::env::consts::EXE_SUFFIX))
 }
 
 fn run_addon(name: &str, params: &[&str]) -> Result<i32> {

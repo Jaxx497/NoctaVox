@@ -11,10 +11,9 @@ use rusqlite::{Connection, OptionalExtension, params};
 use std::{
     collections::{HashMap, HashSet, VecDeque},
     fs,
-    path::PathBuf,
+    path::Path,
     sync::{Arc, atomic::AtomicU64},
     time::{Duration, SystemTime, UNIX_EPOCH},
-    u64,
 };
 
 mod playlists;
@@ -74,7 +73,7 @@ impl Database {
 
     fn create_tables(&mut self) -> Result<()> {
         let tx = self.conn.transaction()?;
-        tx.execute_batch(&CREATE_SCHEMA)?;
+        tx.execute_batch(CREATE_SCHEMA)?;
         tx.commit()?;
 
         Ok(())
@@ -147,7 +146,7 @@ impl Database {
 
                 let artist = match self.artist_map.get(&artist_id) {
                     Some(a) => Arc::clone(a),
-                    None => Arc::new(format!("Unknown Artist")),
+                    None => Arc::new("Unknown Artist".to_string()),
                 };
 
                 let duration_f32 = Duration::from_secs_f32(row.get("duration")?);
@@ -156,7 +155,7 @@ impl Database {
                 let album_id = row.get("album_id")?;
                 let album = match self.album_map.get(&album_id) {
                     Some(a) => Arc::clone(a),
-                    None => Arc::new(format!("Unknown Album")),
+                    None => Arc::new("Unknown Album".to_string()),
                 };
 
                 let song = SimpleSong {
@@ -256,11 +255,11 @@ impl Database {
                 let artist_id = row.get("artist_id")?;
 
                 let artist = match self.artist_map.get(&artist_id) {
-                    Some(a) => Arc::clone(&a),
+                    Some(a) => Arc::clone(a),
                     None => unreachable!(),
                 };
                 let album = match self.album_map.get(&album_id) {
-                    Some(a) => Arc::clone(&a),
+                    Some(a) => Arc::clone(a),
                     None => unreachable!(),
                 };
 
@@ -390,11 +389,9 @@ impl Database {
             Ok(convert_from_bytes(row.get("song_id")?))
         })?;
 
-        for row in rows {
-            if let Ok(song_id) = row {
-                if let Some(song) = song_map.get(&song_id) {
-                    history.push_back(Arc::clone(song));
-                }
+        for song_id in rows.flatten() {
+            if let Some(song) = song_map.get(&song_id) {
+                history.push_back(Arc::clone(song));
             }
         }
 
@@ -415,12 +412,12 @@ impl Database {
         Ok(roots)
     }
 
-    pub(crate) fn set_root(&mut self, path: &PathBuf) -> Result<()> {
+    pub(crate) fn set_root(&mut self, path: &Path) -> Result<()> {
         self.conn.execute(SET_ROOT, params![path.to_str()])?;
         Ok(())
     }
 
-    pub(crate) fn delete_root(&mut self, path: &PathBuf) -> Result<()> {
+    pub(crate) fn delete_root(&mut self, path: &Path) -> Result<()> {
         self.conn.execute(DELETE_ROOT, params![path.to_str()])?;
         Ok(())
     }

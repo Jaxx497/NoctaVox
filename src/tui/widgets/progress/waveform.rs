@@ -48,7 +48,7 @@ impl StatefulWidget for Waveform {
 
         Canvas::default()
             .x_bounds([0.0, wf_len as f64])
-            .y_bounds([WAVEFORM_WIDGET_HEIGHT * -1.0, WAVEFORM_WIDGET_HEIGHT])
+            .y_bounds([-WAVEFORM_WIDGET_HEIGHT, WAVEFORM_WIDGET_HEIGHT])
             .marker(theme.progress_style)
             .paint(|ctx| {
                 let elapsed = state.metrics.position().as_secs_f32();
@@ -94,7 +94,7 @@ fn draw_waveform_line(ctx: &mut Context, idx: f64, hgt: f64, color: Color) {
         x1: idx,
         x2: idx,
         y1: hgt,
-        y2: hgt * -1.0,
+        y2: -hgt,
         color,
     })
 }
@@ -104,7 +104,7 @@ fn draw_waveform_line(ctx: &mut Context, idx: f64, hgt: f64, color: Color) {
 fn draw_waveform_rect(ctx: &mut Context, idx: f64, hgt: f64, color: Color) {
     ctx.draw(&Rectangle {
         x: idx,
-        y: hgt * -1.0,
+        y: -hgt,
         width: 0.5,        // This makes the waveform cleaner on resize
         height: hgt * 2.0, // Rectangles are drawn from the bottom
         color,

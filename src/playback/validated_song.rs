@@ -17,7 +17,7 @@ impl ValidatedSong {
         std::fs::metadata(&path)?;
 
         Ok(Arc::new(Self {
-            meta: Arc::clone(&song),
+            meta: Arc::clone(song),
             path,
         }))
     }

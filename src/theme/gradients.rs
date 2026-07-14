@@ -23,7 +23,7 @@ pub enum InactiveGradient {
 impl ProgressGradient {
     pub(super) fn from_raw(raw: &ProgressGradientRaw) -> Result<ProgressGradient> {
         match raw {
-            ProgressGradientRaw::Single(c) => Ok(ProgressGradient::Static(parse_color(&c)?)),
+            ProgressGradientRaw::Single(c) => Ok(ProgressGradient::Static(parse_color(c)?)),
             ProgressGradientRaw::Gradient(colors) => {
                 if colors.len() == 1 {
                     return Ok(ProgressGradient::Static(parse_color(&colors[0])?));
@@ -31,7 +31,7 @@ impl ProgressGradient {
 
                 let gradient = colors
                     .iter()
-                    .map(|c| parse_color(&c))
+                    .map(|c| parse_color(c))
                     .collect::<Result<Vec<Color>>>()?;
 
                 Ok(ProgressGradient::Gradient(gradient.into()))
@@ -42,7 +42,7 @@ impl ProgressGradient {
     pub fn color_at(&self, position: f32, time: f32, speed: f32) -> Color {
         match &self {
             ProgressGradient::Static(c) => *c,
-            ProgressGradient::Gradient(g) => get_gradient_color(&g, position, time * speed),
+            ProgressGradient::Gradient(g) => get_gradient_color(g, position, time * speed),
         }
     }
 }
@@ -57,13 +57,13 @@ impl InactiveGradient {
                 Ok(InactiveGradient::Still)
             }
             ProgressGradientRaw::Single(s) => {
-                let color = parse_color(&s)?;
+                let color = parse_color(s)?;
                 Ok(InactiveGradient::Static(color))
             }
             ProgressGradientRaw::Gradient(colors) => {
                 let gradient = colors
                     .iter()
-                    .map(|c| parse_color(&c))
+                    .map(|c| parse_color(c))
                     .collect::<Result<Vec<Color>>>()?;
 
                 Ok(InactiveGradient::Gradient(gradient.into()))

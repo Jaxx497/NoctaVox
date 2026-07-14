@@ -164,7 +164,7 @@ impl UiState {
     }
 
     pub(crate) fn update_multi_select(&mut self, indices: Vec<usize>) {
-        self.nav.multi_select = IndexSet::from_iter(indices.into_iter());
+        self.nav.multi_select = IndexSet::from_iter(indices);
     }
 
     pub fn shift_playlist_position(&mut self, dir: Incrementor) -> Result<()> {

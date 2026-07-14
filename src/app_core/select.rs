@@ -14,10 +14,8 @@ impl NoctaVox {
     pub fn select_shortcut(&mut self, key_rx: &Receiver<KeyEvent>) {
         select! {
             recv(self.player.events()) -> event => {
-                if let Ok(event) = event {
-                    if let Err(e) = self.handle_player_events(event) {
-                        self.ui.set_error(e);
-                    }
+                if let Ok(event) = event && let Err(e) = self.handle_player_events(event) {
+                    self.ui.set_error(e);
                 }
             }
 
@@ -35,20 +33,16 @@ impl NoctaVox {
             }
 
             recv(self.media_controls.as_ref().map(|m| m.event_rx()).unwrap_or(&never())) -> event => {
-                if let Ok(event) = event {
-                    if let Err(e) = self.handle_media_control_event(event) {
-                        self.ui.set_error(e);
-                    }
+                if let Ok(event) = event && let Err(e) = self.handle_media_control_event(event) {
+                   self.ui.set_error(e);
                 }
             }
 
             recv(key_rx) -> key => {
-                if let Ok(key) = key {
-                    if let Some(action) = key_handler::handle_key_event(key, &mut self.ui) {
-                        if let Err(e) = self.handle_action(action) {
+                if let Ok(key) = key
+                    && let Some(action) = key_handler::handle_key_event(key, &mut self.ui)
+                        && let Err(e) = self.handle_action(action) {
                             self.ui.set_error(e);
-                        }
-                    }
                 }
             }
 
@@ -85,12 +79,12 @@ impl NoctaVox {
 
         if user_config().general.broadcast
             && self.player.is_active()
-            && self.tick_sync % timing().db_tick == 0
+            && self.tick_sync.is_multiple_of(timing().media_tick)
         {
             self.ui.update_now_playing_elapsed();
         }
 
-        if self.tick_sync % timing().media_tick == 0 {
+        if self.tick_sync.is_multiple_of(timing().media_tick) {
             if let Some(ref mut mc) = self.media_controls {
                 let elapsed = self.player.elapsed();
                 if self.player.is_paused() {

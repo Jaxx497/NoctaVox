@@ -134,7 +134,7 @@ fn render_delete_popup(
     let block = Block::bordered()
         .border_type(theme.border_type)
         .border_style(theme.border)
-        .title(format!(" Delete Playlist "))
+        .title(" Delete Playlist ")
         .title_bottom(" [Enter] confirm / [Esc] cancel ")
         .title_alignment(ratatui::layout::Alignment::Center)
         .padding(Padding {
@@ -147,9 +147,9 @@ fn render_delete_popup(
         .bg(theme.bg);
 
     if let Some(p) = state.get_selected_playlist() {
-        let p_name = Line::from_iter([p.name.as_str(), " ?".into()]);
+        let p_name = Line::from_iter([p.name.as_str(), " ?"]);
         let warning = Paragraph::new(Text::from_iter([
-            format!("Are you sure you want to delete\n").into(),
+            "Are you sure you want to delete\n".into(),
             p_name,
         ]))
         .block(block)
@@ -191,12 +191,9 @@ fn render_rename_popup(
 
     if let Some(playlist) = state.get_selected_playlist() {
         let p_name = Span::from(playlist.name.as_str());
-        Paragraph::new(Text::from_iter([
-            format!("Enter a new name for\n").into(),
-            p_name,
-        ]))
-        .centered()
-        .render(chunks[0], buf);
+        Paragraph::new(Text::from_iter(["Enter a new name for\n".into(), p_name]))
+            .centered()
+            .render(chunks[0], buf);
 
         state.popup.input.set_block(
             Block::bordered()

@@ -43,7 +43,7 @@ impl UiState {
             let mut lib = Library::init()?;
 
             let bad_root = &roots[selected];
-            lib.delete_root(&bad_root)?;
+            lib.delete_root(bad_root)?;
 
             self.library = Arc::new(lib);
         }

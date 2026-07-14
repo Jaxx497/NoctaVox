@@ -1,12 +1,11 @@
+#[derive(Default)]
 pub struct KeyBuffer {
     digits: String,
 }
 
 impl KeyBuffer {
     pub fn new() -> Self {
-        KeyBuffer {
-            digits: String::new(),
-        }
+        KeyBuffer::default()
     }
 
     pub fn push_digit(&mut self, c: char) -> bool {

@@ -52,28 +52,14 @@ impl StatefulWidget for AlbumView {
 
                 match state.layout {
                     LayoutStyle::Traditional => match is_m_selected {
-                        true => Row::new([
-                            track_disc_no,
-                            symbol,
-                            title.into(),
-                            artist,
-                            format,
-                            duration,
-                        ])
-                        .bg(state.theme.active.accent_inactive),
-                        false => Row::new([
-                            track_disc_no,
-                            symbol,
-                            title.into(),
-                            artist,
-                            format,
-                            duration,
-                        ]),
+                        true => Row::new([track_disc_no, symbol, title, artist, format, duration])
+                            .bg(state.theme.active.accent_inactive),
+                        false => Row::new([track_disc_no, symbol, title, artist, format, duration]),
                     },
                     LayoutStyle::Minimal => match is_m_selected {
-                        true => Row::new([track_no, symbol, title.into(), duration])
+                        true => Row::new([track_no, symbol, title, duration])
                             .bg(state.theme.active.accent_inactive),
-                        false => Row::new([track_no, symbol, title.into(), duration]),
+                        false => Row::new([track_no, symbol, title, duration]),
                     },
                 }
             })

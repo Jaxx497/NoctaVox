@@ -158,19 +158,19 @@ impl LongSong {
             metadata.pop();
         }
 
-        if ext == FileType::WAV {
-            if let Ok(info) = read_wav_info_tags(&song_info.path) {
-                for (key, val) in info {
-                    match &key {
-                        b"INAM" => song_info.title = nms(&val),
-                        b"IART" => artist = best(artist, 0, &Arc::new(val)),
-                        b"IPRD" => song_info.album = Arc::new(nms(&val)),
-                        b"ICRD" | b"IYER" => {
-                            release_year = release_year.or_else(|| val.get(..4)?.parse().ok());
-                        }
-                        b"ITRK" | b"IPRT" => song_info.track_no = val.parse().ok(),
-                        _ => {}
+        if ext == FileType::WAV
+            && let Ok(info) = read_wav_info_tags(&song_info.path)
+        {
+            for (key, val) in info {
+                match &key {
+                    b"INAM" => song_info.title = nms(&val),
+                    b"IART" => artist = best(artist, 0, &Arc::new(val)),
+                    b"IPRD" => song_info.album = Arc::new(nms(&val)),
+                    b"ICRD" | b"IYER" => {
+                        release_year = release_year.or_else(|| val.get(..4)?.parse().ok());
                     }
+                    b"ITRK" | b"IPRT" => song_info.track_no = val.parse().ok(),
+                    _ => {}
                 }
             }
         }

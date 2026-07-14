@@ -170,7 +170,7 @@ fn render_remove_root(
         .selection
         .selected()
         .expect("Could not obtain roots")];
-    let selected_root = strip_win_prefix(&selected_root);
+    let selected_root = strip_win_prefix(selected_root);
 
     let text = Text::from_iter([
         Line::from("Are you sure you want to delete:"),

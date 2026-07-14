@@ -28,11 +28,11 @@ impl StatefulWidget for GenericView {
             .map(|(idx, song)| {
                 let is_m_selected = state.get_multi_select_indices().contains(&idx);
 
-                let index = CellFactory::index_cell(&theme, &state.layout, idx, is_m_selected);
+                let index = CellFactory::index_cell(theme, &state.layout, idx, is_m_selected);
                 let symbol = CellFactory::status_cell(song, state, is_m_selected);
-                let title = CellFactory::title_cell(&theme, song.get_title(), is_m_selected);
-                let artist = CellFactory::artist_cell(&theme, song, is_m_selected);
-                let filetype = CellFactory::filetype_cell(&theme, song, is_m_selected);
+                let title = CellFactory::title_cell(theme, song.get_title(), is_m_selected);
+                let artist = CellFactory::artist_cell(theme, song, is_m_selected);
+                let filetype = CellFactory::filetype_cell(theme, song, is_m_selected);
                 let duration =
                     CellFactory::duration_cell(theme, song, DurationStyle::Clean, is_m_selected);
 

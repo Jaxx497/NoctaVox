@@ -4,7 +4,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Padding, Paragraph, StatefulWidget, Widget},
 };
-use std::{sync::Arc, u32};
+use std::sync::Arc;
 use unicode_width::UnicodeWidthStr;
 
 use crate::{
@@ -87,7 +87,7 @@ impl StatefulWidget for UserStats {
             .render(top_play_title, buf);
 
         if !most_played.is_empty() {
-            let most_played_vec = get_most_played(&most_played, theme, &area);
+            let most_played_vec = get_most_played(most_played, theme, &area);
             Paragraph::new(most_played_vec)
                 .block(Block::default().padding(Padding {
                     left: horiz_padding,
@@ -134,7 +134,7 @@ fn stat_line_left<'a>(value: String, label: &'a str, theme: &DisplayTheme) -> Li
 fn stat_line_right(value: String, label: &str, theme: &DisplayTheme) -> Line<'static> {
     Line::from_iter([
         Span::from(format!("{:<7}", value)).fg(theme.text_primary),
-        Span::from(format!("{}", label)).fg(theme.text_muted),
+        Span::from(label.to_string()).fg(theme.text_muted),
     ])
 }
 

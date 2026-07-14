@@ -103,10 +103,10 @@ pub fn key_loop() -> Receiver<KeyEvent> {
     // 2. SPAWN the input thread (offloading)
     std::thread::spawn(move || {
         loop {
-            if let Ok(crossterm::event::Event::Key(key)) = crossterm::event::read() {
-                if key.kind == crossterm::event::KeyEventKind::Press {
-                    let _ = key_tx.try_send(key);
-                }
+            if let Ok(crossterm::event::Event::Key(key)) = crossterm::event::read()
+                && key.kind == crossterm::event::KeyEventKind::Press
+            {
+                let _ = key_tx.try_send(key);
             }
         }
     });

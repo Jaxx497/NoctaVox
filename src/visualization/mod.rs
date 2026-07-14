@@ -59,9 +59,7 @@ impl Visualizer {
     }
 
     pub fn update_spectrum(&mut self) {
-        if self.display_tap.is_empty() {
-            return;
-        } else {
+        if !self.display_tap.is_empty() {
             let samples = self.display_tap.make_contiguous();
             let sample_rate = self.metrics.sample_rate();
             self.spectrum.update(samples, sample_rate);

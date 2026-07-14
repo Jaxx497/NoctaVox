@@ -145,24 +145,24 @@ impl UiState {
         self.nav.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
         self.layout = LayoutStyle::from_str(&ui_snapshot.layout);
 
-        if !ui_snapshot.theme_name.is_empty() {
-            if let Some(theme) = self.theme.find_theme_by_name(&ui_snapshot.theme_name) {
-                self.set_theme(theme.clone());
-            }
+        if !ui_snapshot.theme_name.is_empty()
+            && let Some(theme) = self.theme.find_theme_by_name(&ui_snapshot.theme_name)
+        {
+            self.set_theme(theme.clone());
         }
 
-        if let Some(pos) = ui_snapshot.album_selection {
-            if pos < self.albums.len() {
-                self.nav.album_pos.select(Some(pos));
-                *self.nav.album_pos.offset_mut() = ui_snapshot.album_sel_offset
-            }
+        if let Some(pos) = ui_snapshot.album_selection
+            && pos < self.albums.len()
+        {
+            self.nav.album_pos.select(Some(pos));
+            *self.nav.album_pos.offset_mut() = ui_snapshot.album_sel_offset
         }
 
-        if let Some(pos) = ui_snapshot.playlist_selection {
-            if pos < self.playlists.len() {
-                self.nav.playlist_pos.select(Some(pos));
-                *self.nav.playlist_pos.offset_mut() = ui_snapshot.playlist_sel_offset
-            }
+        if let Some(pos) = ui_snapshot.playlist_selection
+            && pos < self.playlists.len()
+        {
+            self.nav.playlist_pos.select(Some(pos));
+            *self.nav.playlist_pos.offset_mut() = ui_snapshot.playlist_sel_offset
         }
 
         let mode_to_restore = match ui_snapshot.mode.as_str() {
@@ -185,11 +185,11 @@ impl UiState {
 
         self.nav.sidebar_percent = ui_snapshot.sidebar_percentage;
 
-        if let Some(pos) = ui_snapshot.song_selection {
-            if pos < self.legal_songs.len() {
-                self.nav.table_pos.select(Some(pos));
-                *self.nav.table_pos.offset_mut() = ui_snapshot.song_sel_offset
-            }
+        if let Some(pos) = ui_snapshot.song_selection
+            && pos < self.legal_songs.len()
+        {
+            self.nav.table_pos.select(Some(pos));
+            *self.nav.table_pos.offset_mut() = ui_snapshot.song_sel_offset
         }
 
         Ok(())

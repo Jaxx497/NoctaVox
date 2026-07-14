@@ -156,20 +156,20 @@ impl Library {
         for song in self.songs.values() {
             album_songs
                 .entry(song.album_id)
-                .or_insert_with(Vec::new)
-                .push(Arc::clone(&song));
+                .or_default()
+                .push(Arc::clone(song));
         }
 
         for (album_id, mut songs) in album_songs {
-            if let Some(album) = self.albums.get_mut(&album_id) {
-                if !songs.is_empty() {
-                    if album.year.is_none() {
-                        album.year = songs[0].year
-                    }
-
-                    songs.sort_by_key(|s| (s.disc_no.unwrap_or(0), s.track_no.unwrap_or(0)));
-                    album.tracklist = songs.into()
+            if let Some(album) = self.albums.get_mut(&album_id)
+                && !songs.is_empty()
+            {
+                if album.year.is_none() {
+                    album.year = songs[0].year
                 }
+
+                songs.sort_by_key(|s| (s.disc_no.unwrap_or(0), s.track_no.unwrap_or(0)));
+                album.tracklist = songs.into()
             }
         }
 
@@ -212,7 +212,7 @@ impl Library {
 impl Library {
     pub fn add_root(&mut self, root: impl AsRef<Path>) -> Result<()> {
         let expanded_path = expand_tilde(root.as_ref())?;
-        let canon = PathBuf::from(expanded_path)
+        let canon = expanded_path
             .canonicalize()
             .map_err(|_| anyhow!("Path does not exist! {}", root.as_ref().display()))?;
 
@@ -291,13 +291,10 @@ impl Library {
                 SCANNING_PRE + ((i + 1) * 15 / total_files.max(1)) as u8,
             );
 
-            match calculate_signature(&path) {
-                Ok(hash) => {
-                    if !existing_hashes.remove(&hash) {
-                        new_files.push(path);
-                    }
-                }
-                Err(_) => {}
+            if let Ok(hash) = calculate_signature(&path)
+                && !existing_hashes.remove(&hash)
+            {
+                new_files.push(path);
             }
         }
 

@@ -21,17 +21,17 @@ pub fn handle_key_event(key_event: KeyEvent, state: &mut UiState) -> Option<Acti
 
     let buffer_count = state.key_buffer.take_count();
 
-    if let Some(action) = global_commands(&key_event, &state, buffer_count) {
+    if let Some(action) = global_commands(&key_event, state, buffer_count) {
         return Some(action);
     }
 
     match state.get_input_context() {
         InputContext::Popup(popup)  => handle_popup(&key_event, &popup),
         InputContext::Fullscreen    => handle_fullscreen(&key_event),
-        InputContext::TrackList(_)  => handle_tracklist(&key_event, &state, buffer_count),
+        InputContext::TrackList(_)  => handle_tracklist(&key_event, state, buffer_count),
         InputContext::AlbumView     => handle_album_browser(&key_event),
         InputContext::PlaylistView  => handle_playlist_browswer(&key_event),
-        InputContext::Search        => handle_search_pane(&key_event, &state),
+        InputContext::Search        => handle_search_pane(&key_event, state),
 
         _ => None,
     }

@@ -86,19 +86,18 @@ impl PlaybackSession {
     pub fn advance(&mut self) -> (Option<Arc<ValidatedSong>>, Option<Arc<SimpleSong>>) {
         let pushed = self.now_playing.take();
 
-        let next = self.queue.pop_front().map(|song| {
-            self.remove_id_if_final(song.id());
-            song
-        });
+        let next = self
+            .queue
+            .pop_front()
+            .inspect(|song| self.remove_id_if_final(song.id()));
 
         (next, pushed)
     }
 
     pub fn remove_from_queue(&mut self, idx: usize) -> Option<Arc<ValidatedSong>> {
-        self.queue.remove(idx).map(|s| {
-            self.remove_id_if_final(s.id());
-            s
-        })
+        self.queue
+            .remove(idx)
+            .inspect(|s| self.remove_id_if_final(s.id()))
     }
 
     pub fn clear_queue(&mut self) {

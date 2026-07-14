@@ -142,7 +142,7 @@ impl UiState {
     }
 
     pub fn add_to_playlist_popup(&mut self) {
-        if self.legal_songs.len() == 0 {
+        if self.legal_songs.is_empty() {
             return;
         }
         self.popup.selection.select_first();

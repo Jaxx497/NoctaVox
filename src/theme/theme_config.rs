@@ -69,7 +69,7 @@ pub struct ThemeIcons {
 
 impl ThemeConfig {
     pub fn load_from_file<P: AsRef<Path>>(path: P) -> Result<Self> {
-        let file_str = std::fs::read_to_string(&path.as_ref())?;
+        let file_str = std::fs::read_to_string(path.as_ref())?;
         let config = toml::from_str::<ThemeImport>(&file_str)?;
         let mut theme = Self::try_from(&config)?;
 
@@ -97,7 +97,7 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
         let accent = *colors.accent;
         let pcolor = progress
             .and_then(|p| p.color.as_ref())
-            .map(|raw| ProgressGradient::from_raw(raw))
+            .map(ProgressGradient::from_raw)
             .transpose()?
             .unwrap_or(ProgressGradient::Static(accent));
 
@@ -123,7 +123,7 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
             border_active: *colors.border_active,
             border_inactive: *colors.border_inactive,
 
-            accent: accent,
+            accent,
             accent_inactive: *colors.accent_inactive,
 
             border_display: parse_borders(

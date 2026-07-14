@@ -60,7 +60,7 @@ pub fn create_standard_list<'a>(
             .bg(theme.bg)
             .title_top(title)
             .title_top(sorting_title.unwrap_or_default())
-            .title_bottom(Line::from(keymaps).centered().fg(theme.text_muted))
+            .title_bottom(keymaps.centered().fg(theme.text_muted))
             .padding(get_padding(layout, theme.border_display)),
         LayoutStyle::Minimal => Block::bordered()
             .borders(theme.border_display)
