@@ -105,17 +105,20 @@ impl SpectrumState {
         if self.bins.is_empty() || (!self.bins_dirty && self.last_display_width == width) {
             return;
         }
+
         let num_bins = self.bins.len();
-        self.display_bins = (0..width)
-            .map(|i| {
+        self.display_bins.resize(width, 0.0);
+        self.display_bins
+            .iter_mut()
+            .enumerate()
+            .for_each(|(i, out)| {
                 let t = i as f32 / (width - 1).max(1) as f32;
                 let src = t * (num_bins - 1) as f32;
                 let lo = src.floor() as usize;
                 let hi = (lo + 1).min(num_bins - 1);
                 let frac = src - lo as f32;
-                self.bins[lo] * (1.0 - frac) + self.bins[hi] * frac
-            })
-            .collect();
+                *out = self.bins[lo] * (1.0 - frac) + self.bins[hi] * frac;
+            });
         self.last_display_width = width;
         self.bins_dirty = false;
     }
