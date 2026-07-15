@@ -32,9 +32,6 @@ impl StatefulWidget for KeymapGuide {
             theme.bg,
         );
 
-        // Keys are right-aligned within the left ~40% of the inner width;
-        // descriptions start just after and run left-aligned. Inner width =
-        // popup width minus borders (2) and POPUP_PADDING left+right (10).
         let key_col = ((area.width as usize).saturating_sub(12) * 2 / 5).max(6);
 
         let lines: Vec<Line> = help_rows()
@@ -66,10 +63,6 @@ impl StatefulWidget for KeymapGuide {
             .padding(POPUP_PADDING)
             .bg(bg);
 
-        // Direct scroll offset (top visible line) — one line per keypress, no
-        // invisible cursor. `popup.selection` stores the requested offset; clamp
-        // it to what actually scrolls and write the clamped value back so the
-        // handler can't run the offset past the end.
         let visible = block.inner(area).height as usize;
         let max_scroll = lines.len().saturating_sub(visible);
         let offset = state

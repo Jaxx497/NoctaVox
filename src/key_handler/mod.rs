@@ -101,6 +101,11 @@ pub enum Action {
     ThemeManager,
     ThemeRefresh,
 
+    SidebarToggle,
+    SidebarExpand,
+    SidebarCollapse,
+    SidebarExpandAll,
+
     IncrementWFSmoothness(Incrementor),
     IncrementSidebarSize(isize),
 
@@ -128,8 +133,7 @@ pub enum Action {
 }
 
 pub enum InputContext {
-    AlbumView,
-    PlaylistView,
+    Sidebar,
     TrackList(Mode),
     Fullscreen,
     Search,

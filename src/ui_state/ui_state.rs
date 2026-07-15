@@ -56,22 +56,8 @@ impl UiState {
     pub fn sync_library(&mut self, library: Arc<Library>) -> Result<()> {
         self.library = library;
 
-        self.sort_albums();
-        match self.albums.is_empty() {
-            true => self.nav.album_pos.select(None),
-            false => {
-                let album_len = self.albums.len();
-                let current_selection = self.nav.album_pos.selected().unwrap_or(0);
-
-                if current_selection > album_len {
-                    self.nav.album_pos.select(Some(album_len - 1));
-                } else if self.nav.album_pos.selected().is_none() {
-                    self.nav.album_pos.select(Some(0));
-                };
-            }
-        }
-
         self.get_playlists()?;
+        self.sort_albums();
         self.set_legal_songs();
 
         Ok(())
@@ -109,8 +95,7 @@ impl UiState {
 
         match (self.get_mode(), self.get_pane()) {
             (Mode::Fullscreen, _) => InputContext::Fullscreen,
-            (Mode::Library(LibraryView::Albums), Pane::SideBar) => InputContext::AlbumView,
-            (Mode::Library(LibraryView::Playlists), Pane::SideBar) => InputContext::PlaylistView,
+            (Mode::Library(_), Pane::SideBar) => InputContext::Sidebar,
             (Mode::Search, Pane::Search) => InputContext::Search,
             (mode, Pane::TrackList) => InputContext::TrackList(mode.clone()),
             (Mode::QUIT, _) => unreachable!(),
@@ -210,7 +195,6 @@ impl UiState {
     }
 
     pub fn show_keymap_guide(&mut self) {
-        // Always open at the top; the guide is read top-to-bottom.
         self.popup.selection.select(Some(0));
         self.show_popup(PopupType::KeymapGuide);
     }

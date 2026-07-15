@@ -24,16 +24,25 @@ impl LayoutTraditional {
             },
         };
 
+        let refresh_no_media = match state.library_refresh.is_some() && !state.metrics.is_active() {
+            true => 1,
+            false => 0,
+        };
+
         let search_height = match state.get_mode() == Mode::Search {
             true => 5,
             false => 0,
         };
 
-        let [upper_block, widget] =
-            Layout::vertical([Constraint::Min(16), Constraint::Length(prog_height)]).areas(area);
+        let [upper_block, widget, _] = Layout::vertical([
+            Constraint::Min(16),
+            Constraint::Length(prog_height),
+            Constraint::Length(refresh_no_media),
+        ])
+        .areas(area);
 
         let [sidebar, upper_block] = Layout::horizontal([
-            Constraint::Percentage(state.nav.sidebar_percent),
+            Constraint::Percentage(state.nav.sidebar.width),
             Constraint::Fill(1),
         ])
         .areas(upper_block);

@@ -1,7 +1,7 @@
 use crate::{
     key_handler::{Director, Incrementor, SelectionType},
     library::SimpleSong,
-    ui_state::{Mode, UiState},
+    ui_state::{Mode, RowKind, UiState},
 };
 use anyhow::{Result, anyhow};
 use indexmap::IndexSet;
@@ -10,6 +10,20 @@ use std::sync::Arc;
 impl UiState {
     pub fn get_multi_select_indices(&self) -> &IndexSet<usize> {
         &self.nav.multi_select
+    }
+
+    pub fn get_selected_playlist_idx(&self) -> Option<usize> {
+        match &self.selected_row()?.kind {
+            RowKind::Playlist(id) => self.playlists.iter().position(|p| p.id == *id),
+            _ => None,
+        }
+    }
+
+    pub fn get_selected_group_label(&self) -> Option<Arc<String>> {
+        match &self.selected_row()?.kind {
+            RowKind::Artist { name, .. } => Some(Arc::clone(name)),
+            _ => None,
+        }
     }
 
     pub fn toggle_multi_selection(&mut self, count: usize) -> Result<()> {
@@ -44,14 +58,6 @@ impl UiState {
         let selection = match sel_type {
             SelectionType::Multi => self.get_multi_select_songs(),
             SelectionType::Legal => self.get_legal_songs().to_vec(),
-            // SelectionType::Album => self
-            //     .get_selected_album()
-            //     .ok_or(anyhow!("Illegal album selection"))?
-            //     .get_tracklist(),
-            // SelectionType::Playlist => self
-            //     .get_selected_playlist()
-            //     .ok_or(anyhow!("Illegal playlist selection"))?
-            //     .get_tracklist(),
         };
 
         self.clear_multi_select();
@@ -179,7 +185,7 @@ impl UiState {
     fn shift_playlist_position_single(&mut self, direction: Incrementor) -> Result<()> {
         let display_idx = self.nav.get_table_idx()?;
 
-        let Some(playlist_idx) = self.nav.playlist_pos.selected() else {
+        let Some(playlist_idx) = self.get_selected_playlist_idx() else {
             return Ok(());
         };
 
@@ -215,7 +221,7 @@ impl UiState {
         indices.sort_unstable();
         let last_selected_idx = indices[indices.len() - 1];
 
-        let Some(playlist_idx) = self.nav.playlist_pos.selected() else {
+        let Some(playlist_idx) = self.get_selected_playlist_idx() else {
             return Ok(());
         };
 

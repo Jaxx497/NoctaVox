@@ -16,7 +16,12 @@ impl StatefulWidget for SongTable {
         state: &mut Self::State,
     ) {
         match state.get_mode() {
-            &Mode::Library(LibraryView::Albums) => AlbumView.render(area, buf, state),
+            &Mode::Library(LibraryView::Albums | LibraryView::Omni) => {
+                match state.get_selected_album().is_some() {
+                    true => AlbumView.render(area, buf, state),
+                    false => GenericView.render(area, buf, state),
+                }
+            }
             &Mode::Library(LibraryView::Playlists) | &Mode::Queue => {
                 GenericView.render(area, buf, state)
             }

@@ -1,5 +1,5 @@
 use crate::{
-    ui_state::{LibraryView, Mode, Pane, UiState},
+    ui_state::{Mode, Pane, UiState},
     visualization::ProgressDisplay,
 };
 use ratatui::layout::{Constraint, Layout, Rect};
@@ -40,10 +40,7 @@ impl LayoutMinimal {
         };
 
         let item_count = match state.get_pane() {
-            Pane::SideBar => match state.nav.get_sidebar_view() {
-                LibraryView::Albums => state.albums.len(),
-                LibraryView::Playlists => state.playlists.len(),
-            },
+            Pane::SideBar => state.nav.sidebar.rows.len(),
             _ => state.get_legal_songs().len(),
         };
 

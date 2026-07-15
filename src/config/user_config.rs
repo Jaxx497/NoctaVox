@@ -78,6 +78,8 @@ fn default_config() -> String {
     let _ = writeln!(conf, "# {:<10}= \"{}\"", "repeat", icons.repeat);
     let _ = writeln!(conf, "# {:<10}= \"{}\"", "upcoming", icons.upcoming);
     let _ = writeln!(conf, "# {:<10}= \"{}\"", "selected", icons.selected);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "expanded", icons.expanded);
+    let _ = writeln!(conf, "# {:<10}= \"{}\"", "collapsed", icons.collapsed);
 
     conf
 }

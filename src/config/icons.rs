@@ -19,6 +19,10 @@ pub struct UserIcons {
     pub upcoming: String,
     #[serde(default = "defaults::selected")]
     pub selected: String,
+    #[serde(default = "defaults::expanded")]
+    pub expanded: String,
+    #[serde(default = "defaults::collapsed")]
+    pub collapsed: String,
 }
 
 impl UserIcons {
@@ -30,6 +34,8 @@ impl UserIcons {
     pub const REPEAT: &'static str = "";
     pub const UPCOMING: &'static str = "󰐑";
     pub const SELECTED: &'static str = "󱕣";
+    pub const EXPANDED: &'static str = "▾";
+    pub const COLLAPSED: &'static str = "▸";
 }
 
 impl Default for UserIcons {
@@ -42,6 +48,8 @@ impl Default for UserIcons {
             repeat: defaults::repeat(),
             upcoming: defaults::upcoming(),
             selected: defaults::selected(),
+            expanded: defaults::expanded(),
+            collapsed: defaults::collapsed(),
             decorator: defaults::decorator(),
         }
     }
@@ -58,5 +66,7 @@ mod defaults {
     pub fn selector() -> String { UserIcons::SELECTOR.into() }
     pub fn upcoming() -> String { UserIcons::UPCOMING.into() }
     pub fn selected() -> String { UserIcons::SELECTED.into() }
+    pub fn expanded() -> String { UserIcons::EXPANDED.into() }
+    pub fn collapsed()-> String { UserIcons::COLLAPSED.into() }
     pub fn decorator()-> String { UserIcons::DECORATOR.into() }
 }

@@ -59,12 +59,14 @@ impl StatefulWidget for BufferLine {
         let buffer = state.key_buffer.pending();
 
         if state.layout == LayoutStyle::Traditional {
-            let mut line = Line::from(volume_slider(state, theme, area));
-            if let Some(count) = get_buffer_count(buffer, theme) {
-                line.push_span(" ");
-                line.push_span(count);
+            let mut vol = volume_slider(state, theme, area);
+            if let Some(v) = vol.as_mut()
+                && let Some(count) = get_buffer_count(buffer, theme)
+            {
+                v.push_span(" ");
+                v.push_span(count);
             }
-            line.render(left, buf);
+            vol.render(left, buf);
         }
         playing_title(state, theme, center.width as usize).render(center, buf);
         queue_display(state, theme, right.width as usize).render(right, buf);
@@ -148,7 +150,11 @@ fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<
     }
 }
 
-fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Vec<Span<'static>> {
+fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Option<Line<'static>> {
+    if state.library_refresh.is_some() {
+        return None;
+    }
+
     let width = (area.width / 10).clamp(4, 11) as usize;
     let ratio = (state.metrics.volume() / 1.0).clamp(0.0, 1.0);
     let pos = (ratio * (width - 1) as f32).round() as usize;
@@ -161,15 +167,11 @@ fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Vec<Span<
     let left_track = "─".repeat(pos);
     let right_track = "─".repeat(width - 1 - pos);
 
-    vec![
+    Some(Line::from_iter([
         Span::from(format!(" {left_track}")).fg(theme.text_muted),
         Span::from("○").fg(theme.accent),
         Span::from(format!("{right_track}{percent} ")).fg(theme.text_muted),
-    ]
-    // let track: String = (0..width)
-    //     .map(|i| if i == pos { '○' } else { '─' })
-    //     .collect();
-    // Span::from(format!(" {track}{percent} ")).fg(theme.text_muted)
+    ]))
 }
 
 fn volume_meter(state: &UiState, theme: &DisplayTheme) -> Line<'static> {

@@ -27,6 +27,12 @@ impl NoctaVox {
             Action::SortColumnsPrev => self.ui.prev_song_column(),
             Action::ToggleAlbumSort(next)   => self.ui.toggle_album_sort(next),
 
+
+            Action::SidebarToggle   => self.ui.sidebar_toggle(),
+            Action::SidebarCollapse => self.ui.sidebar_collapse(),
+            Action::SidebarExpand   => self.ui.sidebar_expand(),
+            Action::SidebarExpandAll=> self.ui.sidebar_expand_all(),
+
             // Search Related
             Action::UpdateSearch(k) => self.ui.process_search(k),
             Action::SendSearch      => self.ui.send_search(),

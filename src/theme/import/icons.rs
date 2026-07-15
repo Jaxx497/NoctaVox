@@ -10,4 +10,6 @@ pub struct IconScheme {
     pub repeat: Option<String>,
     pub upcoming: Option<String>,
     pub selected: Option<String>,
+    pub expanded: Option<String>,
+    pub collapsed: Option<String>,
 }

@@ -95,7 +95,7 @@ impl StatefulWidget for SideBarPlaylist {
             create_standard_list(list_items, None, state, area),
             area,
             buf,
-            &mut state.nav.playlist_pos,
+            &mut state.nav.sidebar.pos,
         );
     }
 }

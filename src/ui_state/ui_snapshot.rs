@@ -1,6 +1,6 @@
 use super::{AlbumSort, Mode, Pane, UiState};
 use crate::{
-    ui_state::{LayoutStyle, PlayerSnapshot},
+    ui_state::{LayoutStyle, NodeKey, PlayerSnapshot},
     visualization::ProgressDisplay,
 };
 use anyhow::Result;
@@ -16,12 +16,10 @@ pub struct UiSnapshot {
     pub theme_name: String,
 
     pub song_selection: Option<usize>,
-    pub album_selection: Option<usize>,
-    pub playlist_selection: Option<usize>,
-
     pub song_sel_offset: usize,
-    pub album_sel_offset: usize,
-    pub playlist_sel_offset: usize,
+
+    pub sidebar_key: String,
+    pub sidebar_collapsed: String,
 
     pub progress_display: String,
     pub smoothing_factor: f32,
@@ -37,18 +35,10 @@ impl UiSnapshot {
             ("ui_layout", self.layout.clone()),
             ("ui_smooth", format!("{:.1}", self.smoothing_factor)),
             ("ui_sidebar_percent", self.sidebar_percentage.to_string()),
-            ("ui_progress_display", self.progress_display.to_string()),
+            ("ui_progress_display", self.progress_display.clone()),
+            ("ui_sidebar_key", self.sidebar_key.clone()),
+            ("ui_sidebar_collapsed", self.sidebar_collapsed.clone()),
         ];
-
-        if let Some(pos) = self.album_selection {
-            pairs.push(("ui_album_pos", pos.to_string()));
-            pairs.push(("ui_album_offset", self.album_sel_offset.to_string()))
-        }
-
-        if let Some(pos) = self.playlist_selection {
-            pairs.push(("ui_playlist_pos", pos.to_string()));
-            pairs.push(("ui_playlist_offset", self.playlist_sel_offset.to_string()))
-        }
 
         if let Some(pos) = self.song_selection {
             pairs.push(("ui_song_pos", pos.to_string()));
@@ -69,10 +59,8 @@ impl UiSnapshot {
                 "ui_theme" => snapshot.theme_name = value,
                 "ui_layout" => snapshot.layout = value,
                 "ui_album_sort" => snapshot.album_sort = value,
-                "ui_album_pos" => snapshot.album_selection = value.parse().ok(),
-                "ui_playlist_pos" => snapshot.playlist_selection = value.parse().ok(),
-                "ui_album_offset" => snapshot.album_sel_offset = value.parse().unwrap_or(0),
-                "ui_playlist_offset" => snapshot.playlist_sel_offset = value.parse().unwrap_or(0),
+                "ui_sidebar_key" => snapshot.sidebar_key = value,
+                "ui_sidebar_collapsed" => snapshot.sidebar_collapsed = value,
                 "ui_song_pos" => snapshot.song_selection = value.parse().ok(),
                 "ui_song_offset" => snapshot.song_sel_offset = value.parse::<usize>().unwrap_or(0),
                 "ui_smooth" => snapshot.smoothing_factor = value.parse::<f32>().unwrap_or(1.0),
@@ -98,19 +86,28 @@ impl UiState {
         UiSnapshot {
             mode: self.get_mode().to_string(),
             pane: pane.to_string(),
-            album_sort: self.nav.album_sort.to_string(),
-            sidebar_percentage: self.nav.sidebar_percent,
+            album_sort: self.nav.sidebar.album_sort.to_string(),
+            sidebar_percentage: self.nav.sidebar.width,
 
             theme_name: self.theme.active.name.to_owned(),
             layout: self.layout.to_string(),
 
             song_selection: self.nav.table_pos.selected(),
-            album_selection: self.nav.album_pos.selected(),
-            playlist_selection: self.nav.playlist_pos.selected(),
-
             song_sel_offset: self.nav.table_pos.offset(),
-            album_sel_offset: self.nav.album_pos.offset(),
-            playlist_sel_offset: self.nav.playlist_pos.offset(),
+
+            sidebar_key: self
+                .selected_row()
+                .map(|r| r.key().serialize())
+                .unwrap_or_default(),
+
+            sidebar_collapsed: self
+                .nav
+                .sidebar
+                .collapsed
+                .iter()
+                .map(|k| k.serialize())
+                .collect::<Vec<_>>()
+                .join("\x1f"),
 
             progress_display: self.viz.get_progress_display().to_string(),
             smoothing_factor: self.viz.get_smoothing_factor(),
@@ -142,7 +139,7 @@ impl UiState {
         }
 
         let ui_snapshot = UiSnapshot::from_values(ui_pairs);
-        self.nav.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
+        self.nav.sidebar.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
         self.layout = LayoutStyle::from_str(&ui_snapshot.layout);
 
         if !ui_snapshot.theme_name.is_empty()
@@ -151,22 +148,16 @@ impl UiState {
             self.set_theme(theme.clone());
         }
 
-        if let Some(pos) = ui_snapshot.album_selection
-            && pos < self.albums.len()
-        {
-            self.nav.album_pos.select(Some(pos));
-            *self.nav.album_pos.offset_mut() = ui_snapshot.album_sel_offset
-        }
+        self.nav.sidebar.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
 
-        if let Some(pos) = ui_snapshot.playlist_selection
-            && pos < self.playlists.len()
-        {
-            self.nav.playlist_pos.select(Some(pos));
-            *self.nav.playlist_pos.offset_mut() = ui_snapshot.playlist_sel_offset
-        }
+        self.nav.sidebar.collapsed = ui_snapshot
+            .sidebar_collapsed
+            .split('\x1f')
+            .filter_map(NodeKey::deserialize)
+            .collect();
 
         let mode_to_restore = match ui_snapshot.mode.as_str() {
-            "search" | "queue" => "library_album",
+            "search" | "queue" => "library_omni",
             _ => &ui_snapshot.mode,
         };
 
@@ -178,12 +169,18 @@ impl UiState {
         self.set_mode(Mode::from_str(mode_to_restore));
         self.set_pane(Pane::from_str(pane_to_restore));
 
+        if let Some(k) = NodeKey::deserialize(&ui_snapshot.sidebar_key) {
+            self.select_by_key(&k);
+        }
+
+        self.set_legal_songs();
+
         self.viz.set_smoothing_factor(ui_snapshot.smoothing_factor);
 
         self.viz
             .set_progress_display(ProgressDisplay::from_str(&ui_snapshot.progress_display));
 
-        self.nav.sidebar_percent = ui_snapshot.sidebar_percentage;
+        self.nav.sidebar.width = ui_snapshot.sidebar_percentage;
 
         if let Some(pos) = ui_snapshot.song_selection
             && pos < self.legal_songs.len()

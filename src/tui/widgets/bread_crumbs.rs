@@ -32,6 +32,7 @@ impl StatefulWidget for BreadCrumbs {
         let dimmed = fade_color(theme.dark, theme.text_muted, 0.75);
 
         let right_label = match top_level {
+            LibraryView::Omni => String::default(),
             LibraryView::Albums => state.nav.get_album_sort().to_string(),
             LibraryView::Playlists => format!("{} 󰲸", state.playlists.len()),
         };
@@ -50,6 +51,31 @@ impl StatefulWidget for BreadCrumbs {
                 ]
             }
             Pane::TrackList => match state.get_mode() {
+                Mode::Library(LibraryView::Omni) => {
+                    let crumb = if let Some(album) = state.get_selected_album() {
+                        Vec::from([
+                            Span::from(album.title.as_ref())
+                                .fg(bc_highlight)
+                                .underlined(),
+                            Span::from(" [").fg(theme.text_muted),
+                            Span::from(album.get_album_artist()).fg(theme.text_muted),
+                            Span::from("]").fg(theme.text_muted),
+                        ])
+                    } else if let Some(playlist) = state.get_selected_playlist() {
+                        Vec::from([Span::from(playlist.name.clone()).fg(bc_highlight)])
+                    } else if let Some(artist) = state.get_selected_group_label() {
+                        Vec::from([Span::from(artist.to_string()).fg(bc_highlight).underlined()])
+                    } else {
+                        return;
+                    };
+
+                    let mut spans = Vec::from([
+                        Span::from(top_level.to_str()).fg(theme.text_muted),
+                        Span::from("  ").fg(theme.text_muted),
+                    ]);
+                    spans.extend(crumb);
+                    spans
+                }
                 Mode::Library(LibraryView::Albums) => {
                     let Some(album) = state.get_selected_album() else {
                         return;

@@ -52,14 +52,14 @@ fn render_minimal(area: Rect, f: &mut Frame, state: &mut UiState) {
 fn render_traditional(area: Rect, f: &mut Frame, state: &mut UiState) {
     let layout = LayoutTraditional::new(area, state);
 
-    let bf_area = get_bufferline_area(layout.widget);
+    let bf_area = get_bufferline_area(area);
     render_bg(state, f);
 
     SearchBar.render(layout.search_bar, f.buffer_mut(), state);
     SideBar.render(layout.sidebar, f.buffer_mut(), state);
     SongTable.render(layout.song_window, f.buffer_mut(), state);
 
-    if state.metrics.is_active() {
+    if state.metrics.is_active() || state.library_refresh.is_some() {
         Progress.render(layout.widget, f.buffer_mut(), state);
         BufferLine.render(bf_area, f.buffer_mut(), state);
     }

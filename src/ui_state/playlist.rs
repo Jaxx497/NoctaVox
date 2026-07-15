@@ -1,6 +1,6 @@
 use crate::{
     library::{Playlist, PlaylistSong},
-    ui_state::{LibraryView, PopupType, UiState},
+    ui_state::{NodeKey, PopupType, UiState},
 };
 use anyhow::{Result, anyhow, bail};
 
@@ -42,9 +42,7 @@ impl UiState {
     }
 
     pub fn create_playlist_popup(&mut self) {
-        if self.nav.get_sidebar_view() == &LibraryView::Playlists {
-            self.show_popup(PopupType::Playlist(PlaylistAction::Create));
-        }
+        self.show_popup(PopupType::Playlist(PlaylistAction::Create));
     }
 
     pub fn create_playlist(&mut self) -> Result<()> {
@@ -66,10 +64,9 @@ impl UiState {
 
         self.get_playlists()?;
 
-        if !self.playlists.is_empty() {
-            self.nav.playlist_pos.select_first();
-        }
-
+        self.rebuild_rows();
+        let playlist = self.playlists.first().ok_or(anyhow!("Critical error!"))?;
+        self.select_by_key(&NodeKey::Playlist(playlist.id));
         self.set_legal_songs();
         self.close_popup();
         Ok(())
@@ -106,7 +103,7 @@ impl UiState {
         self.get_playlists()?;
 
         if !self.playlists.is_empty() {
-            self.nav.playlist_pos.select_first();
+            self.nav.sidebar.pos.select_first();
         }
 
         self.close_popup();
@@ -120,7 +117,7 @@ impl UiState {
     }
 
     pub fn delete_playlist(&mut self) -> Result<()> {
-        let current_playlist = self.nav.playlist_pos.selected();
+        let current_playlist = self.nav.sidebar.pos.selected();
         // let playlist_len =
 
         if let Some(idx) = current_playlist {
@@ -132,7 +129,7 @@ impl UiState {
         }
 
         if self.playlists.is_empty() {
-            self.nav.playlist_pos.select(None);
+            self.nav.sidebar.pos.select(None);
             self.legal_songs.clear();
         }
 

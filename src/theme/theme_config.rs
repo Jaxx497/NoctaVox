@@ -65,6 +65,8 @@ pub struct ThemeIcons {
     pub repeat: Rc<str>,
     pub upcoming: Rc<str>,
     pub selected: Rc<str>,
+    pub expanded: Rc<str>,
+    pub collapsed: Rc<str>,
 }
 
 impl ThemeConfig {
@@ -212,6 +214,18 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
                         .and_then(|e| e.selected.as_deref())
                         .unwrap_or(&fallback_icons.selected),
                 ),
+
+                expanded: Rc::from(
+                    config_icons
+                        .and_then(|e| e.expanded.as_deref())
+                        .unwrap_or(&fallback_icons.expanded),
+                ),
+
+                collapsed: Rc::from(
+                    config_icons
+                        .and_then(|e| e.collapsed.as_deref())
+                        .unwrap_or(&fallback_icons.collapsed),
+                ),
             },
 
             is_dark: config.meta.dark.unwrap_or(true),
@@ -291,6 +305,8 @@ impl Default for ThemeConfig {
                 repeat: Rc::from(UserIcons::REPEAT),
                 upcoming: Rc::from(UserIcons::UPCOMING),
                 selected: Rc::from(UserIcons::SELECTED),
+                expanded: Rc::from(UserIcons::EXPANDED),
+                collapsed: Rc::from(UserIcons::COLLAPSED),
             },
         }
     }

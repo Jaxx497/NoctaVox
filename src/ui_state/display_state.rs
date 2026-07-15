@@ -2,11 +2,11 @@ use super::{AlbumSort, LibraryView, Mode, Pane, TableSort, UiState};
 use crate::{
     key_handler::{Director, Incrementor},
     library::{Album, Playlist, SimpleSong, SongInfo},
-    ui_state::PopupType,
+    ui_state::{PopupType, Sidebar, domain::RowKind},
 };
 use anyhow::{Context, Result, anyhow, bail};
 use indexmap::IndexSet;
-use ratatui::widgets::{ListState, TableState};
+use ratatui::widgets::TableState;
 use std::sync::Arc;
 
 pub struct DisplayState {
@@ -15,15 +15,10 @@ pub struct DisplayState {
     pane: Pane,
 
     table_sort: TableSort,
-    pub(super) album_sort: AlbumSort,
-
-    pub sidebar_percent: u16,
-    pub sidebar_view: LibraryView,
-    pub album_pos: ListState,
-    pub playlist_pos: ListState,
-
     pub table_pos: TableState,
     table_pos_cached: usize,
+
+    pub sidebar: Sidebar,
 
     pub multi_select: IndexSet<usize>,
 }
@@ -36,12 +31,8 @@ impl DisplayState {
             pane: Pane::TrackList,
 
             table_sort: TableSort::Title,
-            album_sort: AlbumSort::Artist,
 
-            sidebar_percent: 30,
-            sidebar_view: LibraryView::Albums,
-            album_pos: ListState::default().with_selected(Some(0)),
-            playlist_pos: ListState::default().with_selected(Some(0)),
+            sidebar: Sidebar::new(),
 
             table_pos: TableState::default().with_selected(0),
             table_pos_cached: 0,
@@ -57,11 +48,11 @@ impl DisplayState {
     }
 
     pub fn get_sidebar_view(&self) -> &LibraryView {
-        &self.sidebar_view
+        &self.sidebar.view
     }
 
     pub fn get_album_sort(&self) -> &AlbumSort {
-        &self.album_sort
+        &self.sidebar.album_sort
     }
 
     pub fn get_table_sort(&self) -> &TableSort {
@@ -87,6 +78,7 @@ impl UiState {
         let count = match sidebar_type {
             LibraryView::Albums => self.albums.len(),
             LibraryView::Playlists => self.playlists.len(),
+            LibraryView::Omni => self.albums.len() + self.playlists.len(),
         };
 
         (*sidebar_type, count)
@@ -110,30 +102,12 @@ impl UiState {
                 self.set_legal_songs();
                 self.nav.table_pos.select(Some(self.nav.table_pos_cached));
             }
-
             Mode::Library(view) => {
-                self.nav.sidebar_view = view;
+                self.nav.sidebar.view = view;
                 self.nav.mode = Mode::Library(view);
                 self.nav.pane = Pane::SideBar;
 
-                // Ensure we have a valid selection for the view we're entering
-                match view {
-                    LibraryView::Albums => {
-                        if self.albums.is_empty() {
-                            self.nav.album_pos.select(None);
-                        } else if self.nav.album_pos.selected().is_none() {
-                            self.nav.album_pos.select(Some(0));
-                        }
-                    }
-                    LibraryView::Playlists => {
-                        if self.playlists.is_empty() {
-                            self.nav.playlist_pos.select(None);
-                        } else if self.nav.playlist_pos.selected().is_none() {
-                            self.nav.playlist_pos.select(Some(0));
-                        }
-                    }
-                }
-
+                self.rebuild_rows();
                 *self.nav.table_pos.offset_mut() = 0;
                 self.set_legal_songs();
             }
@@ -182,23 +156,26 @@ impl UiState {
     }
 
     pub fn get_selected_album(&self) -> Option<&Album> {
-        self.nav
-            .album_pos
-            .selected()
-            .and_then(|idx| self.albums.get(idx))
+        match &self.selected_row()?.kind {
+            RowKind::Album(id) => self.library.albums.get(id),
+            _ => None,
+        }
     }
 
     pub fn get_selected_playlist(&self) -> Option<&Playlist> {
-        self.nav
-            .playlist_pos
-            .selected()
-            .and_then(|idx| self.playlists.get(idx))
+        match &self.selected_row()?.kind {
+            RowKind::Playlist(id) => self.playlists.iter().find(|p| p.id == *id),
+            _ => None,
+        }
     }
 
     pub fn toggle_album_sort(&mut self, next: bool) {
-        self.nav.album_sort = match next {
-            true => self.nav.album_sort.next(),
-            false => self.nav.album_sort.prev(),
+        if matches!(self.nav.sidebar.view, LibraryView::Omni) {
+            return;
+        }
+        self.nav.sidebar.album_sort = match next {
+            true => self.nav.sidebar.album_sort.next(),
+            false => self.nav.sidebar.album_sort.prev(),
         };
         self.sort_albums();
         self.set_legal_songs();
@@ -212,13 +189,15 @@ impl UiState {
             .cloned()
             .collect::<Vec<Album>>();
 
-        match self.nav.album_sort {
+        match self.nav.sidebar.album_sort {
             AlbumSort::Artist => self
                 .albums
                 .sort_by_cached_key(|a| (a.artist.to_lowercase(), a.year)),
             AlbumSort::Title => self.albums.sort_by_cached_key(|s| s.title.to_lowercase()),
             AlbumSort::Year => self.albums.sort_by_key(|s| s.year),
         }
+
+        self.rebuild_rows();
     }
 
     pub(crate) fn next_song_column(&mut self) {
@@ -255,10 +234,8 @@ impl UiState {
             let np = Arc::clone(np);
             let album_id = np.album_id;
 
-            let album_idx = self.albums.iter().position(|a| a.id == album_id);
-
-            self.nav.album_pos.select(album_idx);
             self.set_mode(Mode::Library(LibraryView::Albums));
+            self.focus_album(album_id);
             self.set_pane(Pane::TrackList);
             self.set_legal_songs();
 
@@ -288,27 +265,21 @@ impl UiState {
             self.set_mode(Mode::Library(LibraryView::Albums));
             self.set_pane(Pane::TrackList);
 
-            let album = self
+            let track_pos = self
                 .library
                 .albums
                 .get(&album_id)
-                .context("Invalid album index")?;
-
-            let track_pos = album
+                .context("Invalid album index")?
                 .tracklist
                 .iter()
                 .position(|s| s.id == this_song.id)
                 .unwrap_or(0);
 
-            let album_pos = self
-                .albums
-                .iter()
-                .position(|a| a.id == album_id)
-                .ok_or_else(|| anyhow!("Could not identify album!"))?;
+            // Expands the enclosing artist and selects the album's row by key.
+            // A position in `albums` is not a position in `rows`.
+            self.focus_album(album_id);
+            self.set_legal_songs();
 
-            self.legal_songs = album.get_tracklist();
-
-            self.nav.album_pos.select(Some(album_pos));
             self.nav.table_pos.select(Some(track_pos));
             *self.nav.table_pos.offset_mut() = 0;
         } else {
@@ -329,24 +300,12 @@ impl UiState {
                 self.legal_songs = self.library.get_all_songs().to_vec();
                 self.sort_by_table_column();
             }
-            Mode::Library(view) => match view {
-                LibraryView::Albums => {
-                    if let Some(idx) = self.nav.album_pos.selected()
-                        && let Some(album) = self.albums.get(idx)
-                    {
-                        self.legal_songs = album.get_tracklist();
-                    }
+            Mode::Library(_) => {
+                self.legal_songs = match self.selected_row().cloned() {
+                    Some(row) => self.songs_for_row(&row),
+                    None => Vec::new(),
                 }
-                LibraryView::Playlists => {
-                    if let Some(idx) = self.nav.playlist_pos.selected()
-                        && let Some(playlist) = self.playlists.get(idx)
-                    {
-                        self.legal_songs = playlist.get_tracklist()
-                    } else {
-                        self.legal_songs.clear()
-                    }
-                }
-            },
+            }
             Mode::Queue => self.legal_songs = self.playback.get_queue(),
 
             Mode::Search => match self.search.len() > 1 {
@@ -402,26 +361,20 @@ impl UiState {
     }
 
     fn scroll_sidebar(&mut self, director: &Director) {
-        let (items_len, state) = match self.nav.sidebar_view {
-            LibraryView::Albums => (self.albums.len(), &mut self.nav.album_pos),
-            LibraryView::Playlists => (self.playlists.len(), &mut self.nav.playlist_pos),
-        };
+        let len = self.nav.sidebar.rows.len();
+        if len != 0 {
+            let current = self.nav.sidebar.pos.selected().unwrap_or(0);
+            let new_pos = match director {
+                Director::Up(x) => (current + len - x) % len,
+                Director::Down(x) => (current + x) % len,
+                Director::Top => 0,
+                Director::Bottom => len - 1,
+            };
 
-        if items_len == 0 {
-            return;
+            self.nav.sidebar.pos.select(Some(new_pos));
+            *self.nav.table_pos.offset_mut() = 0;
+            self.set_legal_songs();
         }
-
-        let current = state.selected().unwrap_or(0);
-        let new_pos = match director {
-            Director::Up(x) => (current + items_len - x) % items_len,
-            Director::Down(x) => (current + x) % items_len,
-            Director::Top => 0,
-            Director::Bottom => items_len - 1,
-        };
-
-        state.select(Some(new_pos));
-        *self.nav.table_pos.offset_mut() = 0;
-        self.set_legal_songs();
     }
 
     fn scroll_to_top(&mut self) {
@@ -515,13 +468,13 @@ impl UiState {
     pub fn adjust_sidebar_size(&mut self, x: isize) {
         match x > 0 {
             true => {
-                if self.nav.sidebar_percent < 49 {
-                    self.nav.sidebar_percent += x as u16;
+                if self.nav.sidebar.width < 49 {
+                    self.nav.sidebar.width += x as u16;
                 }
             }
             false => {
-                if self.nav.sidebar_percent >= 9 {
-                    self.nav.sidebar_percent -= -x as u16;
+                if self.nav.sidebar.width >= 9 {
+                    self.nav.sidebar.width -= -x as u16;
                 }
             }
         }

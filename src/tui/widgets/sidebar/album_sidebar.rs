@@ -27,7 +27,7 @@ impl StatefulWidget for SideBarAlbum {
         let album_sort = state.nav.get_album_sort();
         let sort_label = format!(" {:<10}", album_sort.to_string());
 
-        let selected_album_idx = state.nav.album_pos.selected();
+        let selected_album_idx = state.nav.sidebar.pos.selected();
         let selected_artist = state.get_selected_album().map(|a| a.get_album_artist());
 
         let mut list_items = Vec::with_capacity(albums.len());
@@ -116,7 +116,7 @@ impl StatefulWidget for SideBarAlbum {
 
         // Sync offset to ensure selection is visible
         if let Some(idx) = selected_display_idx {
-            let current_offset = state.nav.album_pos.offset();
+            let current_offset = state.nav.sidebar.pos.offset();
             let visible_height = area.height.saturating_sub(4) as usize;
 
             if idx < current_offset {
@@ -141,6 +141,6 @@ impl StatefulWidget for SideBarAlbum {
         );
 
         // Sync offset back
-        *state.nav.album_pos.offset_mut() = render_state.offset();
+        *state.nav.sidebar.pos.offset_mut() = render_state.offset();
     }
 }

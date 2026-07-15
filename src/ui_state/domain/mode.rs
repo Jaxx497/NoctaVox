@@ -3,6 +3,7 @@ use std::fmt::Display;
 #[derive(Default, PartialEq, Eq, Clone, Copy)]
 pub enum LibraryView {
     #[default]
+    Omni,
     Albums,
     Playlists,
 }
@@ -10,6 +11,7 @@ pub enum LibraryView {
 impl Display for LibraryView {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
+            LibraryView::Omni => write!(f, "Omni"),
             LibraryView::Albums => write!(f, "Albums"),
             LibraryView::Playlists => write!(f, "Playlists"),
         }
@@ -19,6 +21,7 @@ impl Display for LibraryView {
 impl LibraryView {
     pub fn to_str(&self) -> &str {
         match self {
+            LibraryView::Omni => "Omni",
             LibraryView::Albums => "Albums",
             LibraryView::Playlists => "Playlists",
         }
@@ -51,6 +54,7 @@ impl Display for Mode {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Mode::Power => write!(f, "power"),
+            Mode::Library(LibraryView::Omni) => write!(f, "library_omni"),
             Mode::Library(LibraryView::Albums) => write!(f, "library_album"),
             Mode::Library(LibraryView::Playlists) => write!(f, "library_playlist"),
             Mode::Fullscreen => write!(f, "fullscreen"),
@@ -65,6 +69,7 @@ impl Mode {
     pub fn from_str(s: &str) -> Self {
         match s {
             "power" => Mode::Power,
+            "library_omni" => Mode::Library(LibraryView::Omni),
             "library_album" => Mode::Library(LibraryView::Albums),
             "library_playlist" => Mode::Library(LibraryView::Playlists),
             "queue" => Mode::Queue,

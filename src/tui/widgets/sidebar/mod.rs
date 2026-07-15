@@ -1,10 +1,10 @@
-mod album_sidebar;
+// mod album_sidebar;
 mod handler;
-mod playlist_sidebar;
+// mod playlist_sidebar;
 
-pub use album_sidebar::SideBarAlbum;
+// pub use album_sidebar::SideBarAlbum;
 pub use handler::SideBarHandler;
-pub use playlist_sidebar::SideBarPlaylist;
+// pub use playlist_sidebar::SideBarPlaylist;
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
@@ -14,10 +14,10 @@ use ratatui::{
 
 const KILL_WIDTH_ALBUM: u16 = 40;
 const KILL_WIDTH_PLAYLIST: u16 = 25;
-const PADDING_L: u16 = 3;
+const PADDING_L: u16 = 1;
 const PADDING_R: u16 = 2;
 
-use crate::ui_state::{LayoutStyle, LibraryView, Pane, UiState};
+use crate::ui_state::{LayoutStyle, Pane, UiState};
 
 pub fn create_standard_list<'a>(
     list_items: Vec<ListItem<'a>>,
@@ -35,22 +35,22 @@ pub fn create_standard_list<'a>(
         .left_aligned()
         .fg(theme.accent);
 
-    let keymaps = if state.get_pane() == Pane::SideBar {
-        match state.nav.sidebar_view {
-            LibraryView::Albums => Line::from(" [q] Queue Album ")
-                .centered()
-                .fg(theme.text_muted),
-            LibraryView::Playlists => {
-                let playlist_keymaps = " [c]reate 󰲸 | [^D]elete 󰐓 ";
-                match area.width as usize + 2 < playlist_keymaps.len() {
-                    true => Line::default(),
-                    false => Line::from(playlist_keymaps).centered().fg(theme.text_muted),
-                }
-            }
-        }
-    } else {
-        Line::default()
-    };
+    // let keymaps = if state.get_pane() == Pane::SideBar {
+    //     match state.nav.sidebar_view {
+    //         LibraryView::Albums => Line::from(" [q] Queue Album ")
+    //             .centered()
+    //             .fg(theme.text_muted),
+    //         LibraryView::Playlists => {
+    //             let playlist_keymaps = " [c]reate 󰲸 | [^D]elete 󰐓 ";
+    //             match area.width as usize + 2 < playlist_keymaps.len() {
+    //                 true => Line::default(),
+    //                 false => Line::from(playlist_keymaps).centered().fg(theme.text_muted),
+    //             }
+    //         }
+    //     }
+    // } else {
+    //     Line::default()
+    // };
 
     let block = match layout {
         LayoutStyle::Traditional => Block::bordered()
@@ -60,7 +60,7 @@ pub fn create_standard_list<'a>(
             .bg(theme.bg)
             .title_top(title)
             .title_top(sorting_title.unwrap_or_default())
-            .title_bottom(keymaps.centered().fg(theme.text_muted))
+            // .title_bottom(keymaps.centered().fg(theme.text_muted))
             .padding(get_padding(layout, theme.border_display)),
         LayoutStyle::Minimal => Block::bordered()
             .borders(theme.border_display)
