@@ -27,7 +27,7 @@ impl StatefulWidget for PopupManager {
             PopupType::Settings(_) => centered_rect(40, 40, area),
             PopupType::ThemeManager => centered_rect(40, 40, area),
             PopupType::KeymapGuide => centered_rect(65, 70, area),
-            PopupType::Error(_) => centered_rect(40, 35, area),
+            PopupType::Error(_) => centered_rect(50, 40, area),
             _ => return,
         };
 
@@ -45,17 +45,20 @@ impl StatefulWidget for PopupManager {
 }
 
 fn centered_rect(percent_x: u16, percent_y: u16, r: Rect) -> Rect {
+    let x_pad = 100_u16.saturating_sub(percent_x) / 2;
+    let y_pad = 100_u16.saturating_sub(percent_y) / 2;
+
     let popup_layout = Layout::vertical([
-        Constraint::Percentage((100 - percent_y) / 2),
+        Constraint::Percentage(y_pad),
         Constraint::Percentage(percent_y),
-        Constraint::Percentage((100 - percent_y) / 2),
+        Constraint::Percentage(y_pad),
     ])
     .split(r);
 
     Layout::horizontal([
-        Constraint::Percentage((100 - percent_x) / 2),
+        Constraint::Percentage(x_pad),
         Constraint::Percentage(percent_x),
-        Constraint::Percentage((100 - percent_x) / 2),
+        Constraint::Percentage(x_pad),
     ])
     .split(popup_layout[1])[1]
 }

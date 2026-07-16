@@ -3,7 +3,7 @@ use crate::{
     key_handler::{Director, Incrementor, SelectionType},
     library::{SimpleSong, SongDatabase},
     playback::ValidatedSong,
-    ui_state::{LibraryView, Mode},
+    ui_state::Mode,
 };
 use anyhow::Result;
 use rand::seq::SliceRandom;
@@ -92,7 +92,9 @@ impl NoctaVox {
     pub fn shift_position(&mut self, dir: Incrementor) -> Result<()> {
         match self.ui.get_mode() {
             Mode::Queue => self.shift_queue_position(dir)?,
-            Mode::Library(LibraryView::Playlists) => self.ui.shift_playlist_position(dir)?,
+            Mode::Library if self.ui.get_selected_playlist().is_some() => {
+                self.ui.shift_playlist_position(dir)?
+            }
             _ => (),
         }
 

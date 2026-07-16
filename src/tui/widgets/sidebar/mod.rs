@@ -1,10 +1,6 @@
-// mod album_sidebar;
 mod handler;
-// mod playlist_sidebar;
 
-// pub use album_sidebar::SideBarAlbum;
 pub use handler::SideBarHandler;
-// pub use playlist_sidebar::SideBarPlaylist;
 use ratatui::{
     layout::Rect,
     style::{Style, Stylize},
@@ -17,11 +13,10 @@ const KILL_WIDTH_PLAYLIST: u16 = 25;
 const PADDING_L: u16 = 1;
 const PADDING_R: u16 = 2;
 
-use crate::ui_state::{LayoutStyle, Pane, UiState};
+use crate::ui_state::{LayoutStyle, Pane, Root, UiState};
 
 pub fn create_standard_list<'a>(
     list_items: Vec<ListItem<'a>>,
-    sorting_title: Option<Line<'a>>,
     state: &UiState,
     area: Rect,
 ) -> List<'a> {
@@ -29,11 +24,26 @@ pub fn create_standard_list<'a>(
     let layout = &state.layout;
     let theme = state.theme.get_display_theme(focus);
 
-    let (sidebar_type, count) = state.get_sidebar_details();
-
-    let title = Line::from(format!(" ⟪ {} {} ⟫ ", count, sidebar_type))
+    let title = state
+        .selected_row()
+        .map(|row| {
+            let root = row.root();
+            let count = match root {
+                Root::Library => state.albums.len(),
+                Root::Playlist => state.playlists.len(),
+            };
+            Line::from(format!(" ⟪ {} {} ⟫ ", count, root.label()))
+        })
+        .unwrap_or_default()
         .left_aligned()
         .fg(theme.accent);
+
+    let sorting_title = match state.get_selected_root() {
+        Root::Library => Line::from(format!(" {:<10}", state.nav.get_album_sort().to_string()))
+            .right_aligned()
+            .fg(theme.text_secondary),
+        _ => Line::default(),
+    };
 
     // let keymaps = if state.get_pane() == Pane::SideBar {
     //     match state.nav.sidebar_view {
@@ -59,7 +69,7 @@ pub fn create_standard_list<'a>(
             .border_style(theme.border)
             .bg(theme.bg)
             .title_top(title)
-            .title_top(sorting_title.unwrap_or_default())
+            .title_top(sorting_title)
             // .title_bottom(keymaps.centered().fg(theme.text_muted))
             .padding(get_padding(layout, theme.border_display)),
         LayoutStyle::Minimal => Block::bordered()

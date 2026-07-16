@@ -1,9 +1,7 @@
 use crate::{
     config::timing,
     key_handler::*,
-    ui_state::{
-        LibraryView, Mode, Pane, PlaylistAction, PopupType, RowKind, SettingsMode, UiState,
-    },
+    ui_state::{Mode, Pane, PlaylistAction, PopupType, Root, RowKind, SettingsMode, UiState},
 };
 use anyhow::Result;
 use ratatui::crossterm::event::{self, Event, KeyCode, KeyEvent};
@@ -32,7 +30,7 @@ pub fn handle_key_event(key_event: KeyEvent, state: &mut UiState) -> Option<Acti
         InputContext::Fullscreen    => handle_fullscreen(&key_event),
         InputContext::TrackList(_)  => handle_tracklist(&key_event, state, buffer_count),
         InputContext::Sidebar       => handle_sidebar(&key_event, state),
-        InputContext::Search        => handle_search_pane(&key_event, state),
+        InputContext::Search        => handle_search_pane(&key_event),
 
         _ => None,
     }
@@ -63,8 +61,7 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (_, Char('C')) => Some(Action::ThemeManager),
             (X, F(6)) => Some(Action::ThemeRefresh),
 
-            (C, Char('t')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
-            (C, Char('o')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Omni))),
+            (C, Char('t')) => Some(Action::GoTo(Root::Playlist)),
             (C, Char('q')) => Some(Action::ChangeMode(Mode::Queue)),
             (C, Char('z')) => Some(Action::ChangeMode(Mode::Power)),
             (C, Char('r')) => Some(Action::ToggleRepeat),
@@ -89,11 +86,6 @@ fn global_commands(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Opt
             (_, Char('-')) => Some(Action::VolumeShift(-VOLUME_STEP)),
 
             (X, Char('m')) => Some(Action::SwapLayout),
-
-            (C, Char('1')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
-            (C, Char('2')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Playlists))),
-            (C, Char('3')) => Some(Action::ChangeMode(Mode::Queue)),
-            (C, Char('0')) => Some(Action::ChangeMode(Mode::Power)),
 
             // SCROLLING
             (X, Char('j')) | (X, Down) => Some(Action::Scroll(Director::Down(buf_count))),
@@ -144,9 +136,7 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
             Some(Action::GoToTrack(buf_count))
         }
 
-        (X, Left) | (X, Char('h') | Tab) => {
-            Some(Action::ChangeMode(Mode::Library(state.nav.sidebar.view)))
-        }
+        (X, Left) | (X, Char('h') | Tab) => Some(Action::ChangeMode(Mode::Library)),
         _ => None,
     };
 
@@ -155,7 +145,7 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
     }
 
     match state.get_mode() {
-        Mode::Library(_) => match (key.modifiers, key.code) {
+        Mode::Library => match (key.modifiers, key.code) {
             (_, Char('K')) => Some(Action::ShiftPosition(Incrementor::Up)),
             (_, Char('J')) => Some(Action::ShiftPosition(Incrementor::Down)),
             (_, Char('Q')) => Some(Action::QueueMany {
@@ -187,7 +177,7 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
 }
 
 fn handle_sidebar(key: &KeyEvent, state: &UiState) -> Option<Action> {
-    let kind = state.get_selected_row().map(|r| &r.kind);
+    let kind = state.selected_row().map(|r| &r.kind);
     let is_header = matches!(kind, Some(RowKind::Category(_) | RowKind::Artist { .. }));
     let is_pl_leaf = matches!(kind, Some(RowKind::Playlist(_)));
 
@@ -222,18 +212,17 @@ fn handle_sidebar(key: &KeyEvent, state: &UiState) -> Option<Action> {
 
         (X, Char('c')) => Some(Action::CreatePlaylist),
         (X, Char('r')) if is_pl_leaf => Some(Action::RenamePlaylist),
-        (C, Char('d')) if is_pl_leaf => Some(Action::DeletePlaylist),
+        (X, Char('x')) if is_pl_leaf => Some(Action::DeletePlaylist),
 
-        (C, Char('a')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
         _ => None,
     }
 }
 
-fn handle_search_pane(key: &KeyEvent, state: &UiState) -> Option<Action> {
+fn handle_search_pane(key: &KeyEvent) -> Option<Action> {
     match (key.modifiers, key.code) {
-        (X, Esc) => Some(Action::ChangeMode(Mode::Library(state.nav.sidebar.view))),
+        (X, Esc) => Some(Action::ChangeMode(Mode::Library)),
         (X, Tab) | (X, Enter) => Some(Action::SendSearch),
-        (C, Char('a')) => Some(Action::ChangeMode(Mode::Library(LibraryView::Albums))),
+        (C, Char('a')) => Some(Action::GoToAlbum),
 
         (_, Left) | (C, Char('h')) => Some(Action::SortColumnsPrev),
         (_, Right) | (C, Char('l')) => Some(Action::SortColumnsNext),

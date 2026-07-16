@@ -33,11 +33,7 @@ const HELP: &[HelpSection] = &[
             key("< ` >, < ~ >", "Access root settings"),
             key("< + >, < - >", "Adjust volume up/down"),
             key("<control+u>, <f5>", "Rescan library"),
-            key("<control+o/t/q>", "Omni / Playlist / Queue view"),
-            key(
-                "<control+1>, <control+2>, <control+3>",
-                "Albums / Playlists / Queue",
-            ),
+            key("<control+t>, <control+q>", "Playlists / Queue view"),
             key("<shift+D>, <shift+U>", "Page down / up"),
             key("<shift+G>", "Jump to bottom"),
             key("<[>, <]>", "Shrink / grow sidebar"),
@@ -96,7 +92,7 @@ const HELP: &[HelpSection] = &[
             key("<control+l>, <control+right>", "Sort albums (next)"),
             key("<c>", "Create playlist"),
             key("<r>", "Rename playlist (playlist row)"),
-            key("<control+d>", "Delete playlist (playlist row)"),
+            key("<x>", "Delete playlist (playlist row)"),
         ],
     },
     HelpSection {

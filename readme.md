@@ -100,9 +100,12 @@ irm https://raw.githubusercontent.com/Jaxx497/NoctaVox/master/scripts/get-themes
 ## Config
 
 NoctaVox allows for global configuration adjustments. This is an in-progress
-feature, expect breakage. Default values are supplied if no config file is
-present or if a field is missing/invalid. To adjust the configurations, edit
-the `config.toml` file auto-generated inside of `$CONFIG/noctavox/`
+feature, expect breakage. To adjust the configurations, edit the `config.toml`
+file auto-generated inside of `$CONFIG/noctavox/`
+
+Omit any field to take its default — you only need to list what you're
+changing. Values outside a field's accepted range are clamped rather than
+rejected (`framerate = 9999` becomes `360`).
 
 ```toml
 [general]
@@ -141,7 +144,24 @@ repeat = ""            # Repeat indicator
 upcoming = "󰐑"          # Up-next / queue icon
 selected = "󱕣"          # Multi-select marker
 decorator = "✧"         # Decorative glyph
+expanded = "▾"          # Sidebar header, expanded
+collapsed = "▸"         # Sidebar header, collapsed
 ```
+
+Icons resolve in three tiers: a theme's `[icons]` section wins, then your
+`config.toml` `[icons]`, then the built-in default. Omit any field to fall
+through to the next tier.
+
+> **Note:** A mistyped field name or a wrong-typed value invalidates the
+> **entire** `config.toml`, not just the offending line — NoctaVox falls back
+> to all-defaults and reports the parse error in the buffer line on launch. So
+> if a setting you changed appears to have no effect, check for a typo
+> elsewhere in the file. Theme files differ here: unknown keys in a theme are
+> ignored, never fatal.
+
+> **Tip:** Several defaults are Nerd Font glyphs. If they render as tofu boxes,
+> either switch your terminal to a patched font or override those fields with
+> plain Unicode — `expanded = "v"` and `collapsed = ">"` work fine.
 
 ## Addons
 

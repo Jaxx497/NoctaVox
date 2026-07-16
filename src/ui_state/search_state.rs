@@ -9,7 +9,7 @@ use ratatui_textarea::TextArea;
 use std::{collections::HashMap, sync::Arc};
 
 const MATCH_THRESHOLD: i64 = 80;
-const MATCH_LIMIT: usize = 250;
+const MATCH_LIMIT: usize = 1024;
 
 #[derive(Copy, Clone)]
 pub enum MatchField {

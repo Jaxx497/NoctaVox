@@ -41,10 +41,16 @@ fn render_minimal(area: Rect, f: &mut Frame, state: &mut UiState) {
     BreadCrumbs.render(bc_area, f.buffer_mut(), state);
     SearchBar.render(layout.search_bar, f.buffer_mut(), state);
 
-    match state.get_pane() == Pane::SideBar {
-        true => SideBar.render(layout.content, f.buffer_mut(), state),
-        false => SongTable.render(layout.content, f.buffer_mut(), state),
+    let pane = match state.get_pane() {
+        Pane::Popup => state.popup.cached.clone(),
+        p => p.clone(),
+    };
+
+    match pane {
+        Pane::SideBar => SideBar.render(layout.content, f.buffer_mut(), state),
+        _ => SongTable.render(layout.content, f.buffer_mut(), state),
     }
+
     Progress.render(layout.widget, f.buffer_mut(), state);
     BufferLine.render(bf_area, f.buffer_mut(), state);
 }

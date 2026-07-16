@@ -20,6 +20,7 @@ impl NoctaVox {
             Action::Scroll(s)       => self.ui.scroll(s),
             Action::GoToTrack(c)    => self.ui.go_to_track(c)?,
             Action::GoToAlbum       => self.ui.go_to_album()?,
+            Action::GoTo(r)         => self.ui.go_to(r),
             Action::GoToNowPlaying  => self.ui.go_to_now_playing()?,
             Action::ChangeMode(m)   => self.ui.set_mode(m),
             Action::ChangePane(p)   => self.ui.set_pane(p),

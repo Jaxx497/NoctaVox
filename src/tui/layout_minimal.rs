@@ -76,12 +76,3 @@ impl LayoutMinimal {
 fn get_block_height(len: usize, area: Rect) -> usize {
     (len + 2).clamp(1, (area.height as f64 * 0.5).ceil() as usize)
 }
-
-// Vertically Centered:
-//
-//   Constraint::Percentage(20),
-//   Constraint::Length(x as u16),
-//   Constraint::Length(1),
-//   Constraint::Length(widget_h),
-//   Constraint::Fill(1),
-//

@@ -5,7 +5,7 @@ use ratatui::{
     widgets::{Block, Padding, Paragraph, StatefulWidget, Widget, Wrap},
 };
 
-static SIDE_PADDING: u16 = 5;
+static SIDE_PADDING: u16 = 4;
 static VERTICAL_PADDING: u16 = 1;
 
 static PADDING: Padding = Padding {
@@ -36,17 +36,13 @@ impl StatefulWidget for ErrorMsg {
 
         let inner = block.inner(area);
         block.render(area, buf);
-        let chunks = Layout::vertical([
-            Constraint::Percentage(33),
-            Constraint::Length(3),
-            Constraint::Fill(1),
-        ])
-        .split(inner);
+        let chunks =
+            Layout::vertical([Constraint::Percentage(15), Constraint::Fill(1)]).split(inner);
 
         let err_str = state.get_error().unwrap_or("No error to display");
 
         Paragraph::new(err_str)
-            .wrap(Wrap { trim: true })
+            .wrap(Wrap { trim: false })
             .centered()
             .render(chunks[1], buf);
     }

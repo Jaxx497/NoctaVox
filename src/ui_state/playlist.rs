@@ -1,6 +1,6 @@
 use crate::{
     library::{Playlist, PlaylistSong},
-    ui_state::{NodeKey, PopupType, UiState},
+    ui_state::{NodeKey, PopupType, Root, UiState},
 };
 use anyhow::{Result, anyhow, bail};
 
@@ -34,7 +34,7 @@ impl UiState {
                     })
                     .collect::<Vec<PlaylistSong>>();
 
-                Playlist::new(*id, name.to_string(), tracklist)
+                (*id, Playlist::new(*id, name.to_string(), tracklist))
             })
             .collect();
 
@@ -54,7 +54,7 @@ impl UiState {
 
         if self
             .playlists
-            .iter()
+            .values()
             .any(|p| p.name.to_lowercase() == name.to_lowercase())
         {
             bail!("Playlist name already exists!");
@@ -65,7 +65,11 @@ impl UiState {
         self.get_playlists()?;
 
         self.rebuild_rows();
-        let playlist = self.playlists.first().ok_or(anyhow!("Critical error!"))?;
+        let playlist = self
+            .playlists
+            .first()
+            .map(|(_, p)| p)
+            .ok_or(anyhow!("Critical error!"))?;
         self.select_by_key(&NodeKey::Playlist(playlist.id));
         self.set_legal_songs();
         self.close_popup();
@@ -91,7 +95,7 @@ impl UiState {
 
         if self
             .playlists
-            .iter()
+            .values()
             .filter(|p| p.id != playlist.id)
             .any(|p| p.name.to_lowercase() == new_name.to_lowercase())
         {
@@ -101,10 +105,8 @@ impl UiState {
         self.db_worker.rename_playlist(playlist.id, new_name)?;
 
         self.get_playlists()?;
-
-        if !self.playlists.is_empty() {
-            self.nav.sidebar.pos.select_first();
-        }
+        self.rebuild_rows();
+        self.set_legal_songs();
 
         self.close_popup();
         Ok(())
@@ -117,20 +119,14 @@ impl UiState {
     }
 
     pub fn delete_playlist(&mut self) -> Result<()> {
-        let current_playlist = self.nav.sidebar.pos.selected();
-        // let playlist_len =
-
-        if let Some(idx) = current_playlist {
-            let playlist_id = self.playlists[idx].id;
+        if let Some(playlist) = self.get_selected_playlist() {
+            let playlist_id = playlist.id;
             self.db_worker.delete_playlist(playlist_id)?;
 
             self.get_playlists()?;
+            self.rebuild_rows();
+            self.select_by_key(&NodeKey::Root(Root::Playlist));
             self.set_legal_songs();
-        }
-
-        if self.playlists.is_empty() {
-            self.nav.sidebar.pos.select(None);
-            self.legal_songs.clear();
         }
 
         self.close_popup();
@@ -149,7 +145,9 @@ impl UiState {
     pub fn add_to_playlist(&mut self) -> Result<()> {
         match self.popup.selection.selected() {
             Some(playlist_idx) => {
-                let playlist_id = self.playlists.get(playlist_idx).unwrap().id;
+                let Some((&playlist_id, _)) = self.playlists.get_index(playlist_idx) else {
+                    return Ok(());
+                };
                 match self.multi_select_empty() {
                     true => {
                         let song_id = self.get_selected_song()?.id;
@@ -192,7 +190,7 @@ impl UiState {
 
         if self
             .playlists
-            .iter()
+            .values()
             .any(|p| p.name.to_lowercase() == name.to_lowercase())
         {
             bail!("Playlist name already exists!");
@@ -201,7 +199,7 @@ impl UiState {
         self.db_worker.create_playlist(name)?;
         self.get_playlists()?;
 
-        if let Some(new_playlist) = self.playlists.first() {
+        if let Some(new_playlist) = self.playlists.first().map(|(_, p)| p) {
             let playlist_id = new_playlist.id;
 
             if !self.multi_select_empty() {

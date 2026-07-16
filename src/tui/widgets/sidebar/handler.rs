@@ -4,7 +4,7 @@ use crate::{
     tui::widgets::sidebar::{
         KILL_WIDTH_ALBUM, KILL_WIDTH_PLAYLIST, PADDING_L, PADDING_R, create_standard_list,
     },
-    ui_state::{AlbumSort, LayoutStyle, LibraryView, NodeKey, Pane, RowKind, SidebarRow, UiState},
+    ui_state::{AlbumSort, LayoutStyle, Pane, RowKind, SidebarRow, UiState},
 };
 use ratatui::{
     layout::Rect,
@@ -27,21 +27,12 @@ impl StatefulWidget for SideBarHandler {
         let focus = matches!(&state.get_pane(), Pane::SideBar);
         let theme = state.theme.get_display_theme(focus);
 
-        let sorting_title = match state.nav.sidebar.view {
-            LibraryView::Omni => None,
-            _ => Some(
-                Line::from(format!(" {:<10}", state.nav.get_album_sort().to_string()))
-                    .right_aligned()
-                    .fg(theme.text_secondary),
-            ),
-        };
-
         let mut items = Vec::with_capacity(state.nav.sidebar.rows.len());
         for row in &state.nav.sidebar.rows {
             items.push(render_row(row, state, area, theme));
         }
 
-        let list = create_standard_list(items, sorting_title, state, area);
+        let list = create_standard_list(items, state, area);
         StatefulWidget::render(list, area, buf, &mut state.nav.sidebar.pos);
     }
 }
@@ -72,16 +63,12 @@ fn render_row(
         };
 
     match &row.kind {
-        RowKind::Category(key) => {
-            let label = match key {
-                NodeKey::MusicRoot => "Music",
-                NodeKey::PlaylistsRoot => "Playlists",
-                _ => "",
-            };
+        RowKind::Category(root) => {
+            let label = root.label().to_uppercase();
 
             ListItem::new(Line::from_iter([
                 Span::from(prefix).fg(theme.text_muted),
-                Span::from(label).fg(theme.accent).bold(),
+                Span::from(label).underlined().fg(theme.accent).bold(),
             ]))
         }
 
@@ -149,11 +136,11 @@ fn render_row(
         }
 
         RowKind::Playlist(id) => {
-            let Some(playlist) = state.playlists.iter().find(|p| p.id == *id) else {
+            let Some(playlist) = state.playlists.get(id) else {
                 return ListItem::new("");
             };
 
-            let song_count = playlist.get_tracklist().len();
+            let song_count = playlist.len();
             let count_str = match area.width > KILL_WIDTH_PLAYLIST {
                 false => String::new(),
                 true => match state.layout {

@@ -45,7 +45,22 @@ impl From<&str> for FileType {
 }
 
 impl FileType {
-    pub fn to_str(&self) -> &str {
+    pub fn as_str_label(&self) -> &'static str {
+        match self {
+            FileType::MP3 => "ᵐᵖ³",
+            FileType::M4A => "ᵐ⁴ᵃ",
+            FileType::OGG => "ᵒᵍᵍ",
+            FileType::OPUS => "ᵒᵖᵘˢ",
+            FileType::WAV => "ʷᵃᵛ",
+            FileType::FLAC => "ᶠˡᵃᶜ",
+            FileType::WEBM => "ʷᵉᵇᵐ",
+            FileType::AIFF => "ᵃᶦᶠᶠ",
+            FileType::ALAC => "ᵃˡᵃᶜ",
+            FileType::ERR => "ERR",
+        }
+    }
+
+    pub fn to_str(&self) -> &'static str {
         match self {
             FileType::MP3 => "mp3",
             FileType::M4A => "m4a",

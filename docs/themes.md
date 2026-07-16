@@ -247,6 +247,8 @@ field you omit falls back to your global config, then to the built-in default.
 | repeat | string |  | Repeat indicator |
 | upcoming | string | 󰐑 | Up-next / queue icon |
 | selected | string | 󱕣 | Multi-select marker |
+| expanded | string | ▾ | Sidebar header, expanded |
+| collapsed | string | ▸ | Sidebar header, collapsed |
 
 --------------------------------------------------
 

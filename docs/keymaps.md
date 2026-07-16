@@ -2,9 +2,9 @@
 
 Because Noctavox is a modal program, keymaps depend on the specific context in
 which they are used. Contexts are defined by a combination of the mode (e.g.
-Playlist, Queue, Album, Search) and the Pane (e.g. Main pane, sidebar, popup,
-etc.). Global keymaps and playback keymaps will work in almost every context,
-with the exception of searching as not to affect a user's search query. 
+Library, Queue, Search) and the Pane (e.g. Main pane, sidebar, popup, etc.).
+Global keymaps and playback keymaps will work in almost every context, with the
+exception of searching as not to affect a user's search query. 
 
 **Keymaps are case sensitive.**
 
@@ -26,9 +26,9 @@ with the exception of searching as not to affect a user's search query.
 #### Views
 | Action      | Keymap |
 | ----------- | ----------- |
-| Album View |  `Ctrl` + `1` \| `Ctrl` + `a`|
-| Playlist View| `Ctrl` + `2` \| `Ctrl` + `t`|
-| Queue View | `Ctrl` + `3` \| `Ctrl` + `q`|
+| Jump to Albums | `Ctrl` + `a`|
+| Jump to Playlists | `Ctrl` + `t`|
+| Queue View | `Ctrl` + `q`|
 | Change Sidebar Size | `[` `]` |
 | Smooth Waveform | `{` `}` |
 | Minimal Mode | `m` |
@@ -109,29 +109,38 @@ are displayed.
 | Shuffle Queue (Queue Mode Only) | `s` |
 
 
-## Sidebar (Album) Keymaps
-These keymaps apply when the album/playlist sidebar is focused. 
+## Sidebar Keymaps
+These keymaps apply when the sidebar is focused.
+
+The sidebar is a single tree containing both albums and playlists, grouped
+under the `ALBUMS` and `PLAYLISTS` headers. When sorting by artist, albums nest
+one level deeper under an artist header. Rows are either **headers** (which
+fold) or **leaves** (an album or a playlist).
 
 | Action      | Keymap |
 | ----------- | ----------- |
+| Toggle header <br> Open leaf in main pane | `Enter` |
+| Expand header <br> Open leaf in main pane | `l` `→` `Tab` |
+| Collapse header, or jump to parent | `h` `←` |
+| Expand everything | `L` |
 | Queue Full Entity | `q` |
-| Switch to Main Pane | `l` `→` <br> `Enter` |
+| Queue and Shuffle Entity | `s` |
+| Toggle Album Sorting Key<br> `Artist` `Album Title` `Year` | `Ctrl` + `h` <br> `Ctrl` + `l` |
 
+> **Note:** `h` collapses the current header if it's open; otherwise it
+> collapses the parent and moves the cursor there. This makes repeated `h`
+> presses walk back up the tree.
 
-#### Playlist-View Specific
+#### Playlist Rows
+
+These apply when a playlist row is selected. `c` works from anywhere in the
+sidebar.
 
 | Action      | Keymap |
 | ----------- | ----------- |
 | Create New Playlist | `c` |
 | Rename Playlist | `r` |
-| Delete Playlist | `Ctrl` + `d` |
-
-
-#### Album-View Specific
-
-| Action      | Keymap |
-| ----------- | ----------- |
-| Toggle Album Sorting Key<br> `Artist` `Album Title` `Year` | `Ctrl` + `h` <br> `Ctrl` + `l` |
+| Delete Playlist | `x` |
 
 > **Note:** Add an entire album or playlist to the queue by pressing `q`
 > directly from the sidebar pane. If nothing is playing, then the first element

@@ -64,7 +64,6 @@ impl PopupState {
     fn close(&mut self) -> Pane {
         self.current = PopupType::None;
         self.input.clear();
-
         self.cached.clone()
     }
 

@@ -2,7 +2,7 @@ use crate::{
     CONFIG_DIR,
     config::{GeneralConfig, icons::UserIcons},
 };
-use anyhow::Context;
+use anyhow::{Context, anyhow};
 use serde::Deserialize;
 use std::fmt::Write as _;
 use std::fs;
@@ -22,17 +22,27 @@ impl UserConfig {
     pub fn load() -> anyhow::Result<Self> {
         let path = CONFIG_DIR.join("config.toml");
         match fs::read_to_string(&path) {
-            Ok(s) => {
-                toml::from_str(&s).with_context(|| format!("Failed to parse {}", path.display()))
-            }
+            Ok(s) => toml::from_str(&s).map_err(|e| parse_error(&s, e)),
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
                 fs::write(&path, default_config())
                     .with_context(|| format!("Failed to write {}", path.display()))?;
                 Ok(Self::default())
             }
-            Err(e) => Err(e).with_context(|| format!("Failed to read from {}", path.display())),
+            Err(e) => Err(anyhow!("Failed to read config.toml\n\n{e}")),
         }
     }
+}
+
+fn parse_error(src: &str, e: toml::de::Error) -> anyhow::Error {
+    let location = match e.span() {
+        Some(span) => format!("line {}", src[..span.start].matches('\n').count() + 1),
+        None => String::from("could not be read"),
+    };
+
+    anyhow!(
+        "Failed to read [config.toml]\n\n[{location}]: {}\n\nFalling back to default config.",
+        e.message().split(',').next().unwrap()
+    )
 }
 
 fn default_config() -> String {

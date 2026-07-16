@@ -1,9 +1,23 @@
 use std::sync::Arc;
 
+#[derive(Copy, Clone, PartialEq, Eq, Hash)]
+pub enum Root {
+    Library,
+    Playlist,
+}
+
+impl Root {
+    pub fn label(&self) -> &'static str {
+        match self {
+            Root::Library => "Albums",
+            Root::Playlist => "Playlists",
+        }
+    }
+}
+
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub enum NodeKey {
-    MusicRoot,
-    PlaylistsRoot,
+    Root(Root),
     Artist(Arc<String>),
     Album(i64),
     Playlist(i64),
@@ -12,8 +26,8 @@ pub enum NodeKey {
 impl NodeKey {
     pub fn serialize(&self) -> String {
         match self {
-            Self::MusicRoot => "root:music".into(),
-            Self::PlaylistsRoot => "root:playlists".into(),
+            Self::Root(Root::Library) => "root:music".into(),
+            Self::Root(Root::Playlist) => "root:playlists".into(),
             Self::Artist(n) => format!("artist:{n}"),
             Self::Album(id) => format!("album:{id}"),
             Self::Playlist(id) => format!("playlist:{id}"),
@@ -23,8 +37,8 @@ impl NodeKey {
     pub fn deserialize(s: &str) -> Option<Self> {
         let (tag, rest) = s.split_once(':')?;
         match tag {
-            "root" if rest == "music" => Some(Self::MusicRoot),
-            "root" if rest == "playlists" => Some(Self::PlaylistsRoot),
+            "root" if rest == "music" => Some(Self::Root(Root::Library)),
+            "root" if rest == "playlists" => Some(Self::Root(Root::Playlist)),
             "artist" => Some(Self::Artist(Arc::new(rest.to_string()))),
             "album" => rest.parse().ok().map(Self::Album),
             "playlist" => rest.parse().ok().map(Self::Playlist),
@@ -35,7 +49,7 @@ impl NodeKey {
 
 #[derive(Clone)]
 pub enum RowKind {
-    Category(NodeKey),
+    Category(Root),
     Artist {
         name: Arc<String>,
         children: Vec<i64>,
@@ -57,10 +71,18 @@ impl SidebarRow {
 
     pub fn key(&self) -> NodeKey {
         match &self.kind {
-            RowKind::Category(k) => k.clone(),
+            RowKind::Category(r) => NodeKey::Root(*r),
             RowKind::Artist { name, .. } => NodeKey::Artist(Arc::clone(name)),
             RowKind::Album(id) => NodeKey::Album(*id),
             RowKind::Playlist(id) => NodeKey::Playlist(*id),
+        }
+    }
+
+    pub fn root(&self) -> Root {
+        match &self.kind {
+            RowKind::Category(r) => *r,
+            RowKind::Artist { .. } | RowKind::Album(_) => Root::Library,
+            RowKind::Playlist(_) => Root::Playlist,
         }
     }
 

@@ -14,7 +14,8 @@ mod ui_state;
 use std::sync::Arc;
 
 pub use display_state::DisplayState;
-pub use domain::{AlbumSort, LibraryView, Mode, NodeKey, Pane, RowKind, SidebarRow, TableSort};
+pub use domain::{AlbumSort, Mode, NodeKey, Pane, Root, RowKind, SidebarRow, TableSort};
+use indexmap::IndexMap;
 pub use player_snapshot::PlayerSnapshot;
 pub use playlist::PlaylistAction;
 pub use popup::PopupType;
@@ -76,8 +77,9 @@ pub struct UiState {
     pub(crate) viz: Visualizer,
 
     pub(crate) albums: Vec<Album>,
-    pub(crate) playlists: Vec<Playlist>,
+    pub(crate) playlists: IndexMap<i64, Playlist>,
     legal_songs: Vec<Arc<SimpleSong>>,
+    shuffle_seed: u64,
 
     pub library_refresh: Option<Arc<RefreshProgress>>,
     pub key_buffer: KeyBuffer,

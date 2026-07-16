@@ -18,6 +18,7 @@ use ratatui::crossterm::event::KeyModifiers;
 use crate::ui_state::Mode;
 use crate::ui_state::Pane;
 use crate::ui_state::PopupType;
+use crate::ui_state::Root;
 use crate::user_config;
 use crate::visualization::ProgressDisplay;
 
@@ -73,6 +74,7 @@ pub enum Action {
     ChangePane(Pane),
     GoToTrack(usize),
     GoToAlbum,
+    GoTo(Root),
     GoToNowPlaying,
     Scroll(Director),
 

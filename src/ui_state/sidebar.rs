@@ -1,13 +1,13 @@
 use crate::{
     SimpleSong,
-    ui_state::{AlbumSort, LibraryView, NodeKey, Pane, RowKind, SidebarRow, UiState},
+    ui_state::{AlbumSort, NodeKey, Pane, RowKind, SidebarRow, UiState, domain::Root},
 };
 use indexmap::IndexMap;
+use rand::{SeedableRng, rngs::StdRng, seq::SliceRandom};
 use ratatui::widgets::ListState;
 use std::{collections::HashSet, sync::Arc};
 
 pub struct Sidebar {
-    pub view: LibraryView,
     pub album_sort: AlbumSort,
     pub collapsed: HashSet<NodeKey>,
     pub rows: Vec<SidebarRow>,
@@ -18,7 +18,6 @@ pub struct Sidebar {
 impl Sidebar {
     pub fn new() -> Self {
         Sidebar {
-            view: LibraryView::Albums,
             album_sort: AlbumSort::Artist,
             collapsed: HashSet::new(),
             rows: Vec::new(),
@@ -33,12 +32,12 @@ impl UiState {
         self.nav.sidebar.collapsed.contains(key)
     }
 
-    pub(super) fn selected_row(&self) -> Option<&SidebarRow> {
-        self.nav.sidebar.rows.get(self.nav.sidebar.pos.selected()?)
+    pub fn get_selected_root(&self) -> Root {
+        self.selected_row().map_or(Root::Library, |r| r.root())
     }
 
-    pub fn get_selected_row(&self) -> Option<&SidebarRow> {
-        self.selected_row()
+    pub fn selected_row(&self) -> Option<&SidebarRow> {
+        self.nav.sidebar.rows.get(self.nav.sidebar.pos.selected()?)
     }
 
     pub(super) fn select_by_key(&mut self, key: &NodeKey) -> bool {
@@ -54,11 +53,7 @@ impl UiState {
     pub(super) fn rebuild_rows(&mut self) {
         let keep = self.selected_row().map(|r| r.key());
 
-        self.nav.sidebar.rows = match self.nav.sidebar.view {
-            LibraryView::Omni => self.project_omni(),
-            LibraryView::Albums => self.project_albums(),
-            LibraryView::Playlists => self.project_playlists(),
-        };
+        self.nav.sidebar.rows = self.project();
 
         if !keep.is_some_and(|k| self.select_by_key(&k)) {
             self.nav
@@ -68,45 +63,31 @@ impl UiState {
         }
     }
 
-    fn project_omni(&self) -> Vec<SidebarRow> {
-        let mut rows = vec![SidebarRow::new(RowKind::Category(NodeKey::MusicRoot), 0)];
-        if !self.is_collapsed(&NodeKey::MusicRoot) {
-            rows.extend(self.group_by_artist(1));
+    fn project(&self) -> Vec<SidebarRow> {
+        let mut rows = vec![SidebarRow::new(RowKind::Category(Root::Library), 0)];
+        if !self.is_collapsed(&NodeKey::Root(Root::Library)) {
+            rows.extend(match self.nav.sidebar.album_sort {
+                AlbumSort::Artist => self.group_by_artist(),
+                _ => self
+                    .albums
+                    .iter()
+                    .map(|a| SidebarRow::new(RowKind::Album(a.id), 1))
+                    .collect(),
+            });
         }
 
-        rows.push(SidebarRow::new(
-            RowKind::Category(NodeKey::PlaylistsRoot),
-            0,
-        ));
-        if !self.is_collapsed(&NodeKey::PlaylistsRoot) {
+        rows.push(SidebarRow::new(RowKind::Category(Root::Playlist), 0));
+        if !self.is_collapsed(&NodeKey::Root(Root::Playlist)) {
             rows.extend(
                 self.playlists
-                    .iter()
+                    .values()
                     .map(|p| SidebarRow::new(RowKind::Playlist(p.id), 1)),
             );
         }
         rows
     }
 
-    fn project_albums(&self) -> Vec<SidebarRow> {
-        match self.nav.sidebar.album_sort {
-            AlbumSort::Artist => self.group_by_artist(0),
-            _ => self
-                .albums
-                .iter()
-                .map(|a| SidebarRow::new(RowKind::Album(a.id), 0))
-                .collect(),
-        }
-    }
-
-    fn project_playlists(&self) -> Vec<SidebarRow> {
-        self.playlists
-            .iter()
-            .map(|p| SidebarRow::new(RowKind::Playlist(p.id), 0))
-            .collect()
-    }
-
-    fn group_by_artist(&self, base_depth: u8) -> Vec<SidebarRow> {
+    fn group_by_artist(&self) -> Vec<SidebarRow> {
         let mut buckets: IndexMap<Arc<String>, Vec<i64>> = IndexMap::new();
         for album in &self.albums {
             buckets
@@ -125,14 +106,11 @@ impl UiState {
                 true => Vec::new(),
                 false => children
                     .iter()
-                    .map(|&id| SidebarRow::new(RowKind::Album(id), base_depth + 1))
+                    .map(|&id| SidebarRow::new(RowKind::Album(id), 2))
                     .collect(),
             };
 
-            rows.push(SidebarRow::new(
-                RowKind::Artist { name, children },
-                base_depth,
-            ));
+            rows.push(SidebarRow::new(RowKind::Artist { name, children }, 1));
             rows.extend(album_rows);
         }
         rows
@@ -148,8 +126,7 @@ impl UiState {
                 .unwrap_or_default(),
             RowKind::Playlist(id) => self
                 .playlists
-                .iter()
-                .find(|p| p.id == *id)
+                .get(id)
                 .map(|p| p.get_tracklist())
                 .unwrap_or_default(),
             RowKind::Artist { children, .. } => children
@@ -157,18 +134,29 @@ impl UiState {
                 .filter_map(|id| self.library.albums.get(id))
                 .flat_map(|a| a.get_tracklist())
                 .collect(),
-            RowKind::Category(_) => Vec::new(),
+            RowKind::Category(Root::Library) => {
+                let mut songs = self.library.get_all_songs();
+                let mut rng = StdRng::seed_from_u64(self.shuffle_seed);
+                songs.shuffle(&mut rng);
+                songs
+            }
+            RowKind::Category(Root::Playlist) => self
+                .playlists
+                .iter()
+                .flat_map(|(_, p)| p.tracklist.iter().map(|s| Arc::clone(&s.song)))
+                .collect(),
         }
     }
 
     fn parent_key_of(&self, row: &SidebarRow) -> Option<NodeKey> {
         match &row.kind {
-            RowKind::Album(id) => Some(NodeKey::Artist(Arc::clone(
+            RowKind::Category(_) => None,
+            RowKind::Artist { .. } => Some(NodeKey::Root(Root::Library)),
+            RowKind::Playlist { .. } => Some(NodeKey::Root(Root::Playlist)),
+            RowKind::Album(id) if row.depth == 2 => Some(NodeKey::Artist(Arc::clone(
                 &self.library.albums.get(id)?.artist,
             ))),
-            RowKind::Artist { .. } if row.depth > 0 => Some(NodeKey::MusicRoot),
-            RowKind::Playlist { .. } if row.depth > 0 => Some(NodeKey::PlaylistsRoot),
-            _ => None,
+            RowKind::Album(_) => Some(NodeKey::Root(Root::Library)),
         }
     }
 
@@ -243,8 +231,15 @@ impl UiState {
                 .remove(&NodeKey::Artist(Arc::clone(&a.artist)));
         }
 
-        self.nav.sidebar.collapsed.remove(&NodeKey::MusicRoot);
+        self.nav
+            .sidebar
+            .collapsed
+            .remove(&NodeKey::Root(Root::Library));
         self.rebuild_rows();
         self.select_by_key(&NodeKey::Album(album_id));
+    }
+
+    pub fn adjust_sidebar_size(&mut self, delta: isize) {
+        self.nav.sidebar.width = (self.nav.sidebar.width as isize + delta).clamp(8, 49) as u16;
     }
 }

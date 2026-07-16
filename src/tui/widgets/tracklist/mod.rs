@@ -1,22 +1,21 @@
-mod album_tracklist;
 mod generic_tracklist;
 mod search_results;
 
 use std::{
     collections::HashMap,
     sync::{Arc, LazyLock},
+    time::Duration,
 };
 
-pub use album_tracklist::AlbumView;
 pub use generic_tracklist::GenericView;
-pub use search_results::StandardTable;
+pub use search_results::SearchResults;
 
 use crate::{
     DurationStyle, get_readable_duration,
-    library::{SimpleSong, SongInfo},
+    library::{Album, SimpleSong, SongInfo},
     theme::{DisplayTheme, fade_color},
     truncate_at_last_space,
-    ui_state::{LayoutStyle, LibraryView, Mode, Pane, UiState},
+    ui_state::{LayoutStyle, Mode, Pane, Root, UiState},
 };
 use ratatui::{
     layout::{Constraint, Flex, HorizontalAlignment, Rect},
@@ -50,7 +49,7 @@ pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
                 ]
             }
         },
-        Mode::Library(_) | Mode::Queue => match layout {
+        Mode::Library | Mode::Queue => match layout {
             LayoutStyle::Traditional => vec![
                 Constraint::Length(6),
                 Constraint::Length(1),
@@ -72,7 +71,7 @@ pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
 
 pub fn get_keymaps(mode: &Mode, decorator: &str) -> String {
     match mode {
-        Mode::Library(LibraryView::Playlists) | Mode::Queue => {
+        Mode::Library | Mode::Queue => {
             format!(" [q]ueue {decorator} [a]dd to playlist {decorator} [x] remove ")
         }
         _ => format!(" [q]ueue {decorator} [a]dd to playlist "),
@@ -184,7 +183,7 @@ impl CellFactory {
     }
 
     pub fn filetype_cell(theme: &DisplayTheme, song: &Arc<SimpleSong>, ms: bool) -> Cell<'static> {
-        Cell::from(Line::from(format!("{}", song.filetype)).centered()).fg(match ms {
+        Cell::from(song.filetype.as_str_label()).fg(match ms {
             true => theme.text_selected,
             false => theme.text_secondary,
         })
@@ -213,25 +212,6 @@ impl CellFactory {
             LayoutStyle::Traditional => theme.accent,
             LayoutStyle::Minimal => fade_color(theme.dark, theme.accent, 0.7),
         });
-
-        if ms {
-            track_no = track_no.fg(theme.text_selected)
-        };
-
-        Cell::from(track_no)
-    }
-
-    pub fn track_cell(
-        theme: &DisplayTheme,
-        song: &Arc<SimpleSong>,
-        idx: usize,
-        ms: bool,
-    ) -> Cell<'static> {
-        let c = fade_color(theme.dark, theme.accent, 0.7);
-        let mut track_no = match song.track_no {
-            Some(t) => format!("{t:>2}").fg(c),
-            None => format!("{:>2}", idx + 1).fg(c),
-        };
 
         if ms {
             track_no = track_no.fg(theme.text_selected)
@@ -290,7 +270,7 @@ static SUPERSCRIPT: LazyLock<HashMap<u32, &str>> = LazyLock::new(|| {
     ])
 });
 
-fn get_title(state: &UiState, area: Rect) -> Line<'static> {
+fn get_title(state: &UiState, album: Option<&Album>, area: Rect) -> Line<'static> {
     let focus = matches!(state.get_pane(), Pane::TrackList);
     let theme = state.theme.get_display_theme(focus);
     match state.get_mode() {
@@ -307,39 +287,71 @@ fn get_title(state: &UiState, area: Rect) -> Line<'static> {
                 queue_len.fg(theme.text_muted),
             ])
         }
-        Mode::Library(LibraryView::Playlists) => {
-            if state.playlists.is_empty() {
-                return "".into();
+        Mode::Library => match album {
+            Some(a) => {
+                let album_title = match a.title.is_empty() {
+                    true => String::from("[Unknown Album]"),
+                    false => truncate_at_last_space(&a.title, (area.width / 3) as usize),
+                };
+
+                let year_str = a
+                    .year
+                    .filter(|y| *y != 0)
+                    .map_or(String::new(), |y| format!(" [{y}]"));
+
+                let decorator = &state.theme.icons().decorator;
+
+                match state.layout {
+                    LayoutStyle::Traditional => Line::from_iter([
+                        Span::from(format!(" {album_title}"))
+                            .fg(theme.text_secondary)
+                            .italic(),
+                        Span::from(year_str).fg(theme.text_muted),
+                        Span::from(format!(" {decorator} ")).fg(theme.text_muted),
+                        Span::from(a.get_album_artist().to_owned()).fg(theme.accent),
+                        Span::from(format!(" [{} Songs] ", a.tracklist.len())).fg(theme.text_muted),
+                    ]),
+                    LayoutStyle::Minimal => Line::default(),
+                }
             }
+            None => {
+                let name = match state.get_selected_root() {
+                    Root::Library => state.get_selected_group_label().map(|a| a.to_string()),
+                    Root::Playlist => state.get_selected_playlist().map(|p| p.name.clone()),
+                };
 
-            let playlist = match state.get_selected_playlist() {
-                Some(p) => p,
-                None => return "".into(),
-            };
+                let Some(name) = name else {
+                    return "".into();
+                };
 
-            let p = playlist.len();
-            let playlist_len = match p {
-                0 => String::default(),
-                1 => "1 Song".to_string(),
-                _ => format!("{p} Songs"),
-            };
+                let songs = state.get_legal_songs();
+                let count = songs.len();
+                let total: Duration = songs.iter().map(|s| s.get_duration()).sum();
+                let readable = get_readable_duration(total, DurationStyle::Clean);
 
-            let total_length = playlist.get_total_length();
-            let readable = get_readable_duration(total_length, DurationStyle::Clean);
+                let info = match count {
+                    0 => {
+                        return Line::from_iter([
+                            " ".into(),
+                            truncate_at_last_space(&name, (area.width / 3) as usize)
+                                .fg(theme.text_secondary),
+                            " ".into(),
+                        ]);
+                    }
 
-            let info = match p {
-                0 => String::new(),
-                _ => format!("[{playlist_len} ⫽ {readable}] "),
-            };
+                    1 => format!("[1 Song ⫽ {readable}] "),
+                    _ => format!("[{count} Songs ⫽ {readable}] "),
+                };
 
-            let truncated_title = truncate_at_last_space(&playlist.name, (area.width / 3) as usize);
-            let formatted_title = format!(" {} ", truncated_title);
-
-            Line::from_iter([
-                Span::from(formatted_title).fg(theme.text_secondary),
-                info.fg(theme.text_muted),
-            ])
-        }
+                Line::from_iter([
+                    " ".into(),
+                    truncate_at_last_space(&name, (area.width / 3) as usize)
+                        .fg(theme.text_secondary),
+                    format!(" {} ", state.theme.icons().decorator).fg(theme.text_muted),
+                    info.fg(theme.text_muted),
+                ])
+            }
+        },
         _ => Line::default(),
     }
 }

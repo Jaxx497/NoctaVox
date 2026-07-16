@@ -7,7 +7,7 @@ use crate::{
     key_handler::SelectionType,
     library::{SimpleSong, SongDatabase, SongInfo},
     playback::ValidatedSong,
-    ui_state::{LibraryView, Mode},
+    ui_state::Mode,
 };
 
 impl NoctaVox {
@@ -87,10 +87,12 @@ impl NoctaVox {
                 true => self.remove_from_queue()?,
                 false => self.remove_from_queue_multi()?,
             },
-            Mode::Library(LibraryView::Playlists) => match self.ui.multi_select_empty() {
-                true => self.ui.remove_from_playlist()?,
-                false => self.ui.remove_from_playlist_multi()?,
-            },
+            Mode::Library if self.ui.get_selected_playlist().is_some() => {
+                match self.ui.multi_select_empty() {
+                    true => self.ui.remove_from_playlist()?,
+                    false => self.ui.remove_from_playlist_multi()?,
+                }
+            }
             _ => {}
         }
         self.ui.set_legal_songs();

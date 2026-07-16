@@ -1,5 +1,43 @@
 # CHANGELOG
 
+## UNRELEASED
+
+#### Sidebar Overhaul
+
+The sidebar has undergone a complete overhaul. Navigation between albums and
+playlists is now done through foldable headers rather than mode switching. This
+simplified the render and state logic significantly.
+
+### Added:
+  - Sidebar folding with `enter`/`h`/`l`/`L` navigation keys
+  - `expanded` / `collapsed` icon fields to `config.toml` `[icons]` section
+  - `expanded` / `collapsed` fields to theme `[icons]` spec (override config)
+  - Tracklist scroll padding
+  - `NodeKey::Root(Root)` variant consolidating `MusicRoot`/`PlaylistsRoot`
+
+### Changed:
+  - Sidebar is now a single unified tree view containing albums and playlists
+  - `Ctrl`+`t` now navigates to playlists (`GoToPlaylists`)
+  - Enhanced error reporting on invalid config.toml
+  - Condensed sidebar state and render logic 
+  - `Mode::Library` no longer carries a sub-view 
+  - Breadcrumbs unified for all library modes
+  - `x` now deletes playlists instead of `Ctrl`+`d`
+  - Playlist create/rename/delete rebuilds sidebar rows immediately
+  - Snapshot restore now sorts albums on load for consistent ordering
+  - Spectrum analyzer uses fewer allocations per frame
+  - Filtered out non-existent songs when building playlists from database
+  - Various dependency version bumps
+  - Various clippy fixes across the codebase
+
+### Removed:
+  - `LibraryView` enum (Albums, Playlists) — replaced by tree collapse
+  - `SideBarAlbum` and `SideBarPlaylist` widgets — merged into tree handler
+  - Separate album/playlist browser input contexts (`InputContext::AlbumView`,
+    `InputContext::PlaylistView`) — merged into `InputContext::Sidebar`
+  - `Ctrl`+`1`/`Ctrl`+`2`/`Ctrl`+`3`/`Ctrl`+`0` shortcuts
+  - Dead imports and unused code
+
 ## [0.3.2] - Keymap helper, config changes, volume adjustment
 > #### **2026-07-10**
 

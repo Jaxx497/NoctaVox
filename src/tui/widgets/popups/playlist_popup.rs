@@ -88,7 +88,7 @@ fn render_add_song_popup(
     let theme = state.theme.get_display_theme(focus);
     let list_items = state
         .playlists
-        .iter()
+        .values()
         .map(|p| {
             let playlist_name = p.name.to_string();
             Line::from(playlist_name)

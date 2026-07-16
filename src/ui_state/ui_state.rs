@@ -6,7 +6,7 @@ use crate::{
     library::{SimpleSong, SongInfo},
     theme::ThemeConfig,
     ui_state::{
-        LayoutStyle, LibraryView, Mode, Pane, PlaylistAction, SettingsMode, ThemeManager, UiState,
+        LayoutStyle, Mode, Pane, PlaylistAction, SettingsMode, ThemeManager, UiState,
         popup::{PopupState, PopupType},
         stats::VoxStats,
     },
@@ -14,6 +14,7 @@ use crate::{
 };
 use anyhow::anyhow;
 use anyhow::{Error, Result};
+use indexmap::IndexMap;
 use ratatui::widgets::Borders;
 use std::sync::Arc;
 use voxio::{TapHandle, Vox};
@@ -40,8 +41,9 @@ impl UiState {
             key_buffer: KeyBuffer::new(),
 
             albums: Vec::new(),
-            playlists: Vec::new(),
+            playlists: IndexMap::new(),
             legal_songs: Vec::new(),
+            shuffle_seed: rand::random::<u64>(),
 
             library_refresh: None,
         }
@@ -73,7 +75,7 @@ impl UiState {
         }
 
         if self.get_mode() == Mode::Search {
-            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_mode(Mode::Library);
         }
 
         self.clear_multi_select();
@@ -95,7 +97,7 @@ impl UiState {
 
         match (self.get_mode(), self.get_pane()) {
             (Mode::Fullscreen, _) => InputContext::Fullscreen,
-            (Mode::Library(_), Pane::SideBar) => InputContext::Sidebar,
+            (Mode::Library, Pane::SideBar) => InputContext::Sidebar,
             (Mode::Search, Pane::Search) => InputContext::Search,
             (mode, Pane::TrackList) => InputContext::TrackList(mode.clone()),
             (Mode::QUIT, _) => unreachable!(),

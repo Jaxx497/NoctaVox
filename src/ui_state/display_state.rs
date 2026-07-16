@@ -1,8 +1,8 @@
-use super::{AlbumSort, LibraryView, Mode, Pane, TableSort, UiState};
+use super::{AlbumSort, Mode, Pane, TableSort, UiState};
 use crate::{
     key_handler::{Director, Incrementor},
     library::{Album, Playlist, SimpleSong, SongInfo},
-    ui_state::{PopupType, Sidebar, domain::RowKind},
+    ui_state::{NodeKey, PopupType, Root, Sidebar, domain::RowKind},
 };
 use anyhow::{Context, Result, anyhow, bail};
 use indexmap::IndexSet;
@@ -26,7 +26,7 @@ pub struct DisplayState {
 impl DisplayState {
     pub fn new() -> Self {
         DisplayState {
-            mode: Mode::Library(LibraryView::Albums),
+            mode: Mode::Library,
             mode_cached: None,
             pane: Pane::TrackList,
 
@@ -45,10 +45,6 @@ impl DisplayState {
         self.table_pos
             .selected()
             .ok_or_else(|| anyhow!("No song selected"))
-    }
-
-    pub fn get_sidebar_view(&self) -> &LibraryView {
-        &self.sidebar.view
     }
 
     pub fn get_album_sort(&self) -> &AlbumSort {
@@ -73,17 +69,6 @@ impl UiState {
         &self.nav.mode
     }
 
-    pub fn get_sidebar_details(&self) -> (LibraryView, usize) {
-        let sidebar_type = self.nav.get_sidebar_view();
-        let count = match sidebar_type {
-            LibraryView::Albums => self.albums.len(),
-            LibraryView::Playlists => self.playlists.len(),
-            LibraryView::Omni => self.albums.len() + self.playlists.len(),
-        };
-
-        (*sidebar_type, count)
-    }
-
     pub fn set_mode(&mut self, mode: Mode) {
         self.clear_multi_select();
         if let Mode::Power = self.nav.mode {
@@ -102,9 +87,8 @@ impl UiState {
                 self.set_legal_songs();
                 self.nav.table_pos.select(Some(self.nav.table_pos_cached));
             }
-            Mode::Library(view) => {
-                self.nav.sidebar.view = view;
-                self.nav.mode = Mode::Library(view);
+            Mode::Library => {
+                self.nav.mode = Mode::Library;
                 self.nav.pane = Pane::SideBar;
 
                 self.rebuild_rows();
@@ -147,7 +131,7 @@ impl UiState {
         }
 
         match self.nav.mode {
-            Mode::Power | Mode::Library(_) | Mode::Search | Mode::Queue => {
+            Mode::Power | Mode::Library | Mode::Search | Mode::Queue => {
                 let idx = self.nav.get_table_idx()?;
                 Ok(Arc::clone(&self.legal_songs[idx]))
             }
@@ -164,21 +148,31 @@ impl UiState {
 
     pub fn get_selected_playlist(&self) -> Option<&Playlist> {
         match &self.selected_row()?.kind {
-            RowKind::Playlist(id) => self.playlists.iter().find(|p| p.id == *id),
+            RowKind::Playlist(id) => self.playlists.get(id),
             _ => None,
         }
     }
 
     pub fn toggle_album_sort(&mut self, next: bool) {
-        if matches!(self.nav.sidebar.view, LibraryView::Omni) {
-            return;
+        if self.get_selected_root() == Root::Library
+            && !self.is_collapsed(&NodeKey::Root(Root::Library))
+        {
+            let pos = self.nav.sidebar.pos.selected();
+
+            self.nav.sidebar.album_sort = match next {
+                true => self.nav.sidebar.album_sort.next(),
+                false => self.nav.sidebar.album_sort.prev(),
+            };
+
+            self.sort_albums();
+
+            if let Some(p) = pos {
+                let last = self.nav.sidebar.rows.len().saturating_sub(1);
+                self.nav.sidebar.pos.select(Some(p.min(last)));
+            }
+
+            self.set_legal_songs();
         }
-        self.nav.sidebar.album_sort = match next {
-            true => self.nav.sidebar.album_sort.next(),
-            false => self.nav.sidebar.album_sort.prev(),
-        };
-        self.sort_albums();
-        self.set_legal_songs();
     }
 
     pub(super) fn sort_albums(&mut self) {
@@ -234,7 +228,7 @@ impl UiState {
             let np = Arc::clone(np);
             let album_id = np.album_id;
 
-            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_mode(Mode::Library);
             self.focus_album(album_id);
             self.set_pane(Pane::TrackList);
             self.set_legal_songs();
@@ -262,7 +256,7 @@ impl UiState {
         if let Ok(this_song) = self.get_selected_song() {
             let album_id = this_song.album_id;
 
-            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_mode(Mode::Library);
             self.set_pane(Pane::TrackList);
 
             let track_pos = self
@@ -275,19 +269,33 @@ impl UiState {
                 .position(|s| s.id == this_song.id)
                 .unwrap_or(0);
 
-            // Expands the enclosing artist and selects the album's row by key.
-            // A position in `albums` is not a position in `rows`.
             self.focus_album(album_id);
             self.set_legal_songs();
 
             self.nav.table_pos.select(Some(track_pos));
             *self.nav.table_pos.offset_mut() = 0;
         } else {
-            self.set_mode(Mode::Library(LibraryView::Albums));
+            self.set_mode(Mode::Library);
             self.set_pane(Pane::SideBar);
         }
 
         Ok(())
+    }
+
+    pub(crate) fn go_to(&mut self, root: Root) {
+        let not = match root {
+            Root::Library => Root::Playlist,
+            Root::Playlist => Root::Library,
+        };
+
+        self.nav.sidebar.collapsed.insert(NodeKey::Root(not));
+        self.nav.sidebar.collapsed.remove(&NodeKey::Root(root));
+        self.rebuild_rows();
+        if let Some(row) = self.selected_row()
+            && row.root() != root
+        {
+            self.select_by_key(&NodeKey::Root(root));
+        }
     }
 
     pub fn get_legal_songs(&self) -> &[Arc<SimpleSong>] {
@@ -300,7 +308,7 @@ impl UiState {
                 self.legal_songs = self.library.get_all_songs().to_vec();
                 self.sort_by_table_column();
             }
-            Mode::Library(_) => {
+            Mode::Library => {
                 self.legal_songs = match self.selected_row().cloned() {
                     Some(row) => self.songs_for_row(&row),
                     None => Vec::new(),
@@ -315,7 +323,6 @@ impl UiState {
             _ => (),
         }
 
-        // Autoselect first entry if table_pos selection is none
         if !self.legal_songs.is_empty() && self.nav.table_pos.selected().is_none() {
             self.nav.table_pos.select(Some(0));
         }
@@ -462,21 +469,6 @@ impl UiState {
             && let Some(theme) = self.theme.theme_lib.get(idx)
         {
             self.set_theme(theme.clone());
-        }
-    }
-
-    pub fn adjust_sidebar_size(&mut self, x: isize) {
-        match x > 0 {
-            true => {
-                if self.nav.sidebar.width < 49 {
-                    self.nav.sidebar.width += x as u16;
-                }
-            }
-            false => {
-                if self.nav.sidebar.width >= 9 {
-                    self.nav.sidebar.width -= -x as u16;
-                }
-            }
         }
     }
 }

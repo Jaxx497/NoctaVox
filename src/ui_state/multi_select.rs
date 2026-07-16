@@ -12,13 +12,6 @@ impl UiState {
         &self.nav.multi_select
     }
 
-    pub fn get_selected_playlist_idx(&self) -> Option<usize> {
-        match &self.selected_row()?.kind {
-            RowKind::Playlist(id) => self.playlists.iter().position(|p| p.id == *id),
-            _ => None,
-        }
-    }
-
     pub fn get_selected_group_label(&self) -> Option<Arc<String>> {
         match &self.selected_row()?.kind {
             RowKind::Artist { name, .. } => Some(Arc::clone(name)),
@@ -65,7 +58,7 @@ impl UiState {
     }
 
     pub fn multi_select_all(&mut self) -> Result<()> {
-        if let Mode::Queue | Mode::Library(_) = self.get_mode() {
+        if let Mode::Queue | Mode::Library = self.get_mode() {
             let all_selected =
                 (0..self.legal_songs.len()).all(|i| self.nav.multi_select.contains(&i));
 
@@ -106,8 +99,7 @@ impl UiState {
 
         let playlist = self
             .playlists
-            .iter_mut()
-            .find(|p| p.id == playlist_id)
+            .get_mut(&playlist_id)
             .ok_or_else(|| anyhow!("Playlist not found"))?;
 
         let ps_id = playlist
@@ -138,8 +130,7 @@ impl UiState {
         let ps_ids = {
             let playlist = self
                 .playlists
-                .iter()
-                .find(|p| p.id == playlist_id)
+                .get(&playlist_id)
                 .ok_or_else(|| anyhow!("Playlist not found"))?;
 
             indicies
@@ -153,8 +144,7 @@ impl UiState {
         // Redeclare to avoid fighting with borrow checker
         let playlist = self
             .playlists
-            .iter_mut()
-            .find(|p| p.id == playlist_id)
+            .get_mut(&playlist_id)
             .ok_or_else(|| anyhow!("Failed to return playlist"))?;
 
         // Remove indicies in reverse order
@@ -182,14 +172,22 @@ impl UiState {
         Ok(())
     }
 
+    fn selected_playlist_id(&self) -> Option<i64> {
+        match &self.selected_row()?.kind {
+            RowKind::Playlist(id) => Some(*id),
+            _ => None,
+        }
+    }
+
     fn shift_playlist_position_single(&mut self, direction: Incrementor) -> Result<()> {
         let display_idx = self.nav.get_table_idx()?;
 
-        let Some(playlist_idx) = self.get_selected_playlist_idx() else {
+        let Some(id) = self.selected_playlist_id() else {
             return Ok(());
         };
-
-        let playlist = &mut self.playlists[playlist_idx];
+        let Some(playlist) = self.playlists.get_mut(&id) else {
+            return Ok(());
+        };
 
         let target_idx = match direction {
             Incrementor::Up if display_idx > 0 => display_idx - 1,
@@ -221,11 +219,13 @@ impl UiState {
         indices.sort_unstable();
         let last_selected_idx = indices[indices.len() - 1];
 
-        let Some(playlist_idx) = self.get_selected_playlist_idx() else {
+        let Some(id) = self.selected_playlist_id() else {
+            return Ok(());
+        };
+        let Some(playlist) = self.playlists.get_mut(&id) else {
             return Ok(());
         };
 
-        let playlist = &mut self.playlists[playlist_idx];
         let playlist_len = playlist.tracklist.len();
 
         match direction {

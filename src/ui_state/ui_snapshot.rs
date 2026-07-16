@@ -139,7 +139,6 @@ impl UiState {
         }
 
         let ui_snapshot = UiSnapshot::from_values(ui_pairs);
-        self.nav.sidebar.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
         self.layout = LayoutStyle::from_str(&ui_snapshot.layout);
 
         if !ui_snapshot.theme_name.is_empty()
@@ -148,16 +147,16 @@ impl UiState {
             self.set_theme(theme.clone());
         }
 
-        self.nav.sidebar.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
-
         self.nav.sidebar.collapsed = ui_snapshot
             .sidebar_collapsed
             .split('\x1f')
             .filter_map(NodeKey::deserialize)
             .collect();
+        self.nav.sidebar.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
+        self.sort_albums();
 
         let mode_to_restore = match ui_snapshot.mode.as_str() {
-            "search" | "queue" => "library_omni",
+            "search" | "queue" => "library",
             _ => &ui_snapshot.mode,
         };
 

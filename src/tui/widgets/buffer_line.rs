@@ -174,7 +174,7 @@ fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Option<Li
     ]))
 }
 
-fn volume_meter(state: &UiState, theme: &DisplayTheme) -> Line<'static> {
+fn _volume_meter(state: &UiState, theme: &DisplayTheme) -> Line<'static> {
     const MAX: f32 = 1.5; // voxio clamps perceptual volume to 0.0..=1.5
     const CELLS: usize = 12; // one bar cell per 12.5%
     const BOOST_CELL: usize = 8; // unity (100%) lands here: 1.0 / 1.5 * 12 = 8
