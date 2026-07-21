@@ -7,7 +7,7 @@ use ratatui::{
     },
 };
 
-const OSCILLO_LIMITER: usize = 1024;
+const OSCILLO_LIMITER: usize = 512;
 
 pub struct Oscilloscope;
 impl StatefulWidget for Oscilloscope {

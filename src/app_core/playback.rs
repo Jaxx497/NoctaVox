@@ -2,7 +2,6 @@ use crate::{
     app_core::NoctaVox,
     key_handler::{Director, Incrementor, SelectionType},
     library::{SimpleSong, SongDatabase},
-    playback::ValidatedSong,
     ui_state::Mode,
 };
 use anyhow::Result;
@@ -44,13 +43,15 @@ impl NoctaVox {
             songs.shuffle(&mut rand::rng());
         }
 
+        let first = self.ui.playback.enqueue_multi(&songs)?;
+
         if !self.player.is_active() {
-            let first = songs.remove(0);
-            let validated = ValidatedSong::new(&first)?;
-            self.play_song(&validated)?;
+            if let Some(validated) = first {
+                self.ui.playback.remove_from_queue(0);
+                self.play_song(&validated)?;
+            }
         }
 
-        self.ui.playback.enqueue_multi(&songs);
         self.force_sync();
         self.ui.set_legal_songs();
         Ok(())

@@ -64,13 +64,31 @@ impl PlaybackSession {
         Ok(())
     }
 
-    pub fn enqueue_multi(&mut self, songs: &[Arc<SimpleSong>]) {
+    pub fn enqueue_multi(
+        &mut self,
+        songs: &[Arc<SimpleSong>],
+    ) -> Result<Option<Arc<ValidatedSong>>> {
+        let mut db = Database::open()?;
+        let mut first_valid = None;
         for song in songs {
-            if let Ok(validated) = ValidatedSong::new(song) {
-                self.queue_ids.insert(validated.id());
-                self.queue.push_back(validated);
+            let Ok(path) = db.get_song_path(song.id) else {
+                continue;
+            };
+            let Ok(_) = std::fs::metadata(&path) else {
+                continue;
+            };
+            self.queue_ids.insert(song.id);
+            let valid = Arc::new(ValidatedSong {
+                meta: Arc::clone(song),
+                path,
+            });
+
+            self.queue.push_back(Arc::clone(&valid));
+            if first_valid.is_none() {
+                first_valid = Some(Arc::clone(&valid))
             }
         }
+        Ok(first_valid)
     }
 
     /// Push song to front of queue

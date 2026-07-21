@@ -92,7 +92,6 @@ impl UiState {
                 self.nav.pane = Pane::SideBar;
 
                 self.rebuild_rows();
-                *self.nav.table_pos.offset_mut() = 0;
                 self.set_legal_songs();
             }
             Mode::Fullscreen => {
@@ -133,13 +132,20 @@ impl UiState {
         match self.nav.mode {
             Mode::Power | Mode::Library | Mode::Search | Mode::Queue => {
                 let idx = self.nav.get_table_idx()?;
-                Ok(Arc::clone(&self.legal_songs[idx]))
+
+                self.legal_songs
+                    .get(idx)
+                    .cloned()
+                    .context("Selection out of range")
             }
             _ => Err(anyhow!("Should not be reachable")),
         }
     }
 
     pub fn get_selected_album(&self) -> Option<&Album> {
+        if self.get_mode() != Mode::Library {
+            return None;
+        }
         match &self.selected_row()?.kind {
             RowKind::Album(id) => self.library.albums.get(id),
             _ => None,
@@ -323,8 +329,12 @@ impl UiState {
             _ => (),
         }
 
-        if !self.legal_songs.is_empty() && self.nav.table_pos.selected().is_none() {
-            self.nav.table_pos.select(Some(0));
+        match self.legal_songs.len() {
+            0 => self.nav.table_pos.select(None),
+            x => {
+                let idx = self.nav.table_pos.selected().unwrap_or(0).min(x - 1);
+                self.nav.table_pos.select(Some(idx));
+            }
         }
     }
 
@@ -392,7 +402,8 @@ impl UiState {
 
     fn scroll_to_bottom(&mut self) {
         if let Pane::TrackList = self.nav.pane {
-            self.nav.table_pos.select_last()
+            let last = self.legal_songs.len().saturating_sub(1);
+            self.nav.table_pos.select(Some(last))
         }
     }
 

@@ -31,6 +31,17 @@ impl Display for Mode {
 }
 
 impl Mode {
+    pub fn to_string(&self) -> String {
+        match self {
+            Mode::Power => "Power",
+            Mode::Library => "Library",
+            Mode::Fullscreen => "Fullscreen",
+            Mode::Queue => "Queue",
+            Mode::Search => "Search",
+            Mode::QUIT => "Quit",
+        }
+        .to_string()
+    }
     pub fn from_str(s: &str) -> Self {
         match s {
             "power" => Mode::Power,

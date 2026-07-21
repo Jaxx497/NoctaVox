@@ -39,8 +39,8 @@ impl LayoutMinimal {
             area.centered_horizontally(Constraint::Length(width))
         };
 
-        let item_count = match state.get_pane() {
-            Pane::SideBar => state.nav.sidebar.rows.len(),
+        let item_count = match (state.get_pane(), &state.popup.cached) {
+            (Pane::SideBar, _) | (Pane::Popup, Pane::SideBar) => state.nav.sidebar.rows.len(),
             _ => state.get_legal_songs().len(),
         };
 

@@ -45,22 +45,22 @@ pub fn create_standard_list<'a>(
         _ => Line::default(),
     };
 
-    // let keymaps = if state.get_pane() == Pane::SideBar {
-    //     match state.nav.sidebar_view {
-    //         LibraryView::Albums => Line::from(" [q] Queue Album ")
-    //             .centered()
-    //             .fg(theme.text_muted),
-    //         LibraryView::Playlists => {
-    //             let playlist_keymaps = " [c]reate 󰲸 | [^D]elete 󰐓 ";
-    //             match area.width as usize + 2 < playlist_keymaps.len() {
-    //                 true => Line::default(),
-    //                 false => Line::from(playlist_keymaps).centered().fg(theme.text_muted),
-    //             }
-    //         }
-    //     }
-    // } else {
-    //     Line::default()
-    // };
+    let keymaps = if focus {
+        match state.get_selected_root() {
+            Root::Library => Line::from(" [q]ueue | [s] queue (shuffle) ")
+                .centered()
+                .fg(theme.text_muted),
+            Root::Playlist => {
+                let playlist_keymaps = " [q]ueue  [c]reate  [x] delete ";
+                match area.width as usize + 2 < playlist_keymaps.len() {
+                    true => Line::default(),
+                    false => Line::from(playlist_keymaps).centered().fg(theme.text_muted),
+                }
+            }
+        }
+    } else {
+        Line::default()
+    };
 
     let block = match layout {
         LayoutStyle::Traditional => Block::bordered()
@@ -70,7 +70,7 @@ pub fn create_standard_list<'a>(
             .bg(theme.bg)
             .title_top(title)
             .title_top(sorting_title)
-            // .title_bottom(keymaps.centered().fg(theme.text_muted))
+            .title_bottom(keymaps.centered().fg(theme.text_muted))
             .padding(get_padding(layout, theme.border_display)),
         LayoutStyle::Minimal => Block::bordered()
             .borders(theme.border_display)
@@ -88,10 +88,8 @@ pub fn create_standard_list<'a>(
 }
 
 fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {
-    let v_pad = match borders {
-        Borders::NONE => 0,
-        _ => 1,
-    };
+    let borders = borders != Borders::NONE;
+    let v_pad = if borders { 0 } else { 1 };
     match layout {
         LayoutStyle::Traditional => Padding {
             left: PADDING_L,
@@ -100,13 +98,10 @@ fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {
             bottom: v_pad,
         },
         LayoutStyle::Minimal => Padding {
-            left: PADDING_L,
-            right: PADDING_R,
-            top: match borders {
-                Borders::NONE => 1,
-                _ => 0,
-            },
-            bottom: 0,
+            left: if borders { PADDING_L } else { 2 },
+            right: if borders { PADDING_R } else { 3 },
+            top: v_pad,
+            bottom: v_pad,
         },
     }
 }

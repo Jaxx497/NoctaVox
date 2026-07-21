@@ -1,14 +1,17 @@
 use crate::{
     DurationStyle,
     library::SongInfo,
+    theme::fade_color,
     tui::widgets::tracklist::{
-        CellFactory, create_empty_block, create_standard_table, get_padding, get_title,
+        CellFactory, TRAD_ROW_HEIGHT, TRAD_ROW_MARGIN, TRAD_ROW_STRIDE, create_empty_block,
+        create_standard_table, get_padding, scroll_offset,
     },
     ui_state::{LayoutStyle, Pane, UiState},
 };
 use ratatui::{
     style::Stylize,
-    widgets::{Borders, Row, StatefulWidget, TableState, Widget},
+    text::{Line, Span, Text},
+    widgets::{Cell, Row, StatefulWidget, TableState, Widget},
 };
 
 pub struct GenericView;
@@ -32,25 +35,23 @@ impl StatefulWidget for GenericView {
 
         let total = songs.len();
         let padding = get_padding(state, theme, area);
-        let borders = match theme.border_display {
-            Borders::NONE => 0,
-            _ => 2,
-        };
-        let h = area
+        let borders = if theme.has_borders() { 2 } else { 0 };
+
+        let row_height = match state.layout {
+            LayoutStyle::Traditional => TRAD_ROW_STRIDE,
+            _ => 1,
+        } as usize;
+
+        let h = (area
             .height
             .saturating_sub(borders + padding.top + padding.bottom)
-            .max(1) as usize;
+            .max(1) as usize)
+            .div_ceil(row_height)
+            .max(1);
 
-        let pad = ((area.height as f32 * 0.30) as usize).min(h.saturating_sub(1) / 2);
-        let sel = state.nav.table_pos.selected().unwrap_or(0).min(total - 1);
-        let mut offset = state.nav.table_pos.offset();
-        if sel < offset + pad {
-            offset = sel.saturating_sub(pad);
-        }
-        if sel + pad >= offset + h {
-            offset = sel + pad + 1 - h;
-        }
-        offset = offset.min(total.saturating_sub(h));
+        // Scroll-off margin, in songs, kept above/below the selection.
+        let sel = state.nav.table_pos.selected().unwrap_or(0);
+        let offset = scroll_offset(total, h, sel, state.nav.table_pos.offset());
         let end = (offset + h).min(total);
 
         let rows = songs[offset..end]
@@ -60,36 +61,90 @@ impl StatefulWidget for GenericView {
                 let idx = i + offset;
                 let is_m_selected = state.get_multi_select_indices().contains(&idx);
 
-                let index = match album {
-                    Some(_) => CellFactory::track_disc_cell(theme, song, idx, is_m_selected),
-                    None => CellFactory::index_cell(theme, &state.layout, idx, is_m_selected),
-                };
-                let symbol = CellFactory::status_cell(song, state, is_m_selected);
-                let title = CellFactory::title_cell(theme, song.get_title(), is_m_selected);
-                let artist = CellFactory::artist_cell(theme, song, is_m_selected);
-                let filetype = CellFactory::filetype_cell(theme, song, is_m_selected);
-                let duration =
-                    CellFactory::duration_cell(theme, song, DurationStyle::Clean, is_m_selected);
-
                 match state.layout {
-                    LayoutStyle::Traditional => match is_m_selected {
-                        true => Row::new([index, symbol, title, artist, filetype, duration])
-                            .fg(theme.text_selected)
-                            .bg(state.theme.active.accent_inactive),
-                        false => Row::new([index, symbol, title, artist, filetype, duration]),
-                    },
-                    LayoutStyle::Minimal => match is_m_selected {
-                        true => Row::new([index, symbol, title, duration])
-                            .fg(theme.text_selected)
-                            .bg(state.theme.active.accent_inactive),
-                        false => Row::new([index, symbol, title, duration]),
-                    },
+                    LayoutStyle::Traditional => {
+                        let ms = is_m_selected;
+                        let c_title = match ms {
+                            true => theme.text_selected,
+                            false => theme.text_primary,
+                        };
+                        let c_artist = match ms {
+                            true => theme.text_selected,
+                            false => fade_color(theme.dark, theme.text_secondary, 0.8),
+                        };
+                        let c_muted = match ms {
+                            true => theme.text_selected,
+                            false => theme.text_muted,
+                        };
+                        let c_num = match ms {
+                            true => theme.text_selected,
+                            false => fade_color(theme.dark, theme.accent, 0.8),
+                        };
+
+                        // Left column: status + title + format, artist beneath.
+                        let mut title_line = Vec::new();
+                        match CellFactory::status_icon(song, state, ms) {
+                            Some(icon) => {
+                                title_line.push(Span::raw(" "));
+                                title_line.push(icon);
+                                title_line.push(Span::raw("  "));
+                            }
+                            None => title_line.push(Span::raw("    ")),
+                        }
+                        title_line.push(Span::raw(song.get_title().to_string()).fg(c_title).bold());
+                        title_line.push(Span::raw("  "));
+                        title_line.push(Span::raw(song.filetype.as_str_label()).fg(c_muted));
+
+                        // Artist line carries the track/disc number right beside it.
+                        let number = CellFactory::track_disc_super(song, idx, album.is_some());
+                        let artist_line = Line::from(vec![
+                            Span::raw("    "),
+                            Span::raw(number).fg(c_num),
+                            Span::raw(format!(" {} ", state.theme.icons().decorator)).fg(c_muted),
+                            Span::raw(song.get_artist().to_string()).fg(c_artist),
+                        ]);
+
+                        let left =
+                            Cell::from(Text::from(vec![Line::from(title_line), artist_line]));
+
+                        // Right column: only the duration, right-aligned to the edge.
+                        let right = Cell::from(
+                            Line::from(song.get_duration_str(DurationStyle::Clean))
+                                .fg(c_muted)
+                                .right_aligned(),
+                        );
+
+                        let row = Row::new([left, right])
+                            .height(TRAD_ROW_HEIGHT)
+                            .bottom_margin(TRAD_ROW_MARGIN);
+
+                        match ms {
+                            true => row.bg(state.theme.active.accent_inactive),
+                            false => row,
+                        }
+                    }
+                    LayoutStyle::Minimal => {
+                        let symbol = CellFactory::status_cell(song, state, is_m_selected);
+                        let title = CellFactory::title_cell(theme, song.get_title(), is_m_selected);
+                        let duration = CellFactory::duration_cell(
+                            theme,
+                            song,
+                            DurationStyle::Clean,
+                            is_m_selected,
+                        );
+
+                        match is_m_selected {
+                            true => Row::new([title, symbol, duration])
+                                .fg(theme.text_selected)
+                                .bg(state.theme.active.accent_inactive),
+                            false => Row::new([title, symbol, duration]),
+                        }
+                    }
                 }
             })
             .collect::<Vec<Row>>();
 
-        let title = get_title(state, album, area);
-        let table = create_standard_table(rows, title, state, theme, area);
+        let table = create_standard_table(rows, state, theme, area);
 
         state.nav.table_pos.select(Some(sel));
         *state.nav.table_pos.offset_mut() = offset;

@@ -12,21 +12,28 @@ pub use search_results::SearchResults;
 
 use crate::{
     DurationStyle, get_readable_duration,
-    library::{Album, SimpleSong, SongInfo},
-    theme::{DisplayTheme, fade_color},
+    library::{SimpleSong, SongInfo},
+    theme::DisplayTheme,
     truncate_at_last_space,
-    ui_state::{LayoutStyle, Mode, Pane, Root, UiState},
+    ui_state::{LayoutStyle, Mode, Pane, UiState},
 };
 use ratatui::{
     layout::{Constraint, Flex, HorizontalAlignment, Rect},
-    style::{Color, Style, Stylize},
+    style::{Style, Stylize},
     text::{Line, Span, Text},
-    widgets::{Block, Borders, Cell, Padding, Row, Table},
+    widgets::{Block, Cell, Padding, Row, Table},
 };
 
 // 7 matches the `xxM xxS` or `xxH xxM` format
 const DURATION_SPACING: u16 = 7;
 const COLUMN_SPACING: u16 = 2;
+
+// Traditional layout stacks song info: `TRAD_ROW_HEIGHT` content lines plus a
+// blank `TRAD_ROW_MARGIN` gap between entries. The two together are the vertical
+// stride of one song, used for both rendering and scroll/padding math.
+pub(super) const TRAD_ROW_HEIGHT: u16 = 2;
+pub(super) const TRAD_ROW_MARGIN: u16 = 1;
+pub(super) const TRAD_ROW_STRIDE: u16 = TRAD_ROW_HEIGHT + TRAD_ROW_MARGIN;
 
 pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
     let layout = &state.layout;
@@ -50,18 +57,12 @@ pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
             }
         },
         Mode::Library | Mode::Queue => match layout {
-            LayoutStyle::Traditional => vec![
-                Constraint::Length(6),
-                Constraint::Length(1),
-                Constraint::Min(25),
-                Constraint::Max(20),
-                Constraint::Length(4),
-                Constraint::Length(DURATION_SPACING),
-            ],
+            LayoutStyle::Traditional => {
+                vec![Constraint::Fill(1), Constraint::Length(DURATION_SPACING)]
+            }
             LayoutStyle::Minimal => vec![
-                Constraint::Length(3),
-                Constraint::Length(1),
                 Constraint::Fill(1),
+                Constraint::Length(1),
                 Constraint::Length(DURATION_SPACING),
             ],
         },
@@ -80,7 +81,6 @@ pub fn get_keymaps(mode: &Mode, decorator: &str) -> String {
 
 pub fn create_standard_table<'a>(
     rows: Vec<Row<'a>>,
-    title: Line<'static>,
     state: &UiState,
     theme: &DisplayTheme,
     area: Rect,
@@ -89,6 +89,7 @@ pub fn create_standard_table<'a>(
     let pane = state.get_pane();
     let decorator = &state.theme.icons().decorator;
 
+    let title = get_title(state, area);
     let widths = get_widths(state);
     let keymaps = match pane {
         Pane::TrackList => get_keymaps(mode, decorator),
@@ -130,6 +131,7 @@ pub fn create_standard_table<'a>(
         .block(block)
         .column_spacing(COLUMN_SPACING)
         .flex(Flex::SpaceBetween)
+        // .highlight_symbol(state.theme.icons().selector.to_string().fg(theme.accent))
         .row_highlight_style(highlight_style)
 }
 
@@ -146,46 +148,38 @@ pub fn create_empty_block(theme: &DisplayTheme, title: &str) -> Block<'static> {
 pub struct CellFactory;
 
 impl CellFactory {
-    pub fn status_cell(song: &Arc<SimpleSong>, state: &UiState, ms: bool) -> Cell<'static> {
+    /// Playing/queued glyph as a span, or `None` when the song is neither.
+    /// Shared by the multi-line stacked view and the single-column `status_cell`.
+    pub fn status_icon(song: &Arc<SimpleSong>, state: &UiState, ms: bool) -> Option<Span<'static>> {
         let focus = matches!(state.get_pane(), Pane::TrackList);
         let theme = state.theme.get_display_theme(focus);
 
         let is_playing = state.get_now_playing().as_ref().map(|s| s.id) == Some(song.id);
         let is_queued = state.playback.is_queued(song.id);
 
-        let note = state.theme.icons().playing.to_string();
-        let queued = state.theme.icons().queued.to_string();
-
-        Cell::from(if is_playing {
-            note.fg(match ms {
-                true => theme.accent,
-                false => theme.text_secondary,
-            })
-        } else if is_queued && !matches!(state.get_mode(), Mode::Queue) {
-            queued.fg(match ms {
+        if is_playing {
+            Some(state.theme.icons().playing.to_string().fg(match ms {
                 true => theme.text_selected,
                 false => theme.text_secondary,
-            })
+            }))
+        } else if is_queued && !matches!(state.get_mode(), Mode::Queue) {
+            Some(state.theme.icons().queued.to_string().fg(match ms {
+                true => theme.text_selected,
+                false => theme.text_secondary,
+            }))
         } else {
-            "".into()
-        })
+            None
+        }
+    }
+
+    pub fn status_cell(song: &Arc<SimpleSong>, state: &UiState, ms: bool) -> Cell<'static> {
+        Cell::from(Self::status_icon(song, state, ms).unwrap_or_else(|| "".into()))
     }
 
     pub fn title_cell(theme: &DisplayTheme, title: &str, ms: bool) -> Cell<'static> {
         Cell::from(title.to_owned()).fg(match ms {
             true => theme.text_selected,
             false => theme.text_primary,
-        })
-    }
-
-    pub fn artist_cell(theme: &DisplayTheme, song: &Arc<SimpleSong>, ms: bool) -> Cell<'static> {
-        Cell::from(Line::from(song.get_artist().to_string())).fg(set_color_selection(ms, theme))
-    }
-
-    pub fn filetype_cell(theme: &DisplayTheme, song: &Arc<SimpleSong>, ms: bool) -> Cell<'static> {
-        Cell::from(song.filetype.as_str_label()).fg(match ms {
-            true => theme.text_selected,
-            false => theme.text_secondary,
         })
     }
 
@@ -202,57 +196,29 @@ impl CellFactory {
         })
     }
 
-    pub fn index_cell(
-        theme: &DisplayTheme,
-        layout: &LayoutStyle,
-        index: usize,
-        ms: bool,
-    ) -> Cell<'static> {
-        let mut track_no = format!("{:>2}", index + 1).fg(match layout {
-            LayoutStyle::Traditional => theme.accent,
-            LayoutStyle::Minimal => fade_color(theme.dark, theme.accent, 0.7),
-        });
-
-        if ms {
-            track_no = track_no.fg(theme.text_selected)
+    pub fn track_disc_super(song: &Arc<SimpleSong>, idx: usize, has_album: bool) -> String {
+        let track = match (has_album, song.track_no) {
+            (true, Some(t)) => t,
+            _ => (idx + 1) as u32,
         };
 
-        Cell::from(track_no)
-    }
-
-    pub fn track_disc_cell(
-        theme: &DisplayTheme,
-        song: &Arc<SimpleSong>,
-        idx: usize,
-        ms: bool,
-    ) -> Cell<'static> {
-        let mut track_no = match song.track_no {
-            Some(t) => format!("{t:>2}").fg(theme.accent),
-            None => format!("{:>2}", idx + 1).fg(theme.text_muted),
-        };
-
-        if ms {
-            track_no = track_no.fg(theme.text_selected)
-        };
-
-        let disc_no = match song.disc_no {
-            Some(t) => String::from("ᴰ") + SUPERSCRIPT.get(&t).unwrap_or(&"?"),
-            None => "".into(),
+        match (has_album, song.disc_no) {
+            (true, Some(d)) => format!("ᴰ{}·{}", superscript(d, 1), superscript(track, 2)),
+            _ => superscript(track, 2),
         }
-        .fg(match ms {
-            true => theme.text_selected,
-            false => theme.text_muted,
-        });
-
-        Cell::from(Line::from_iter([track_no, " ".into(), disc_no]))
     }
 }
 
-fn set_color_selection(selected: bool, theme: &DisplayTheme) -> Color {
-    match selected {
-        true => theme.text_selected,
-        false => theme.text_primary,
-    }
+/// Render `n`, zero-padded to `width` digits, as Unicode superscript.
+fn superscript(n: u32, width: usize) -> String {
+    format!("{n:0width$}")
+        .chars()
+        .map(|c| {
+            c.to_digit(10)
+                .and_then(|d| SUPERSCRIPT.get(&d).copied())
+                .unwrap_or("?")
+        })
+        .collect()
 }
 
 static SUPERSCRIPT: LazyLock<HashMap<u32, &str>> = LazyLock::new(|| {
@@ -270,119 +236,123 @@ static SUPERSCRIPT: LazyLock<HashMap<u32, &str>> = LazyLock::new(|| {
     ])
 });
 
-fn get_title(state: &UiState, album: Option<&Album>, area: Rect) -> Line<'static> {
+fn get_title(state: &UiState, area: Rect) -> Line<'static> {
+    if state.layout == LayoutStyle::Minimal {
+        return Line::default();
+    }
+
     let focus = matches!(state.get_pane(), Pane::TrackList);
     let theme = state.theme.get_display_theme(focus);
-    match state.get_mode() {
-        Mode::Queue => {
-            let q = state.playback.queue_len();
-            let queue_len = match q {
-                0 => "[0 Songs] ",
-                1 => "[1 Song] ",
-                _ => "[{q} Songs] ",
-            };
+    let mode = state.get_mode();
+    let decorator = &state.theme.icons().decorator;
+    let count = state.get_legal_songs().len();
+    let third = (area.width / 3) as usize;
 
-            Line::from_iter([
-                Span::from(" Queue ").fg(theme.accent),
-                queue_len.fg(theme.text_muted),
-            ])
+    if matches!(mode, Mode::Queue | Mode::Search) {
+        let count_str = match count {
+            1 => "[1 Song] ".to_string(),
+            _ => format!("[{count} Songs] "),
+        };
+        Line::from_iter([
+            Span::from(match mode {
+                Mode::Queue => " Queue ",
+                _ => " Total: ",
+            })
+            .fg(theme.accent),
+            count_str.fg(theme.text_muted),
+        ])
+    } else if let Some(album) = state.get_selected_album() {
+        let album_title = match album.title.is_empty() {
+            true => "[Unknown Album]".to_string(),
+            false => truncate_at_last_space(&album.title, third),
+        };
+        let year_str = album
+            .year
+            .filter(|y| *y != 0)
+            .map_or(String::new(), |y| format!(" [{y}]"));
+        Line::from_iter([
+            Span::from(format!(" {album_title}"))
+                .fg(theme.text_secondary)
+                .italic(),
+            Span::from(year_str).fg(theme.text_muted),
+            Span::from(format!(" {decorator} ")).fg(theme.text_muted),
+            Span::from(album.get_album_artist().to_string()).fg(theme.accent),
+            Span::from(format!(" [{count} Songs] ")).fg(theme.text_muted),
+        ])
+    } else {
+        let name = state
+            .get_selected_playlist()
+            .map(|p| p.name.clone())
+            .or_else(|| {
+                state
+                    .get_selected_group_label()
+                    .map(|a| format!("{a} [ALL SONGS]"))
+            });
+
+        let dur: Duration = state
+            .get_legal_songs()
+            .iter()
+            .map(|s| s.get_duration())
+            .sum();
+        let readable = get_readable_duration(dur, DurationStyle::Clean);
+        let info = match count {
+            0 => String::default(),
+            1 => format!("[1 Song ⫽ {readable}] "),
+            _ => format!("[{count} Songs ⫽ {readable}] "),
+        };
+
+        match name {
+            Some(name) => Line::from_iter([
+                " ".into(),
+                truncate_at_last_space(&name, third).fg(theme.text_secondary),
+                format!(" {decorator} ").fg(theme.text_muted),
+                info.fg(theme.text_muted),
+            ]),
+            None => format!(" {info}").fg(theme.text_muted).into(),
         }
-        Mode::Library => match album {
-            Some(a) => {
-                let album_title = match a.title.is_empty() {
-                    true => String::from("[Unknown Album]"),
-                    false => truncate_at_last_space(&a.title, (area.width / 3) as usize),
-                };
-
-                let year_str = a
-                    .year
-                    .filter(|y| *y != 0)
-                    .map_or(String::new(), |y| format!(" [{y}]"));
-
-                let decorator = &state.theme.icons().decorator;
-
-                match state.layout {
-                    LayoutStyle::Traditional => Line::from_iter([
-                        Span::from(format!(" {album_title}"))
-                            .fg(theme.text_secondary)
-                            .italic(),
-                        Span::from(year_str).fg(theme.text_muted),
-                        Span::from(format!(" {decorator} ")).fg(theme.text_muted),
-                        Span::from(a.get_album_artist().to_owned()).fg(theme.accent),
-                        Span::from(format!(" [{} Songs] ", a.tracklist.len())).fg(theme.text_muted),
-                    ]),
-                    LayoutStyle::Minimal => Line::default(),
-                }
-            }
-            None => {
-                let name = match state.get_selected_root() {
-                    Root::Library => state.get_selected_group_label().map(|a| a.to_string()),
-                    Root::Playlist => state.get_selected_playlist().map(|p| p.name.clone()),
-                };
-
-                let Some(name) = name else {
-                    return "".into();
-                };
-
-                let songs = state.get_legal_songs();
-                let count = songs.len();
-                let total: Duration = songs.iter().map(|s| s.get_duration()).sum();
-                let readable = get_readable_duration(total, DurationStyle::Clean);
-
-                let info = match count {
-                    0 => {
-                        return Line::from_iter([
-                            " ".into(),
-                            truncate_at_last_space(&name, (area.width / 3) as usize)
-                                .fg(theme.text_secondary),
-                            " ".into(),
-                        ]);
-                    }
-
-                    1 => format!("[1 Song ⫽ {readable}] "),
-                    _ => format!("[{count} Songs ⫽ {readable}] "),
-                };
-
-                Line::from_iter([
-                    " ".into(),
-                    truncate_at_last_space(&name, (area.width / 3) as usize)
-                        .fg(theme.text_secondary),
-                    format!(" {} ", state.theme.icons().decorator).fg(theme.text_muted),
-                    info.fg(theme.text_muted),
-                ])
-            }
-        },
-        _ => Line::default(),
     }
 }
 
+pub(super) fn scroll_offset(
+    total: usize,
+    capacity: usize,
+    selected: usize,
+    offset: usize,
+) -> usize {
+    if total == 0 {
+        return 0;
+    }
+    let pad = ((capacity as f32 * 0.30) as usize).min(capacity.saturating_sub(1) / 2);
+
+    let mut offset = offset;
+    if selected < offset + pad {
+        offset = selected.saturating_sub(pad);
+    }
+    if selected + pad >= offset + capacity {
+        offset = selected + pad + 1 - capacity;
+    }
+    offset.min(total.saturating_sub(capacity))
+}
+
 fn get_padding(state: &UiState, theme: &DisplayTheme, area: Rect) -> Padding {
-    let layout = &state.layout;
-    let borders = theme.border_display;
-    let song_len = (state.get_legal_songs().len()) as u16;
+    match state.layout {
+        LayoutStyle::Traditional => {
+            let ink = (state.get_legal_songs().len() as u16 * TRAD_ROW_STRIDE).wrapping_add(1);
+            let border_h = if theme.has_borders() { 2 } else { 0 };
+            let top = (area.height.saturating_sub(border_h + ink) / 2).max(1);
 
-    let top = match song_len < area.height {
-        true => (area.height.saturating_sub(song_len) / 2)
-            .saturating_sub(2)
-            .max(1),
-        false => 1,
-    };
-
-    match layout {
-        LayoutStyle::Traditional => Padding {
-            left: 4,
-            right: 4,
-            top,
-            bottom: 1,
-        },
+            Padding {
+                left: 4,
+                right: 4,
+                top,
+                bottom: 0,
+            }
+        }
         LayoutStyle::Minimal => Padding {
-            left: 3,
-            right: 3,
-            top: match borders {
-                Borders::NONE => 1,
-                _ => 0,
-            },
-            bottom: 0,
+            left: if theme.has_borders() { 2 } else { 3 },
+            right: if theme.has_borders() { 2 } else { 3 },
+            top: if theme.has_borders() { 0 } else { 1 },
+            bottom: if theme.has_borders() { 0 } else { 1 },
         },
     }
 }

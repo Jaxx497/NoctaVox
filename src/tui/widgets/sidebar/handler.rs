@@ -2,7 +2,7 @@ use crate::{
     theme::{DisplayTheme, fade_color},
     truncate_at_last_space,
     tui::widgets::sidebar::{
-        KILL_WIDTH_ALBUM, KILL_WIDTH_PLAYLIST, PADDING_L, PADDING_R, create_standard_list,
+        KILL_WIDTH_ALBUM, KILL_WIDTH_PLAYLIST, create_standard_list, get_padding,
     },
     ui_state::{AlbumSort, LayoutStyle, Pane, RowKind, SidebarRow, UiState},
 };
@@ -10,7 +10,7 @@ use ratatui::{
     layout::Rect,
     style::Stylize,
     text::{Line, Span},
-    widgets::{Borders, ListItem, StatefulWidget},
+    widgets::{ListItem, StatefulWidget},
 };
 use unicode_width::UnicodeWidthStr;
 
@@ -55,12 +55,8 @@ fn render_row(
     let prefix = format!("{indent}{glyph} ");
     let prefix_w = prefix.width() as u16;
 
-    let padding = PADDING_L
-        + PADDING_R
-        + match theme.border_display {
-            Borders::NONE => 0,
-            _ => 2,
-        };
+    let p = get_padding(&state.layout, theme.border_display);
+    let padding = p.left + p.right + (if theme.has_borders() { 2 } else { 0 });
 
     match &row.kind {
         RowKind::Category(root) => {
@@ -99,6 +95,16 @@ fn render_row(
                 true => album.get_album_artist().to_string() + " [Unknown Album]",
                 false => album.title.to_string(),
             };
+
+            // if row.depth == 1 && matches!(state.nav.get_album_sort(), AlbumSort::Artist) {
+            //     return ListItem::new(Line::from_iter([
+            //         Span::from(prefix).fg(theme.text_muted),
+            //         Span::from(album.get_album_artist().to_string()).fg(theme.text_secondary),
+            //         Span::from(format!(" {} ", state.theme.icons().decorator)).fg(theme.text_muted),
+            //         Span::from(album_title).fg(theme.text_primary),
+            //         Span::from(format!(" [{year}] ")).fg(theme.text_muted),
+            //     ]));
+            // }
 
             match state.layout {
                 LayoutStyle::Minimal => {

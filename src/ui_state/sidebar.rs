@@ -101,6 +101,11 @@ impl UiState {
         for (name, mut children) in buckets {
             children.sort_by_key(|id| self.library.albums.get(id).and_then(|a| a.year));
 
+            // if children.len() == 1 {
+            //     rows.push(SidebarRow::new(RowKind::Album(children[0]), 1));
+            //     continue;
+            // }
+
             let collapsed = self.is_collapsed(&NodeKey::Artist(Arc::clone(&name)));
             let album_rows: Vec<SidebarRow> = match collapsed {
                 true => Vec::new(),

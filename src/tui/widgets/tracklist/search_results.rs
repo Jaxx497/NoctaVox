@@ -2,7 +2,7 @@ use crate::{
     DurationStyle,
     library::SongInfo,
     theme::fade_color,
-    tui::widgets::tracklist::{CellFactory, create_standard_table, get_padding},
+    tui::widgets::tracklist::{CellFactory, create_standard_table, get_padding, scroll_offset},
     ui_state::{LayoutStyle, MatchField, Pane, UiState},
 };
 use ratatui::{
@@ -25,15 +25,6 @@ impl StatefulWidget for SearchResults {
 
         let songs = state.get_legal_songs().to_owned();
         let total = songs.len();
-        let search_len = state.search.len();
-
-        let title = match state.layout {
-            LayoutStyle::Traditional => match search_len > 1 {
-                true => format!(" Search Results: {} Songs ", total),
-                false => format!(" Total: {} Songs ", total),
-            },
-            LayoutStyle::Minimal => String::new(),
-        };
 
         let padding = get_padding(state, theme, area);
         let borders = match theme.border_display {
@@ -45,16 +36,8 @@ impl StatefulWidget for SearchResults {
             .saturating_sub(borders + padding.top + padding.bottom)
             .max(1) as usize;
 
-        let pad = ((area.height as f32 * 0.30) as usize).min(h.saturating_sub(1) / 2);
         let sel = state.nav.table_pos.selected().unwrap_or(0);
-        let mut offset = state.nav.table_pos.offset();
-        if sel < offset + pad {
-            offset = sel.saturating_sub(pad);
-        }
-        if sel + pad >= offset + h {
-            offset = sel + pad + 1 - h;
-        }
-        offset = offset.min(total.saturating_sub(h));
+        let offset = scroll_offset(total, h, sel, state.nav.table_pos.offset());
         let end = (offset + h).min(total);
 
         let inactive = fade_color(theme.dark, theme.text_primary, 0.6);
@@ -90,7 +73,7 @@ impl StatefulWidget for SearchResults {
             })
             .collect::<Vec<Row>>();
 
-        let table = create_standard_table(rows, title.into(), state, theme, area);
+        let table = create_standard_table(rows, state, theme, area);
 
         state.nav.table_pos.select(Some(sel));
         *state.nav.table_pos.offset_mut() = offset;

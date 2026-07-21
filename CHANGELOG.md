@@ -2,33 +2,38 @@
 
 ## UNRELEASED
 
-#### Sidebar Overhaul
+#### Visual Overhaul
 
-The sidebar has undergone a complete overhaul. Navigation between albums and
-playlists is now done through foldable headers rather than mode switching. This
-simplified the render and state logic significantly.
+The main interface is undergoing an overhaul. 
+
+Sidebar navigation between albums
+and playlists is now done through foldable headers rather than mode switching.
+This simplified the render and state logic significantly.
+
+The tracklist now uses a clean double-line display in most windows. Minimal
+view removed unnecessary attributes to better qualify the "minimal" definition.
+
 
 ### Added:
-  - Sidebar folding with `enter`/`h`/`l`/`L` navigation keys
-  - `expanded` / `collapsed` icon fields to `config.toml` `[icons]` section
-  - `expanded` / `collapsed` fields to theme `[icons]` spec (override config)
-  - Tracklist scroll padding
-  - `NodeKey::Root(Root)` variant consolidating `MusicRoot`/`PlaylistsRoot`
+  - *(sidebar)* folding with `enter`/`h`/`l`/`L` navigation keys
+  - *(config/themes)* `expanded` / `collapsed` icon fields to `config.toml` `[icons]` section
+  - *(config/themes)* `expanded` / `collapsed` fields to theme `[icons]` spec (override config)
+  - *(tracklist)* scroll padding
 
 ### Changed:
-  - Sidebar is now a single unified tree view containing albums and playlists
-  - `Ctrl`+`t` now navigates to playlists (`GoToPlaylists`)
-  - Enhanced error reporting on invalid config.toml
-  - Condensed sidebar state and render logic 
-  - `Mode::Library` no longer carries a sub-view 
-  - Breadcrumbs unified for all library modes
-  - `x` now deletes playlists instead of `Ctrl`+`d`
-  - Playlist create/rename/delete rebuilds sidebar rows immediately
-  - Snapshot restore now sorts albums on load for consistent ordering
-  - Spectrum analyzer uses fewer allocations per frame
-  - Filtered out non-existent songs when building playlists from database
-  - Various dependency version bumps
-  - Various clippy fixes across the codebase
+  - *(breadcrumbs)* unified for all library modes
+  - *(database)* faster queue validation logic
+  - *(errors)* Enhanced error reporting on invalid config.toml
+  - *(keymaps)* `x` now deletes playlists instead of `Ctrl`+`d`
+  - *(keymaps)* `Ctrl`+`t` navigates to playlists section of new sidebar 
+  - *(sidebar)* Sidebar is now a single unified tree view containing albums and playlists
+  - *(sidebar)* Condensed sidebar state and render logic 
+  - *(snapshot)* restore now sorts albums on load for consistent ordering
+  - *(spectrum)* widget uses fewer allocations per frame
+  - *(spectrum)* widget takes up less space in trad view
+  - *(tracklist)* internal rework
+  - *(various)* dependency version bumps
+  - *(various)* clippy fixes across the codebase
 
 ### Removed:
   - `LibraryView` enum (Albums, Playlists) — replaced by tree collapse

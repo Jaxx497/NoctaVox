@@ -19,10 +19,8 @@ impl StatefulWidget for Timer {
         state: &mut Self::State,
     ) {
         let y_pos = match state.viz.get_progress_display() {
-            ProgressDisplay::ProgressBar | ProgressDisplay::Waveform => {
-                area.y + ((area.height.saturating_sub(1)) / 2)
-            }
-            _ => area.y + 1,
+            ProgressDisplay::Oscilloscope => area.y + 1,
+            _ => area.y + ((area.height.saturating_sub(1)) / 2),
         };
 
         let text_color = state.theme.active.text_muted;
