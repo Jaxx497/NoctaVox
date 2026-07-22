@@ -1,4 +1,7 @@
-use crate::{theme::fade_color, ui_state::UiState};
+use crate::{
+    theme::fade_color,
+    ui_state::{LayoutStyle, UiState},
+};
 use ratatui::{
     style::{Color, Stylize},
     widgets::{
@@ -36,6 +39,17 @@ impl StatefulWidget for SpectrumAnalyzer {
             return;
         }
 
+        let padding = if let LayoutStyle::Traditional = state.layout {
+            Padding {
+                left: 10,
+                right: 10,
+                top: 1,
+                bottom: 1,
+            }
+        } else {
+            Padding::default()
+        };
+
         let is_mirrored = theme.spectrum.mirror;
 
         let y_min = match is_mirrored {
@@ -63,12 +77,7 @@ impl StatefulWidget for SpectrumAnalyzer {
                 }
             })
             .background_color(theme.bg_global)
-            .block(Block::new().bg(theme.bg_global).padding(Padding {
-                left: 10,
-                right: 10,
-                top: 1,
-                bottom: 1,
-            }))
+            .block(Block::new().bg(theme.bg_global).padding(padding))
             .render(area, buf)
     }
 }

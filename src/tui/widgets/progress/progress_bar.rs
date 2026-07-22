@@ -41,16 +41,16 @@ impl StatefulWidget for ProgressBar {
             &theme.progress_bar.active_color,
         );
 
-        let w_pad = match state.layout {
-            LayoutStyle::Traditional => 10,
-            LayoutStyle::Minimal => 0,
+        let (x_pad, y_pad) = match state.layout {
+            LayoutStyle::Traditional => (9, 1),
+            LayoutStyle::Minimal => (0, 0),
         };
 
         let guage = LineGauge::default()
             .block(Block::new().bg(theme.bg_global).padding(Padding {
-                left: w_pad,
-                right: w_pad + 1,
-                top: (area.height / 2),
+                left: x_pad,
+                right: x_pad,
+                top: y_pad,
                 bottom: 0,
             }))
             .filled_style(fg)

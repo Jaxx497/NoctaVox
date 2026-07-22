@@ -91,53 +91,45 @@ fn render_row(
             };
 
             let mut year = album.year.map_or("????".to_string(), |y| format!("{y}"));
-            let album_title = match album.title.is_empty() {
+            let mut album_title = match album.title.is_empty() {
                 true => album.get_album_artist().to_string() + " [Unknown Album]",
                 false => album.title.to_string(),
             };
 
-            // if row.depth == 1 && matches!(state.nav.get_album_sort(), AlbumSort::Artist) {
-            //     return ListItem::new(Line::from_iter([
-            //         Span::from(prefix).fg(theme.text_muted),
-            //         Span::from(album.get_album_artist().to_string()).fg(theme.text_secondary),
-            //         Span::from(format!(" {} ", state.theme.icons().decorator)).fg(theme.text_muted),
-            //         Span::from(album_title).fg(theme.text_primary),
-            //         Span::from(format!(" [{year}] ")).fg(theme.text_muted),
-            //     ]));
-            // }
-
-            match state.layout {
-                LayoutStyle::Minimal => {
-                    if area.width < KILL_WIDTH_ALBUM {
-                        year.clear();
-                    }
-
-                    let gap = area.width.saturating_sub(
-                        (album_title.width() + year.width()) as u16 + padding + prefix_w,
-                    ) as usize;
-
-                    ListItem::new(Line::from_iter([
-                        Span::from(prefix),
-                        Span::from(album_title).fg(theme.text_primary),
-                        Span::from(" ".repeat(gap)),
-                        Span::from(year).fg(fade_color(theme.dark, theme.accent, 0.7)),
-                    ]))
+            match area.width < KILL_WIDTH_ALBUM {
+                true => year.clear(),
+                false => {
+                    album_title = truncate_at_last_space(
+                        &album_title,
+                        area.width.saturating_sub(prefix_w as u16 + padding + 5) as usize,
+                    );
                 }
+            }
 
-                LayoutStyle::Traditional => {
-                    let year_color = match state.nav.get_album_sort() {
-                        AlbumSort::Artist => theme.text_muted,
-                        _ => theme.text_secondary,
-                    };
-                    let decorator = &state.theme.icons().decorator;
+            let gap = area
+                .width
+                .saturating_sub((album_title.width() + year.width()) as u16 + padding + prefix_w)
+                as usize;
 
-                    ListItem::new(Line::from_iter([
-                        Span::from(prefix),
-                        Span::from(format!("{year: >4} ")).fg(year_color),
-                        Span::from(format!("{decorator} ")).fg(theme.text_muted),
-                        Span::from(album_title).fg(theme.text_primary),
-                    ]))
-                }
+            match state.nav.get_album_sort() {
+                AlbumSort::Title => ListItem::new(Line::from_iter([
+                    Span::from(prefix),
+                    Span::from(year).fg(theme.text_muted),
+                    Span::from(format!(" {} ", state.theme.icons().decorator)).fg(theme.text_muted),
+                    Span::from(album_title).fg(theme.text_secondary),
+                ])),
+                AlbumSort::Year => ListItem::new(Line::from_iter([
+                    Span::from(prefix),
+                    Span::from(year).fg(theme.text_secondary),
+                    Span::from(format!(" {} ", state.theme.icons().decorator)).fg(theme.text_muted),
+                    Span::from(album_title).fg(fade_color(theme.dark, theme.text_primary, 0.8)),
+                ])),
+                AlbumSort::Artist => ListItem::new(Line::from_iter([
+                    Span::from(prefix),
+                    Span::from(album_title).fg(theme.text_primary),
+                    Span::from(" ".repeat(gap)),
+                    Span::from(year).fg(fade_color(theme.dark, theme.accent, 0.7)),
+                ])),
             }
         }
 

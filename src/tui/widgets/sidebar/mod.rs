@@ -8,7 +8,7 @@ use ratatui::{
     widgets::{Block, Borders, HighlightSpacing, List, ListItem, Padding},
 };
 
-const KILL_WIDTH_ALBUM: u16 = 40;
+const KILL_WIDTH_ALBUM: u16 = 42;
 const KILL_WIDTH_PLAYLIST: u16 = 25;
 const PADDING_L: u16 = 1;
 const PADDING_R: u16 = 2;
@@ -47,14 +47,14 @@ pub fn create_standard_list<'a>(
 
     let keymaps = if focus {
         match state.get_selected_root() {
-            Root::Library => Line::from(" [q]ueue | [s] queue (shuffle) ")
-                .centered()
-                .fg(theme.text_muted),
+            Root::Library => Line::from(" [q]ueue "),
             Root::Playlist => {
-                let playlist_keymaps = " [q]ueue  [c]reate  [x] delete ";
-                match area.width as usize + 2 < playlist_keymaps.len() {
+                let decorator = &state.theme.icons().decorator;
+                let playlist_keymaps =
+                    format!(" [q]ueue {decorator} [c]reate {decorator} [x] delete ");
+                match area.width as usize + 4 < playlist_keymaps.len() {
                     true => Line::default(),
-                    false => Line::from(playlist_keymaps).centered().fg(theme.text_muted),
+                    false => Line::from(playlist_keymaps),
                 }
             }
         }
@@ -83,7 +83,7 @@ pub fn create_standard_list<'a>(
     List::new(list_items)
         .block(block)
         .highlight_style(Style::new().fg(theme.text_selected).bg(theme.accent))
-        .scroll_padding((area.height as f32 * 0.15) as usize)
+        .scroll_padding((area.height as f32 * 0.25) as usize)
         .highlight_spacing(HighlightSpacing::Always)
 }
 

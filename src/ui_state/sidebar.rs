@@ -12,6 +12,7 @@ pub struct Sidebar {
     pub collapsed: HashSet<NodeKey>,
     pub rows: Vec<SidebarRow>,
     pub pos: ListState,
+    pub prev_folds: Vec<SidebarRow>,
     pub width: u16, // as a percentage
 }
 
@@ -22,6 +23,7 @@ impl Sidebar {
             collapsed: HashSet::new(),
             rows: Vec::new(),
             pos: ListState::default().with_selected(Some(0)),
+            prev_folds: Vec::with_capacity(2),
             width: 30,
         }
     }
@@ -100,11 +102,6 @@ impl UiState {
         let mut rows = Vec::with_capacity(self.albums.len() + buckets.len());
         for (name, mut children) in buckets {
             children.sort_by_key(|id| self.library.albums.get(id).and_then(|a| a.year));
-
-            // if children.len() == 1 {
-            //     rows.push(SidebarRow::new(RowKind::Album(children[0]), 1));
-            //     continue;
-            // }
 
             let collapsed = self.is_collapsed(&NodeKey::Artist(Arc::clone(&name)));
             let album_rows: Vec<SidebarRow> = match collapsed {
@@ -190,7 +187,10 @@ impl UiState {
 
         if let Some(key) = row.collapse_key() {
             if !self.is_collapsed(&key) {
-                self.nav.sidebar.collapsed.insert(key);
+                self.nav.sidebar.collapsed.insert(key.clone());
+
+                self.nav.sidebar.prev_folds.push(row);
+
                 self.rebuild_rows();
                 self.set_legal_songs();
                 return;
@@ -201,6 +201,7 @@ impl UiState {
             return;
         };
 
+        self.nav.sidebar.prev_folds.push(row.clone());
         self.nav.sidebar.collapsed.insert(parent.clone());
         self.rebuild_rows();
         self.select_by_key(&parent);
@@ -215,8 +216,15 @@ impl UiState {
         match row.collapse_key() {
             Some(key) if self.is_collapsed(&key) => {
                 self.nav.sidebar.collapsed.remove(&key);
+
                 self.rebuild_rows();
                 self.set_legal_songs();
+
+                if let Some(prev_row) = self.nav.sidebar.prev_folds.pop() {
+                    self.select_by_key(&prev_row.key())
+                } else {
+                    false
+                };
             }
             _ => self.set_pane(Pane::TrackList),
         }

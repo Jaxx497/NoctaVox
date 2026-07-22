@@ -15,17 +15,20 @@ view removed unnecessary attributes to better qualify the "minimal" definition.
 
 
 ### Added:
-  - *(sidebar)* folding with `enter`/`h`/`l`/`L` navigation keys
-  - *(config/themes)* `expanded` / `collapsed` icon fields to `config.toml` `[icons]` section
-  - *(config/themes)* `expanded` / `collapsed` fields to theme `[icons]` spec (override config)
+  - *(config/themes)* added `expanded` / `collapsed` icon fields to `[icons]`
+    section of both `config.toml` and theme spec
   - *(tracklist)* scroll padding
+  - *(sidebar)* folding with `enter`/`h`/`l`/`L` navigation keys
 
 ### Changed:
-  - *(breadcrumbs)* unified for all library modes
   - *(database)* faster queue validation logic
   - *(errors)* Enhanced error reporting on invalid config.toml
   - *(keymaps)* `x` now deletes playlists instead of `Ctrl`+`d`
   - *(keymaps)* `Ctrl`+`t` navigates to playlists section of new sidebar 
+  - **(minimal)** improved space management
+  - **(minimal)** dynamic spacing as window changes
+  - *(minimal- breadcrumbs)* unified for all library modes
+  - *(minimal- breadcrumbs)* no longer is hidden in small windows
   - *(sidebar)* Sidebar is now a single unified tree view containing albums and playlists
   - *(sidebar)* Condensed sidebar state and render logic 
   - *(snapshot)* restore now sorts albums on load for consistent ordering

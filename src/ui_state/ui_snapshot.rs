@@ -19,6 +19,7 @@ pub struct UiSnapshot {
     pub song_sel_offset: usize,
 
     pub sidebar_key: String,
+    pub sidebar_offset: usize,
     pub sidebar_collapsed: String,
 
     pub progress_display: String,
@@ -37,6 +38,7 @@ impl UiSnapshot {
             ("ui_sidebar_percent", self.sidebar_percentage.to_string()),
             ("ui_progress_display", self.progress_display.clone()),
             ("ui_sidebar_key", self.sidebar_key.clone()),
+            ("ui_sidebar_offset", self.sidebar_offset.to_string()),
             ("ui_sidebar_collapsed", self.sidebar_collapsed.clone()),
         ];
 
@@ -60,6 +62,9 @@ impl UiSnapshot {
                 "ui_layout" => snapshot.layout = value,
                 "ui_album_sort" => snapshot.album_sort = value,
                 "ui_sidebar_key" => snapshot.sidebar_key = value,
+                "ui_sidebar_offset" => {
+                    snapshot.sidebar_offset = value.parse::<usize>().unwrap_or(0)
+                }
                 "ui_sidebar_collapsed" => snapshot.sidebar_collapsed = value,
                 "ui_song_pos" => snapshot.song_selection = value.parse().ok(),
                 "ui_song_offset" => snapshot.song_sel_offset = value.parse::<usize>().unwrap_or(0),
@@ -99,6 +104,8 @@ impl UiState {
                 .selected_row()
                 .map(|r| r.key().serialize())
                 .unwrap_or_default(),
+
+            sidebar_offset: self.nav.sidebar.pos.offset(),
 
             sidebar_collapsed: self
                 .nav
@@ -154,6 +161,7 @@ impl UiState {
             .collect();
         self.nav.sidebar.album_sort = AlbumSort::from_str(&ui_snapshot.album_sort);
         self.sort_albums();
+        *self.nav.sidebar.pos.offset_mut() = ui_snapshot.sidebar_offset;
 
         let mode_to_restore = match ui_snapshot.mode.as_str() {
             "search" | "queue" => "library",

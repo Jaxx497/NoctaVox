@@ -27,6 +27,7 @@ use ratatui::{
 // 7 matches the `xxM xxS` or `xxH xxM` format
 const DURATION_SPACING: u16 = 7;
 const COLUMN_SPACING: u16 = 2;
+const SCROLL_PAD: f32 = 0.20;
 
 // Traditional layout stacks song info: `TRAD_ROW_HEIGHT` content lines plus a
 // blank `TRAD_ROW_MARGIN` gap between entries. The two together are the vertical
@@ -322,7 +323,7 @@ pub(super) fn scroll_offset(
     if total == 0 {
         return 0;
     }
-    let pad = ((capacity as f32 * 0.30) as usize).min(capacity.saturating_sub(1) / 2);
+    let pad = ((capacity as f32 * SCROLL_PAD) as usize).min(capacity.saturating_sub(1) / 2);
 
     let mut offset = offset;
     if selected < offset + pad {

@@ -36,9 +36,8 @@ fn render_minimal(area: Rect, f: &mut Frame, state: &mut UiState) {
 
     render_bg(state, f);
     let bf_area = get_bufferline_area(area);
-    let bc_area = get_breadcrumbs_area(layout.content);
 
-    BreadCrumbs.render(bc_area, f.buffer_mut(), state);
+    BreadCrumbs.render(layout.bread_crumbs, f.buffer_mut(), state);
     SearchBar.render(layout.search_bar, f.buffer_mut(), state);
 
     let pane = match state.get_pane() {
@@ -68,15 +67,6 @@ fn render_traditional(area: Rect, f: &mut Frame, state: &mut UiState) {
     if state.metrics.is_active() || state.library_refresh.is_some() {
         Progress.render(layout.widget, f.buffer_mut(), state);
         BufferLine.render(bf_area, f.buffer_mut(), state);
-    }
-}
-
-fn get_breadcrumbs_area(area: Rect) -> Rect {
-    Rect {
-        x: area.x,
-        y: area.y.saturating_sub(1),
-        height: 1,
-        ..area
     }
 }
 
