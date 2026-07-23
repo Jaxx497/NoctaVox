@@ -24,7 +24,7 @@ terminal workflows.**
 - Custom theming with hot reload
 - Vim-inspired key-bindings
 - Single track loop mode
-- Minimal-view mode (pictured above)
+- Minimal-view mode (pictured below)
 - Smart search matches against title, album and artist
 - Waveform, oscilloscope, and spectrum visualizations
 - Integration with system media controls
