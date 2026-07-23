@@ -18,10 +18,11 @@ impl LayoutTraditional {
             true => match (state.viz.get_progress_display(), area.height > 20) {
                 (ProgressDisplay::ProgressBar, _) | (_, false) => 4,
                 _ => {
-                    let h = (area.height as f32 * 0.15).ceil() as u16;
+                    let h = (area.height as f32 * 0.20).ceil() as u16;
                     h | 1
                 }
-            },
+            }
+            .min(9),
         };
 
         let refresh_no_media = match state.library_refresh.is_some() && !state.metrics.is_active() {

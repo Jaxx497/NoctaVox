@@ -5,7 +5,6 @@ mod popups;
 mod progress;
 mod search;
 mod sidebar;
-mod song_window;
 mod tracklist;
 
 pub use bread_crumbs::BreadCrumbs;
@@ -15,7 +14,7 @@ pub use popups::{ErrorMsg, KeymapGuide, PlaylistPopup, RootManager, ThemeManager
 pub use progress::Progress;
 pub use search::SearchBar;
 pub use sidebar::SideBarHandler;
-pub use song_window::SongTable;
+pub use tracklist::SongTable;
 
 static POPUP_PADDING: ratatui::widgets::Padding = ratatui::widgets::Padding {
     left: 5,

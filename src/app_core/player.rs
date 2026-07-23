@@ -147,6 +147,7 @@ impl NoctaVox {
                 // Update if not on repeat and not gapless
                 if !(is_repeat && gapless) {
                     self.ui.viz.clear_waveform();
+                    self.ui.viz.flush_tap();
                     self.ui.viz.request_waveform(&song);
 
                     if let Some(mc) = self.media_controls.as_mut() {
@@ -195,6 +196,7 @@ impl NoctaVox {
 
                 self.ui.set_now_playing(None);
                 self.ui.viz.clear_waveform();
+                self.ui.viz.flush_tap();
                 self.ui.set_legal_songs();
 
                 Ok(())

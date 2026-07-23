@@ -87,7 +87,6 @@ const HELP: &[HelpSection] = &[
             key("<q>", "Queue selection"),
             key("<s>", "Queue and shuffle selection"),
             key("<g>, <G>", "Jump to <top> / <bottom>"),
-            key("<# + g>", "Go to track at line #"),
             key("<control+h>, <control+left>", "Sort albums (prev)"),
             key("<control+l>, <control+right>", "Sort albums (next)"),
             key("<c>", "Create playlist"),

@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 #[derive(Default, PartialEq, Eq, Clone)]
 pub enum Mode {
     Power,
@@ -17,19 +15,6 @@ impl PartialEq<Mode> for &Mode {
     }
 }
 
-impl Display for Mode {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Mode::Power => write!(f, "power"),
-            Mode::Library => write!(f, "library"),
-            Mode::Fullscreen => write!(f, "fullscreen"),
-            Mode::Queue => write!(f, "queue"),
-            Mode::Search => write!(f, "search"),
-            Mode::QUIT => write!(f, "quit"),
-        }
-    }
-}
-
 impl Mode {
     pub fn to_string(&self) -> String {
         match self {
@@ -43,7 +28,7 @@ impl Mode {
         .to_string()
     }
     pub fn from_str(s: &str) -> Self {
-        match s {
+        match s.to_lowercase().as_str() {
             "power" => Mode::Power,
             "library" => Mode::Library,
             "queue" => Mode::Queue,

@@ -39,8 +39,6 @@ impl StatefulWidget for KeymapGuide {
             .map(|row| match row {
                 HelpRow::Blank => Line::from(""),
                 HelpRow::Header(title) => {
-                    // Pad with a plain span so only the title is underlined,
-                    // while its right edge still aligns with the key column.
                     let pad = " ".repeat(key_col.saturating_sub(title.chars().count()));
                     Line::from(vec![
                         Span::from(pad),

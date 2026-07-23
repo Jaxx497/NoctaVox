@@ -1,39 +1,43 @@
 # CHANGELOG
 
-## UNRELEASED
+## [0.3.3] - Visual Overhaul (expect more, someday)
+> #### **2026-07-22**
 
 #### Visual Overhaul
 
-The main interface is undergoing an overhaul. 
+The main interface has undergone an overhaul. 
 
 Sidebar navigation between albums
 and playlists is now done through foldable headers rather than mode switching.
 This simplified the render and state logic significantly.
 
-The tracklist now uses a clean double-line display in most windows. Minimal
-view removed unnecessary attributes to better qualify the "minimal" definition.
-
+The tracklist now uses a clean double-line display in traditional view (with
+the exception of the search window). Minimal view removed unnecessary
+attributes to better qualify the "minimal" definition.
 
 ### Added:
   - *(config/themes)* added `expanded` / `collapsed` icon fields to `[icons]`
     section of both `config.toml` and theme spec
   - *(tracklist)* scroll padding
-  - *(sidebar)* folding with `enter`/`h`/`l`/`L` navigation keys
+  - *(sidebar)* album view is a unified tree view containing albums and playlists
+  - *(keymaps- sidebar)* folding with `enter`/`h`/`l`/`L` navigation keys
 
 ### Changed:
   - *(database)* faster queue validation logic
-  - *(errors)* Enhanced error reporting on invalid config.toml
-  - *(keymaps)* `x` now deletes playlists instead of `Ctrl`+`d`
-  - *(keymaps)* `Ctrl`+`t` navigates to playlists section of new sidebar 
+  - *(errors)* enhanced error reporting on invalid config.toml
+  - *(internal)* safer scroll checks
+  - *(keymaps- sidebar)* `x` now deletes playlists instead of `Ctrl`+`d`
+  - *(keymaps- global)* `Ctrl`+`t` navigates to playlists section of new sidebar 
   - **(minimal)** improved space management
   - **(minimal)** dynamic spacing as window changes
   - *(minimal- breadcrumbs)* unified for all library modes
   - *(minimal- breadcrumbs)* no longer is hidden in small windows
-  - *(sidebar)* Sidebar is now a single unified tree view containing albums and playlists
   - *(sidebar)* Condensed sidebar state and render logic 
   - *(snapshot)* restore now sorts albums on load for consistent ordering
-  - *(spectrum)* widget uses fewer allocations per frame
+  - *(search)* no more index display
+  - *(spectrum)* uses fewer allocations per frame
   - *(spectrum)* widget takes up less space in trad view
+  - *(spectrum)* no longer shows stale audio between stop/start
   - *(tracklist)* internal rework
   - *(various)* dependency version bumps
   - *(various)* clippy fixes across the codebase

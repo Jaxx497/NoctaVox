@@ -174,6 +174,9 @@ impl UiState {
 
         if !self.nav.sidebar.collapsed.remove(&key) {
             self.nav.sidebar.collapsed.insert(key);
+            self.nav.sidebar.prev_folds.push(row);
+        } else {
+            self.nav.sidebar.prev_folds.pop();
         }
 
         self.rebuild_rows();
@@ -188,7 +191,6 @@ impl UiState {
         if let Some(key) = row.collapse_key() {
             if !self.is_collapsed(&key) {
                 self.nav.sidebar.collapsed.insert(key.clone());
-
                 self.nav.sidebar.prev_folds.push(row);
 
                 self.rebuild_rows();
@@ -232,6 +234,7 @@ impl UiState {
 
     pub fn sidebar_expand_all(&mut self) {
         self.nav.sidebar.collapsed.clear();
+        self.nav.sidebar.prev_folds.clear();
         self.rebuild_rows();
         self.set_legal_songs();
     }
@@ -248,6 +251,7 @@ impl UiState {
             .sidebar
             .collapsed
             .remove(&NodeKey::Root(Root::Library));
+        self.nav.sidebar.prev_folds.clear();
         self.rebuild_rows();
         self.select_by_key(&NodeKey::Album(album_id));
     }

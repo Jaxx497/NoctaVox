@@ -123,7 +123,6 @@ pub fn get_readable_duration(duration: Duration, style: DurationStyle) -> String
                 0 => format!("{secs:02}s"),
                 _ => format!("{mins}m {secs:02}s"),
             },
-            // TODO: Maybe reimplement seconds here?
             _ => format!("{hours}h {mins}m"),
         },
         DurationStyle::CleanMillis => match hours {

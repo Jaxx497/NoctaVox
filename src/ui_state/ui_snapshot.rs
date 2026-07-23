@@ -163,17 +163,12 @@ impl UiState {
         self.sort_albums();
         *self.nav.sidebar.pos.offset_mut() = ui_snapshot.sidebar_offset;
 
-        let mode_to_restore = match ui_snapshot.mode.as_str() {
-            "search" | "queue" => "library",
-            _ => &ui_snapshot.mode,
-        };
-
         let pane_to_restore = match ui_snapshot.pane.as_str() {
             "search" => "tracklist",
             _ => &ui_snapshot.pane,
         };
 
-        self.set_mode(Mode::from_str(mode_to_restore));
+        self.set_mode(Mode::Library);
         self.set_pane(Pane::from_str(pane_to_restore));
 
         if let Some(k) = NodeKey::deserialize(&ui_snapshot.sidebar_key) {

@@ -11,7 +11,7 @@ mod stats;
 mod ui_snapshot;
 mod ui_state;
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 pub use display_state::DisplayState;
 pub use domain::{AlbumSort, Mode, NodeKey, Pane, Root, RowKind, SidebarRow, TableSort};
@@ -79,6 +79,7 @@ pub struct UiState {
     pub(crate) albums: Vec<Album>,
     pub(crate) playlists: IndexMap<i64, Playlist>,
     legal_songs: Vec<Arc<SimpleSong>>,
+    legal_songs_dur: Duration,
     shuffle_seed: u64,
 
     pub library_refresh: Option<Arc<RefreshProgress>>,

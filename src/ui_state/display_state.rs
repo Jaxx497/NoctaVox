@@ -7,7 +7,7 @@ use crate::{
 use anyhow::{Context, Result, anyhow, bail};
 use indexmap::IndexSet;
 use ratatui::widgets::TableState;
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 pub struct DisplayState {
     mode: Mode,
@@ -163,18 +163,18 @@ impl UiState {
         if self.get_selected_root() == Root::Library
             && !self.is_collapsed(&NodeKey::Root(Root::Library))
         {
-            let pos = self.nav.sidebar.pos.selected();
-
             self.nav.sidebar.album_sort = match next {
                 true => self.nav.sidebar.album_sort.next(),
                 false => self.nav.sidebar.album_sort.prev(),
             };
 
+            let fallback = match &self.selected_row().map(|r| &r.kind) {
+                Some(RowKind::Artist { children, .. }) => children.first().copied(),
+                _ => None,
+            };
             self.sort_albums();
-
-            if let Some(p) = pos {
-                let last = self.nav.sidebar.rows.len().saturating_sub(1);
-                self.nav.sidebar.pos.select(Some(p.min(last)));
+            if let Some(id) = fallback {
+                self.select_by_key(&NodeKey::Album(id));
             }
 
             self.set_legal_songs();
@@ -296,6 +296,7 @@ impl UiState {
 
         self.nav.sidebar.collapsed.insert(NodeKey::Root(not));
         self.nav.sidebar.collapsed.remove(&NodeKey::Root(root));
+        self.nav.sidebar.prev_folds.clear();
         self.rebuild_rows();
         if let Some(row) = self.selected_row()
             && row.root() != root
@@ -306,6 +307,10 @@ impl UiState {
 
     pub fn get_legal_songs(&self) -> &[Arc<SimpleSong>] {
         self.legal_songs.as_slice()
+    }
+
+    pub fn get_legal_songs_dur(&self) -> Duration {
+        self.legal_songs_dur
     }
 
     pub(crate) fn set_legal_songs(&mut self) {
@@ -328,6 +333,12 @@ impl UiState {
             },
             _ => (),
         }
+
+        self.legal_songs_dur = self
+            .get_legal_songs()
+            .iter()
+            .map(|s| s.get_duration())
+            .sum();
 
         match self.legal_songs.len() {
             0 => self.nav.table_pos.select(None),
@@ -380,10 +391,10 @@ impl UiState {
     fn scroll_sidebar(&mut self, director: &Director) {
         let len = self.nav.sidebar.rows.len();
         if len != 0 {
-            let current = self.nav.sidebar.pos.selected().unwrap_or(0);
+            let idx = self.nav.sidebar.pos.selected().unwrap_or(0);
             let new_pos = match director {
-                Director::Up(x) => (current + len - x) % len,
-                Director::Down(x) => (current + x) % len,
+                Director::Up(x) => (idx + len - (x % len)) % len,
+                Director::Down(x) => (idx + x) % len,
                 Director::Top => 0,
                 Director::Bottom => len - 1,
             };

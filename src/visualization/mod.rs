@@ -45,6 +45,12 @@ impl Visualizer {
         self.display_tap.make_contiguous()
     }
 
+    pub fn flush_tap(&mut self) {
+        self.display_tap.clear();
+        self.tap.latest(usize::MAX);
+        self.spectrum_mut().reset();
+    }
+
     pub fn fill_tap(&mut self) {
         let channels = self.metrics.channels();
 

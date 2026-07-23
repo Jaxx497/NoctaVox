@@ -82,6 +82,7 @@ impl StatefulWidget for SpectrumAnalyzer {
     }
 }
 
+#[inline]
 fn spectrum_line(x: f64, mag: f64, mirrored: bool, color: Color) -> Line {
     Line {
         x1: x,

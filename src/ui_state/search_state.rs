@@ -73,14 +73,14 @@ impl UiState {
                     .matcher
                     .fuzzy_match(&strip_diacritics(song.get_artist()), &query)
                     .unwrap_or(0) as f32
-                    * 1.5) as i64;
+                    * 1.7) as i64;
 
                 let album_score = (self
                     .search
                     .matcher
                     .fuzzy_match(&strip_diacritics(song.get_album()), &query)
                     .unwrap_or(0) as f32
-                    * 1.75) as i64;
+                    * 1.7) as i64;
 
                 let weighted_score = [title_score, artist_score, album_score];
                 let best_score = weighted_score.iter().max().copied().unwrap_or(0);

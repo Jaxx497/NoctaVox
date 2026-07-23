@@ -16,7 +16,7 @@ use anyhow::anyhow;
 use anyhow::{Error, Result};
 use indexmap::IndexMap;
 use ratatui::widgets::Borders;
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 use voxio::{TapHandle, Vox};
 
 impl UiState {
@@ -43,6 +43,7 @@ impl UiState {
             albums: Vec::new(),
             playlists: IndexMap::new(),
             legal_songs: Vec::new(),
+            legal_songs_dur: Duration::default(),
             shuffle_seed: rand::random::<u64>(),
 
             library_refresh: None,

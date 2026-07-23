@@ -1,5 +1,7 @@
 use spectrum_analyzer::{FrequencyLimit, samples_fft_to_spectrum, windows::hann_window};
 
+const PEAK_FLOOR: f32 = 3e-3;
+
 pub struct SpectrumState {
     bins: Vec<f32>,
     display_bins: Vec<f32>,
@@ -30,7 +32,7 @@ impl SpectrumState {
                 freq = next;
             }
             let n = self.bands.len();
-            self.band_peaks.resize(n, 1e-3);
+            self.band_peaks.resize(n, PEAK_FLOOR);
             self.bins.resize(n, 0.0);
         }
 
@@ -129,6 +131,16 @@ impl SpectrumState {
 
     pub fn set_decay(&mut self, d: f32) {
         self.decay_factor = d
+    }
+
+    pub fn reset(&mut self) {
+        let n = self.bands.len();
+        self.band_peaks.clear();
+        self.band_peaks.resize(n, PEAK_FLOOR);
+        self.bins.clear();
+        self.bins.resize(n, 0.0);
+        self.display_bins.fill(0.0);
+        self.bins_dirty = true;
     }
 }
 

@@ -26,7 +26,6 @@ exception of searching as not to affect a user's search query.
 #### Views
 | Action      | Keymap |
 | ----------- | ----------- |
-| Jump to Albums | `Ctrl` + `a`|
 | Jump to Playlists | `Ctrl` + `t`|
 | Queue View | `Ctrl` + `q`|
 | Change Sidebar Size | `[` `]` |

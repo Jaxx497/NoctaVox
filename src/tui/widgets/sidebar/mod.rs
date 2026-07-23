@@ -95,7 +95,7 @@ fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {
             left: PADDING_L,
             right: PADDING_R,
             top: 1,
-            bottom: v_pad,
+            bottom: 0,
         },
         LayoutStyle::Minimal => Padding {
             left: if borders { PADDING_L } else { 2 },

@@ -23,14 +23,10 @@ impl StatefulWidget for SearchBar {
                 theme.border_type,
                 theme.border,
                 theme.accent,
-                // fade_color(
-                // theme.dark,
                 match layout {
                     LayoutStyle::Minimal => theme.bg,
                     LayoutStyle::Traditional => theme.bg,
                 },
-                // t               0.9,
-                // ),
             )
         };
 

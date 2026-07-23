@@ -34,7 +34,7 @@ pub static SEEK_LARGE: LazyLock<f64> = LazyLock::new(|| user_config().general.se
 const VOLUME_STEP: f32 = 0.1;
 
 const SCROLL_MID: usize = 5;
-const SCROLL_XTRA: usize = 20;
+const SCROLL_XTRA: usize = 50;
 const SIDEBAR_INCREMENT: isize = 1;
 
 pub enum Action {
