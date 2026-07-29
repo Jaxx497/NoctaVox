@@ -303,6 +303,7 @@ impl UiState {
         {
             self.select_by_key(&NodeKey::Root(root));
         }
+        self.set_legal_songs();
     }
 
     pub fn get_legal_songs(&self) -> &[Arc<SimpleSong>] {

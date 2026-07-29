@@ -1,8 +1,8 @@
 use crate::{
     library::{RefreshStage, SongInfo},
-    theme::DisplayTheme,
+    theme::{DisplayTheme, shimmer_line},
     truncate_at_last_space,
-    ui_state::{LayoutStyle, UiState},
+    ui_state::{LayoutStyle, Mode, UiState},
 };
 use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
@@ -10,6 +10,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Borders, Gauge, StatefulWidget, Widget},
 };
+use unicode_width::UnicodeWidthStr;
 
 pub struct BufferLine;
 
@@ -57,102 +58,78 @@ impl StatefulWidget for BufferLine {
             .areas(area);
 
         let buffer = state.key_buffer.pending();
+        let elapsed = state.metrics.position().as_secs_f32();
 
-        if state.layout == LayoutStyle::Traditional {
-            let mut vol = volume_slider(state, theme, area);
-            if let Some(v) = vol.as_mut()
-                && let Some(count) = get_buffer_count(buffer, theme)
-            {
-                v.push_span(" ");
-                v.push_span(count);
+        if state.layout == LayoutStyle::Traditional && state.get_mode() != Mode::Fullscreen {
+            let mut vol = volume_slider(state, area);
+
+            if let Some(count) = get_buffer_count(buffer, theme) {
+                vol.push_span(" ");
+                vol.push_span(count);
             }
             vol.render(left, buf);
         }
-        playing_title(state, theme, center.width as usize).render(center, buf);
+        if let Some(title) = playing_title(state, theme, center.width as usize) {
+            shimmer_line(title.centered(), elapsed).render(center, buf)
+        };
         queue_display(state, theme, right.width as usize).render(right, buf);
     }
 }
 
-const SEPARATOR_LEN: usize = 3;
-const MIN_TITLE_LEN: usize = 20;
-const MIN_ARTIST_LEN: usize = 15;
+const PADDING: usize = 2;
 
 fn playing_title(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<Line<'static>> {
     let song = state.get_now_playing()?;
+    let icons = state.theme.icons();
+
     let decorator = match state.playback.repeat_is_enabled() {
-        true => &state.theme.icons().repeat,
-        false => &state.theme.icons().decorator,
+        true => &icons.repeat,
+        false => &icons.decorator,
     };
 
-    let paused = &state.theme.icons().paused;
-
-    let separator = match state.metrics.is_paused() {
-        true => Span::from(format!(" {paused} "))
-            .fg(theme.text_primary)
-            .rapid_blink(),
-        false => Span::from(format!(" {decorator} ")).fg(theme.text_muted),
+    let paused = state.metrics.is_paused();
+    let (separator, sep_color) = match paused {
+        true => (format!(" {} ", icons.paused), theme.text_primary),
+        false => (format!(" {decorator} "), theme.text_muted),
     };
 
     let title = song.get_title();
     let artist = song.get_artist();
 
-    let title_len = title.chars().count();
-    let artist_len = artist.chars().count();
+    let sep_width = separator.width();
+    let budget = width.saturating_sub(PADDING);
 
-    if width >= title_len + SEPARATOR_LEN + artist_len {
-        Some(
-            Line::from_iter([
-                " ".into(),
-                Span::from(title.to_string()).fg(theme.text_secondary),
-                separator,
-                Span::from(artist.to_string()).fg(theme.text_muted),
-                " ".into(),
-            ])
-            .centered(),
-        )
-    } else if width >= MIN_TITLE_LEN + SEPARATOR_LEN + MIN_ARTIST_LEN {
-        let available_space = width.saturating_sub(SEPARATOR_LEN);
-        let title_space = (available_space * 2) / 3;
-        let artist_space = available_space.saturating_sub(title_space);
+    let mut spans = vec![" ".into()];
 
-        let truncated_title = truncate_at_last_space(title, title_space);
-        let truncated_artist = truncate_at_last_space(artist, artist_space);
-
-        Some(
-            Line::from_iter([
-                " ".into(),
-                Span::from(truncated_title).fg(theme.text_secondary),
-                separator,
-                Span::from(truncated_artist).fg(theme.text_muted),
-                " ".into(),
-            ])
-            .centered(),
-        )
-    } else {
-        match state.metrics.is_paused() {
-            true => {
-                let truncated_title = truncate_at_last_space(title, title_len - SEPARATOR_LEN);
-                Some(
-                    Line::from_iter([
-                        " ".into(),
-                        separator,
-                        Span::from(truncated_title).fg(theme.text_secondary),
-                        " ".into(),
-                    ])
-                    .centered(),
-                )
+    match budget >= title.width() + sep_width + artist.width() {
+        true => {
+            spans.push(Span::from(title.to_string()).fg(theme.text_secondary));
+            spans.push(Span::from(separator).fg(sep_color));
+            spans.push(Span::from(artist.to_string()).fg(theme.text_muted));
+        }
+        false => {
+            if paused {
+                spans.push(Span::from(separator).fg(sep_color));
             }
-            false => {
-                let truncated_title = truncate_at_last_space(title, width);
-                Some(Line::from(Span::from(truncated_title).fg(theme.text_secondary)).centered())
-            }
+
+            let space = budget.saturating_sub(paused as usize * sep_width);
+            let title = match title.width() <= space {
+                true => title.to_string(),
+                false => truncate_at_last_space(title, space),
+            };
+
+            spans.push(Span::from(title).fg(theme.text_secondary));
         }
     }
+
+    spans.push(" ".into());
+    Some(Line::from_iter(spans))
 }
 
-fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Option<Line<'static>> {
+fn volume_slider(state: &UiState, area: Rect) -> Line<'static> {
+    let theme = state.theme.get_display_theme(false);
     if state.library_refresh.is_some() {
-        return None;
+        return Line::default();
     }
 
     let width = (area.width / 10).clamp(4, 11) as usize;
@@ -167,83 +144,43 @@ fn volume_slider(state: &UiState, theme: &DisplayTheme, area: Rect) -> Option<Li
     let left_track = "─".repeat(pos);
     let right_track = "─".repeat(width - 1 - pos);
 
-    Some(Line::from_iter([
+    Line::from_iter([
         Span::from(format!(" {left_track}")).fg(theme.text_muted),
         Span::from("○").fg(theme.accent),
         Span::from(format!("{right_track}{percent} ")).fg(theme.text_muted),
-    ]))
-}
-
-fn _volume_meter(state: &UiState, theme: &DisplayTheme) -> Line<'static> {
-    const MAX: f32 = 1.5; // voxio clamps perceptual volume to 0.0..=1.5
-    const CELLS: usize = 12; // one bar cell per 12.5%
-    const BOOST_CELL: usize = 8; // unity (100%) lands here: 1.0 / 1.5 * 12 = 8
-    const BLOCKS: [char; 9] = [' ', '▏', '▎', '▍', '▌', '▋', '▊', '▉', '█'];
-    const TRACK: char = '░';
-
-    let vol = state.metrics.volume().clamp(0.0, MAX);
-    let eighths = (vol / MAX * (CELLS * 8) as f32).round() as usize; // filled 1/8ths, 0..=96
-
-    let mut spans: Vec<Span<'static>> = (0..CELLS)
-        .map(|cell| {
-            let fill = eighths.saturating_sub(cell * 8).min(8);
-            let (ch, color) = match fill {
-                0 => (TRACK, theme.text_muted), // unfilled track
-                f if cell >= BOOST_CELL => (BLOCKS[f], theme.bg_error), // boost zone (>100%)
-                f => (BLOCKS[f], theme.accent), // normal zone
-            };
-            Span::from(ch.to_string()).fg(color)
-        })
-        .collect();
-
-    let pct = (vol * 100.0).round() as usize;
-    let pct_color = if vol > 1.0 {
-        theme.bg_error
-    } else {
-        theme.text_muted
-    };
-    spans.push(Span::from(format!(" {pct}%")).fg(pct_color));
-
-    Line::from_iter(spans)
+    ])
 }
 
 fn get_buffer_count(size: Option<&str>, theme: &DisplayTheme) -> Option<Span<'static>> {
-    if let Some(x) = size {
-        if x.is_empty() {
-            return None;
-        }
-
-        return Some(format!("{x} ").fg(theme.text_muted));
-    }
-    None
+    let x = size.filter(|s| !s.is_empty())?;
+    Some(format!("{x} ").fg(theme.text_muted))
 }
 
-const BAD_WIDTH: usize = 22;
+const MIN_QUEUE_TITLE: usize = 10;
 fn queue_display(state: &UiState, theme: &DisplayTheme, width: usize) -> Option<Line<'static>> {
-    let up_next_str = state.playback.peek_queue()?.get_title();
+    let up_next = state.playback.peek_queue()?.get_title();
 
-    let truncated = truncate_at_last_space(up_next_str, width - 5);
-
-    let up_next_line = Span::from(truncated).fg(state.theme.active.accent_inactive);
-
-    let total = state.playback.queue_len();
-    let queue_total = format!(" [{total}] ").fg(theme.text_muted);
     let queue_icon = state.theme.icons().upcoming.to_string();
+    let queue_total = format!(" [{}] ", state.playback.queue_len());
+    let space = width.saturating_sub(queue_icon.width() + 1 + queue_total.width());
 
-    match width < BAD_WIDTH {
-        true => Some(
-            Line::from_iter([Span::from(queue_icon).fg(theme.text_muted), queue_total])
-                .right_aligned(),
-        ),
+    let mut spans = vec![Span::from(queue_icon).fg(theme.text_muted)];
 
-        false => Some(
-            Line::from_iter([
-                Span::from(queue_icon).fg(theme.text_muted),
-                " ".into(),
-                up_next_line,
-                queue_total,
-            ])
-            .right_aligned(),
-        ),
+    if space >= MIN_QUEUE_TITLE {
+        spans.push(" ".into());
+        spans.push(
+            Span::from(truncate_at_last_space(up_next, space))
+                .fg(state.theme.active.accent_inactive),
+        );
+    }
+
+    spans.push(Span::from(queue_total).fg(theme.text_muted));
+
+    let elapsed = state.metrics.position();
+    let duration = state.metrics.duration();
+
+    match (duration.saturating_sub(elapsed)).as_secs_f32() < 5.0 {
+        true => Some(shimmer_line(Line::from_iter(spans), elapsed.as_secs_f32()).right_aligned()),
+        false => Some(Line::from_iter(spans).right_aligned()),
     }
 }

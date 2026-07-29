@@ -3,6 +3,7 @@ mod display_theme;
 mod gradients;
 mod import;
 mod parsed;
+mod shimmer;
 mod theme_config;
 mod theme_manager;
 mod theme_utils;
@@ -12,6 +13,7 @@ pub use display_theme::DisplayTheme;
 pub use gradients::{InactiveGradient, ProgressGradient};
 pub use import::{ProgressGradientRaw, ThemeImport};
 pub use parsed::*;
+pub use shimmer::shimmer_line;
 pub use theme_config::{ThemeConfig, ThemeIcons};
 pub use theme_manager::ThemeManager;
 

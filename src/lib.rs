@@ -16,6 +16,7 @@ use std::{
 };
 use ui_state::UiState;
 use unicode_normalization::UnicodeNormalization;
+use unicode_width::UnicodeWidthStr;
 use xxhash_rust::xxh3::xxh3_64;
 
 pub mod addons;
@@ -144,7 +145,7 @@ pub fn get_readable_duration(duration: Duration, style: DurationStyle) -> String
 }
 
 fn truncate_at_last_space(s: &str, limit: usize) -> String {
-    if s.chars().count() <= limit {
+    if s.width() <= limit {
         return s.to_string();
     }
 
@@ -155,11 +156,7 @@ fn truncate_at_last_space(s: &str, limit: usize) -> String {
         .unwrap_or(s.len());
 
     match s[..byte_limit].rfind(' ') {
-        Some(last_space) => {
-            let mut truncated = s[..last_space].to_string();
-            truncated.push('…');
-            truncated
-        }
+        Some(last_space) => s[..last_space].to_string(),
         None => {
             let char_boundary = s[..byte_limit]
                 .char_indices()
@@ -167,9 +164,7 @@ fn truncate_at_last_space(s: &str, limit: usize) -> String {
                 .next_back()
                 .unwrap_or(0);
 
-            let mut truncated = s[..char_boundary].to_string();
-            truncated.push('…');
-            truncated
+            s[..char_boundary].to_string()
         }
     }
 }

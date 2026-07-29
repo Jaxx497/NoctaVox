@@ -4,6 +4,7 @@ use ratatui::{
     text::{Line, Span},
     widgets::{Block, Paragraph, StatefulWidget, Widget},
 };
+use unicode_width::UnicodeWidthStr;
 
 use crate::{
     key_handler::{HelpRow, help_rows},
@@ -39,7 +40,7 @@ impl StatefulWidget for KeymapGuide {
             .map(|row| match row {
                 HelpRow::Blank => Line::from(""),
                 HelpRow::Header(title) => {
-                    let pad = " ".repeat(key_col.saturating_sub(title.chars().count()));
+                    let pad = " ".repeat(key_col.saturating_sub(title.width()));
                     Line::from(vec![
                         Span::from(pad),
                         Span::from(title).fg(accent).bold().underlined(),

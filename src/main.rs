@@ -2,7 +2,9 @@ use noctavox::addons::parse_args;
 use std::io::Write;
 
 fn main() {
-    unsafe { std::env::set_var("RUST_BACKTRACE", "1"); }
+    unsafe {
+        std::env::set_var("RUST_BACKTRACE", "1");
+    }
     let _ = write!(std::io::stdout(), "\x1b]0;NoctaVox\x07");
     let _ = std::io::stdout().flush();
 
@@ -16,6 +18,5 @@ fn main() {
         }
         return;
     }
-
     parse_args();
 }

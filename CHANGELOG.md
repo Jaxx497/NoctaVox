@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## UNRLEASED
+
+### Changed:
+  - *(bufferline)* fixed up truncation logic on smaller screens
+  - *(tracklist)* multi-select + `s` will shuffle selected elements and add to queue
+  - *(playlists)* Fixed goto playlist display latent update
+  - *(progress bar)* Fixed vertical padding in full screen view
+  - *(volume slider)* No longer displays in full screen
+
 ## [0.3.3] - Visual Overhaul (expect more, someday)
 > #### **2026-07-22**
 

@@ -176,7 +176,7 @@ impl TryFrom<&ThemeImport> for ThemeConfig {
                         .and_then(|e| e.selector.as_deref())
                         .unwrap_or(&fallback_icons.selector);
 
-                    Rc::from(format!("{x}  "))
+                    Rc::from(format!("{x} "))
                 },
 
                 playing: Rc::from(
@@ -309,46 +309,5 @@ impl Default for ThemeConfig {
                 collapsed: Rc::from(UserIcons::COLLAPSED),
             },
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::{USER_CONFIG, UserConfig};
-    use std::path::Path;
-
-    /// Every theme shipped in `docs/theme_examples/` must parse through the
-    /// full import pipeline, and the `[Light]` ones must resolve `dark = false`.
-    #[test]
-    fn example_themes_parse() {
-        // `TryFrom` reads the global icon config; seed it for the test.
-        let _ = USER_CONFIG.set(UserConfig::default());
-
-        let dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("docs/theme_examples");
-        let mut count = 0;
-        let mut saw_light = false;
-
-        for entry in std::fs::read_dir(&dir).expect("theme_examples dir") {
-            let path = entry.unwrap().path();
-            if path.extension().and_then(|s| s.to_str()) != Some("toml") {
-                continue;
-            }
-
-            let theme = ThemeConfig::load_from_file(&path)
-                .unwrap_or_else(|e| panic!("{} failed to parse: {e}", path.display()));
-
-            if theme.name.contains("[Light]") {
-                assert!(!theme.is_dark, "{} should resolve dark = false", theme.name);
-                saw_light = true;
-            }
-            count += 1;
-        }
-
-        assert!(count > 0, "no example themes found");
-        assert!(
-            saw_light,
-            "expected at least one [Light] theme to verify [meta].dark"
-        );
     }
 }

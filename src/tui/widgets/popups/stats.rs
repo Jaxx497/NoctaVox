@@ -154,7 +154,7 @@ fn get_most_played(
 
     let max_title_len = most_played
         .iter()
-        .map(|(s, _)| s.title.len())
+        .map(|(s, _)| s.title.width())
         .max()
         .unwrap();
 
