@@ -69,7 +69,7 @@ impl StatefulWidget for SpectrumAnalyzer {
                             .spectrum
                             .colors
                             .color_at(progress, elapsed, theme.spectrum.speed);
-                    let color = fade_color(theme.dark, base, mag.clamp(0.25, 1.0));
+                    let color = fade_color(theme.dark, base, mag.max(0.35));
 
                     for x in [i * 2, i * 2 + 1] {
                         ctx.draw(&spectrum_line(x as f64, mag as f64, is_mirrored, color))

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::{
     DurationStyle, SimpleSong,
     library::{Album, SongInfo},
@@ -12,6 +10,7 @@ use ratatui::{
     text::{Line, Span, Text},
     widgets::{Cell, Row},
 };
+use std::sync::Arc;
 
 pub struct RowPalette {
     pub primary: Color,
@@ -73,34 +72,43 @@ impl<'a> RowCtx<'a> {
 pub struct CellFactory;
 
 impl CellFactory {
-    pub fn trad_left_cell(
+    pub fn trad_cell_gutter(
         ctx: &RowCtx,
         song: &Arc<SimpleSong>,
         idx: usize,
         p: &RowPalette,
     ) -> Cell<'static> {
-        let mut title_line = Vec::new();
-        match CellFactory::status_icon(&ctx, song) {
-            Some(icon) => {
-                title_line.push(Span::raw(" "));
-                title_line.push(icon.fg(p.accent));
-                title_line.push(Span::raw("  "));
-            }
-            None => title_line.push(Span::raw("    ")),
-        }
-        title_line.push(Span::raw(song.get_title().to_string()).fg(p.primary).bold());
-        title_line.push(Span::raw("  "));
-        title_line.push(Span::raw(song.filetype.as_str_label()).fg(p.muted));
+        let number =
+            CellFactory::track_disc_super(ctx.layout, song, idx, ctx.selected_album.is_some());
+        Cell::from(Line::from(number).fg(p.accent).right_aligned())
+    }
 
-        let number = CellFactory::track_disc_super(ctx, song, idx, ctx.selected_album.is_some());
-        let artist_line = Line::from(vec![
-            Span::raw("    "),
-            Span::raw(number).fg(p.accent),
-            Span::raw(format!(" {} ", ctx.icons.decorator)).fg(p.muted),
-            Span::raw(song.get_artist().to_string()).fg(p.secondary),
+    pub fn trad_cell_main(song: &Arc<SimpleSong>, p: &RowPalette) -> Cell<'static> {
+        let title_line = Line::from_iter([
+            Span::raw(song.get_title().to_string()).fg(p.primary).bold(),
+            Span::raw(" "),
+            Span::raw(song.filetype.as_str_label()).fg(p.muted),
         ]);
 
-        Cell::from(Text::from(vec![Line::from(title_line), artist_line]))
+        let artist_line = Line::from(Span::raw(song.get_artist().to_string()).fg(p.secondary));
+
+        Cell::from(Text::from(vec![title_line, artist_line]))
+    }
+
+    pub fn trad_cell_duration(
+        ctx: &RowCtx,
+        s: &Arc<SimpleSong>,
+        style: DurationStyle,
+        p: &RowPalette,
+    ) -> Cell<'static> {
+        let duration_str = Line::from(s.get_duration_str(style))
+            .fg(p.muted)
+            .right_aligned();
+
+        let icon = CellFactory::status_icon(ctx, s).unwrap_or_default();
+        let icon_line = Line::from(format!("{icon} ").fg(p.accent)).right_aligned();
+
+        Cell::from(Text::from(vec![duration_str, icon_line]))
     }
 
     pub fn status_icon(ctx: &RowCtx, song: &Arc<SimpleSong>) -> Option<Span<'static>> {
@@ -126,7 +134,7 @@ impl CellFactory {
     }
 
     pub fn track_disc_super(
-        ctx: &RowCtx,
+        layout: &LayoutStyle,
         song: &Arc<SimpleSong>,
         idx: usize,
         has_album: bool,
@@ -136,7 +144,7 @@ impl CellFactory {
             _ => (idx + 1) as u32,
         };
 
-        match (has_album, song.disc_no, ctx.layout) {
+        match (has_album, song.disc_no, layout) {
             (true, Some(d), LayoutStyle::Traditional) => {
                 format!("ᴰ{}⁻{}", superscript(d, 1), superscript(track, 2))
             }
@@ -183,10 +191,11 @@ fn standard_tracklist(
     idx: usize,
     p: &RowPalette,
 ) -> Row<'static> {
-    let left = CellFactory::trad_left_cell(&ctx, &s, idx, p);
-    let right = CellFactory::duration_cell(&s, DurationStyle::Clean).fg(p.muted);
+    let index = CellFactory::trad_cell_gutter(ctx, &s, idx, p);
+    let left = CellFactory::trad_cell_main(&s, p);
+    let right = CellFactory::trad_cell_duration(ctx, &s, DurationStyle::Clean, p);
 
-    Row::new([left, right])
+    Row::new([index, left, right])
         .height(TRAD_ROW_HEIGHT)
         .bottom_margin(TRAD_ROW_MARGIN)
 }
@@ -198,10 +207,12 @@ fn minimal_tracklist(
     p: &RowPalette,
 ) -> Row<'static> {
     let idx = Cell::from(
-        Line::from(CellFactory::track_disc_super(ctx, s, idx, ctx.selected_album.is_some()) + " ")
-            .right_aligned(),
+        Line::from(
+            CellFactory::track_disc_super(ctx.layout, s, idx, ctx.selected_album.is_some()) + " ",
+        )
+        .right_aligned(),
     )
-    .fg(p.accent);
+    .fg(fade_color(ctx.theme.dark, p.accent, 0.7));
     let symbol = CellFactory::status_cell(&ctx, &s).fg(p.secondary);
     let title = Cell::from(s.get_title().to_string()).fg(p.primary);
     let duration = CellFactory::duration_cell(&s, DurationStyle::Clean).fg(p.muted);

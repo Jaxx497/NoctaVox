@@ -63,9 +63,9 @@ impl StatefulWidget for BufferLine {
         if state.layout == LayoutStyle::Traditional && state.get_mode() != Mode::Fullscreen {
             let mut vol = volume_slider(state, area);
 
-            if let Some(count) = get_buffer_count(buffer, theme) {
+            if let Some(x) = buffer.filter(|s| !s.is_empty()) {
                 vol.push_span(" ");
-                vol.push_span(count);
+                vol.push_span(format!("{x} ").fg(theme.text_muted));
             }
             vol.render(left, buf);
         }
@@ -149,11 +149,6 @@ fn volume_slider(state: &UiState, area: Rect) -> Line<'static> {
         Span::from("○").fg(theme.accent),
         Span::from(format!("{right_track}{percent} ")).fg(theme.text_muted),
     ])
-}
-
-fn get_buffer_count(size: Option<&str>, theme: &DisplayTheme) -> Option<Span<'static>> {
-    let x = size.filter(|s| !s.is_empty())?;
-    Some(format!("{x} ").fg(theme.text_muted))
 }
 
 const MIN_QUEUE_TITLE: usize = 10;

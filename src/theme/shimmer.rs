@@ -3,11 +3,11 @@ use ratatui::text::{Line, Span};
 use std::f32::consts::PI;
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
-const SWEEP_SECONDS: f32 = 3.0;
+const SWEEP_SECONDS: f32 = 2.0;
 const DELAY_SECONDS: f32 = 7.0;
-const BAND_HALF_WIDTH: f32 = 8.0;
+const BAND_HALF_WIDTH: f32 = 10.0;
 const PAD: f32 = 10.0;
-const PEAK: f32 = 0.60;
+const PEAK: f32 = 0.8;
 
 pub fn shimmer_line<'a>(mut line: Line<'a>, time: f32) -> Line<'a> {
     let cycle_pos = time.rem_euclid(DELAY_SECONDS);

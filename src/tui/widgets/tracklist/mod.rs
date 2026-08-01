@@ -2,11 +2,13 @@ mod row;
 mod song_table;
 
 pub use song_table::SongTable;
+use unicode_width::UnicodeWidthStr;
 
 use crate::{
     DurationStyle, get_readable_duration,
     theme::DisplayTheme,
     truncate_at_last_space,
+    tui::widgets::tracklist::row::CellFactory,
     ui_state::{LayoutStyle, Mode, Pane, UiState},
 };
 use ratatui::{
@@ -45,7 +47,20 @@ pub(super) fn get_widths(state: &UiState) -> Vec<Constraint> {
         },
         Mode::Library | Mode::Queue => match state.layout {
             LayoutStyle::Traditional => {
-                vec![Constraint::Fill(1), Constraint::Length(DURATION_SPACING)]
+                let album = state.get_selected_album().is_some();
+                let w: u16 = if let Some((idx, song)) =
+                    state.get_legal_songs().iter().enumerate().last()
+                {
+                    CellFactory::track_disc_super(&state.layout, song, idx, album).width() as u16
+                } else {
+                    3
+                };
+
+                vec![
+                    Constraint::Length(w),
+                    Constraint::Fill(1),
+                    Constraint::Length(DURATION_SPACING),
+                ]
             }
             LayoutStyle::Minimal => {
                 let count = state.get_legal_songs().len();
