@@ -3,7 +3,7 @@ use crate::{
     library::{Album, SongInfo},
     theme::{DisplayTheme, ThemeIcons, fade_color},
     tui::widgets::tracklist::{TRAD_ROW_HEIGHT, TRAD_ROW_MARGIN},
-    ui_state::{LayoutStyle, MatchField, Mode, Pane, UiState},
+    ui_state::{LayoutStyle, MatchSpans, Mode, Pane, UiState},
 };
 use ratatui::{
     style::{Color, Stylize},
@@ -12,11 +12,16 @@ use ratatui::{
 };
 use std::sync::Arc;
 
+const SEARCH_DIM: f32 = 0.7;
+
 pub struct RowPalette {
     pub primary: Color,
     pub secondary: Color,
     pub accent: Color,
     pub muted: Color,
+    pub hit: Color,
+    pub search_title: Color,
+    pub search_meta: Color,
 }
 
 impl RowPalette {
@@ -26,6 +31,9 @@ impl RowPalette {
             secondary: fade_color(t.dark, t.text_secondary, 0.8),
             accent: fade_color(t.dark, t.accent, 0.8),
             muted: t.text_muted,
+            hit: t.accent,
+            search_title: fade_color(t.dark, t.text_primary, SEARCH_DIM),
+            search_meta: fade_color(t.dark, t.text_secondary, SEARCH_DIM),
         }
     }
 
@@ -35,6 +43,9 @@ impl RowPalette {
             secondary: c,
             accent: c,
             muted: c,
+            hit: c,
+            search_title: c,
+            search_meta: c,
         }
     }
 }
@@ -221,22 +232,48 @@ fn minimal_tracklist(
 }
 
 fn search(ctx: &RowCtx, s: &Arc<SimpleSong>, p: &RowPalette) -> Row<'static> {
-    let symbol = CellFactory::status_cell(&ctx, &s);
-    let mut title_col = Cell::from(s.get_title().to_string()).fg(p.muted);
-    let mut artist_col = Cell::from(s.get_artist().to_string()).fg(p.muted);
-    let mut album_col = Cell::from(s.get_album().to_string()).fg(p.muted);
-    let dur_col = CellFactory::duration_cell(&s, DurationStyle::Clean).fg(p.muted);
+    let spans = ctx.state.get_match_spans(s.id);
+    let hits = |f: fn(&MatchSpans) -> &Vec<u32>| spans.map_or(&[][..], |m| f(m).as_slice());
 
-    if let Some(field) = ctx.state.get_match_fields(s.id) {
-        match field {
-            MatchField::Title => title_col = title_col.fg(p.secondary),
-            MatchField::Artist => artist_col = artist_col.fg(p.secondary),
-            MatchField::Album => album_col = album_col.fg(p.secondary),
-        }
-    }
+    let symbol = CellFactory::status_cell(ctx, s);
+    let title_col = highlight_cell(s.get_title(), hits(|m| &m.title), p.search_title, p.hit);
+    let artist_col = highlight_cell(s.get_artist(), hits(|m| &m.artist), p.search_meta, p.hit);
+    let album_col = highlight_cell(s.get_album(), hits(|m| &m.album), p.search_meta, p.hit);
+    let dur_col = CellFactory::duration_cell(s, DurationStyle::Clean).fg(p.muted);
 
     match ctx.layout {
         LayoutStyle::Traditional => Row::new([title_col, artist_col, album_col, symbol, dur_col]),
         LayoutStyle::Minimal => Row::new([title_col, artist_col, album_col]),
+    }
+}
+
+fn highlight_cell(text: &str, hits: &[u32], base: Color, hit: Color) -> Cell<'static> {
+    if hits.is_empty() {
+        return Cell::from(text.to_string()).fg(base);
+    }
+
+    let mut spans = Vec::new();
+    let mut run = String::new();
+    let mut run_is_hit = false;
+
+    for (i, c) in text.chars().enumerate() {
+        let is_hit = hits.binary_search(&(i as u32)).is_ok();
+
+        if is_hit != run_is_hit && !run.is_empty() {
+            spans.push(run_span(std::mem::take(&mut run), run_is_hit, base, hit));
+        }
+
+        run_is_hit = is_hit;
+        run.push(c);
+    }
+    spans.push(run_span(run, run_is_hit, base, hit));
+
+    Cell::from(Line::from(spans))
+}
+
+fn run_span(text: String, is_hit: bool, base: Color, hit: Color) -> Span<'static> {
+    match is_hit {
+        true => Span::raw(text).fg(hit).bold(),
+        false => Span::raw(text).fg(base),
     }
 }

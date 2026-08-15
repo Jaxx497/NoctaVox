@@ -115,6 +115,7 @@ impl UiState {
                 self.search.input.clear();
                 self.nav.mode = Mode::Search;
                 self.nav.pane = Pane::Search;
+                self.set_legal_songs();
             }
             Mode::QUIT => {
                 let _ = self.save_state();
@@ -330,7 +331,10 @@ impl UiState {
 
             Mode::Search => match self.search.len() > 1 {
                 true => self.filter_songs_by_search(),
-                false => self.sort_by_table_column(),
+                false => {
+                    self.legal_songs =
+                        self.shuffle_songs[0..50.min(self.shuffle_songs.len())].to_vec()
+                }
             },
             _ => (),
         }

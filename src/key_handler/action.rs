@@ -127,10 +127,6 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
         (X, Char('a')) => Some(Action::AddToPlaylist),
         (C, Char('a')) => Some(Action::GoToAlbum),
         (X, Char('q')) => Some(Action::QueueSong),
-        (X, Char('s')) => Some(Action::QueueMany {
-            sel_type: SelectionType::Multi,
-            shuffle: true,
-        }),
         (X, Char('v')) => Some(Action::MultiSelect(buf_count)),
         (C, Char('v')) => Some(Action::ClearMultiSelect),
         (X, Char('g')) => {
@@ -155,6 +151,10 @@ fn handle_tracklist(key: &KeyEvent, state: &UiState, mut buf_count: usize) -> Op
             (_, Char('Q')) => Some(Action::QueueMany {
                 sel_type: SelectionType::Legal,
                 shuffle: false,
+            }),
+            (X, Char('s')) => Some(Action::QueueMany {
+                sel_type: SelectionType::Multi,
+                shuffle: true,
             }),
             (_, Char('V')) => Some(Action::MultiSelectAll),
             (X, Char('x')) => Some(Action::RemoveSong),

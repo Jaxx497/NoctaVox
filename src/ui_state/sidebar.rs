@@ -3,7 +3,6 @@ use crate::{
     ui_state::{AlbumSort, NodeKey, Pane, RowKind, SidebarRow, UiState, domain::Root},
 };
 use indexmap::IndexMap;
-use rand::{SeedableRng, rngs::StdRng, seq::SliceRandom};
 use ratatui::widgets::ListState;
 use std::{collections::HashSet, sync::Arc};
 
@@ -136,12 +135,7 @@ impl UiState {
                 .filter_map(|id| self.library.albums.get(id))
                 .flat_map(|a| a.get_tracklist())
                 .collect(),
-            RowKind::Category(Root::Library) => {
-                let mut songs = self.library.get_all_songs();
-                let mut rng = StdRng::seed_from_u64(self.shuffle_seed);
-                songs.shuffle(&mut rng);
-                songs
-            }
+            RowKind::Category(Root::Library) => self.shuffle_songs.clone(),
             RowKind::Category(Root::Playlist) => self
                 .playlists
                 .iter()

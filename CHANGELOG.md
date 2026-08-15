@@ -1,13 +1,20 @@
 # CHANGELOG
 
-## UNRLEASED
+## [0.3.4] - Tighter Visual Buffs + More bug fixes
+> #### **2026-08-15**
 
 ### Changed:
-  - *(bufferline)* fixed up truncation logic on smaller screens
-  - *(tracklist)* multi-select + `s` will shuffle selected elements and add to queue
-  - *(playlists)* Fixed goto playlist display latent update
+  - *(bufferline)* cleaned up truncation logic on smaller screens
+  - *(bufferline)* shimmer effect added
+  - *(playlists)* fixed goto playlist
   - *(progress bar)* Fixed vertical padding in full screen view
+  - *(queue mode)* Fixed `s` not shuffling queue
+  - *(search)* Tighter highlighting on search results
+  - *(tracklist)* multi-select + `s` will shuffle selected elements and add to queue
+  - *(tracklist)* cached randomized values
   - *(volume slider)* No longer displays in full screen
+  - (misc) minor bug fixes
+  - (misc) dependency bumps 
 
 ## [0.3.3] - Visual Overhaul (expect more, someday)
 > #### **2026-07-22**

@@ -15,6 +15,7 @@ use crate::{
 use anyhow::anyhow;
 use anyhow::{Error, Result};
 use indexmap::IndexMap;
+use rand::{SeedableRng, rngs::StdRng, seq::SliceRandom};
 use ratatui::widgets::Borders;
 use std::{sync::Arc, time::Duration};
 use voxio::{TapHandle, Vox};
@@ -45,6 +46,7 @@ impl UiState {
             legal_songs: Vec::new(),
             legal_songs_dur: Duration::default(),
             shuffle_seed: rand::random::<u64>(),
+            shuffle_songs: Vec::new(),
 
             library_refresh: None,
         }
@@ -58,6 +60,13 @@ impl UiState {
 
     pub fn sync_library(&mut self, library: Arc<Library>) -> Result<()> {
         self.library = library;
+
+        self.shuffle_songs = {
+            let mut songs = self.library.get_all_songs();
+            let mut rng = StdRng::seed_from_u64(self.shuffle_seed);
+            songs.shuffle(&mut rng);
+            songs
+        };
 
         self.get_playlists()?;
         self.sort_albums();

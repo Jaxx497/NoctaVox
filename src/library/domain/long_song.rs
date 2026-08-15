@@ -260,29 +260,33 @@ fn read_wav_info_tags(path: &Path) -> Result<Vec<([u8; 4], String)>> {
     let mut id = [0u8; 4];
     let mut sz = [0u8; 4];
 
-    // Each chunk: <id:4> <size:u32 LE> <body...> (+1 pad byte if size is odd)
     loop {
         if f.read_exact(&mut id).is_err() {
-            break; // clean EOF
+            break;
         }
         f.read_exact(&mut sz)?;
         let size = u32::from_le_bytes(sz) as u64;
 
         if &id == b"LIST" {
+            let Some(body_len) = size.checked_sub(4) else {
+                break;
+            };
             let mut form = [0u8; 4];
             f.read_exact(&mut form)?;
             if &form == b"INFO" {
-                let mut buf = vec![0u8; (size - 4) as usize];
+                let mut buf = vec![0u8; body_len as usize];
                 f.read_exact(&mut buf)?;
                 parse_info_body(&buf, &mut tags);
             } else {
-                f.seek(SeekFrom::Current((size - 4) as i64))?;
+                f.seek(SeekFrom::Current(body_len as i64))?;
             }
         } else {
             f.seek(SeekFrom::Current(size as i64))?;
         }
 
-        if size % 2 == 1 {}
+        if size % 2 == 1 {
+            f.seek(SeekFrom::Current(1))?;
+        }
     }
 
     Ok(tags)

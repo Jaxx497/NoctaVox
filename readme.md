@@ -165,7 +165,10 @@ through to the next tier.
 
 ## Addons
 
-NoctaVox now supports addons. Official addons can be found in the
+**Addons will be deprecated and their functionality will be merged into the
+main project**
+
+NoctaVox supports addons. Official addons can be found in the
 [NoctaVox-Plugins](https://github.com/Jaxx497/NoctaVox-Plugins) repository.
 
 Currently, the only official addon is the *Transpose* addon which enables users
@@ -255,6 +258,7 @@ If this doesn't fix the issues, file a bug report!
 
 ## Roadmap 
 
+- Merge import/export playlist logic into main app
 - Custom keymaps
 - Write Scrobbling Addon
 - Write Discord Rich Presence Addon

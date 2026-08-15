@@ -19,7 +19,7 @@ use indexmap::IndexMap;
 pub use player_snapshot::PlayerSnapshot;
 pub use playlist::PlaylistAction;
 pub use popup::PopupType;
-pub use search_state::MatchField;
+pub use search_state::{MatchField, MatchSpans};
 pub use settings::SettingsMode;
 pub use sidebar::Sidebar;
 pub use stats::LibraryStats;
@@ -79,6 +79,7 @@ pub struct UiState {
     pub(crate) albums: Vec<Album>,
     pub(crate) playlists: IndexMap<i64, Playlist>,
     legal_songs: Vec<Arc<SimpleSong>>,
+    shuffle_songs: Vec<Arc<SimpleSong>>,
     legal_songs_dur: Duration,
     shuffle_seed: u64,
 
