@@ -56,7 +56,32 @@ cargo install --path .
 # and run with the vox command:
 vox
 ```
+#### Nix / NixOS
 
+A flake is available for Nix users. 
+
+Try it without installing:
+```bash
+nix run github:Jaxx497/NoctaVox
+```
+
+Add to a flake-based config:
+```nix
+{
+  inputs.noctavox.url = "github:Jaxx497/NoctaVox";
+
+  outputs = { self, nixpkgs, noctavox, ... }: {
+    # e.g. in environment.systemPackages or home.packages:
+    # inputs.noctavox.packages.${pkgs.stdenv.hostPlatform.system}.default
+  };
+}
+```
+
+Install into your profile:
+```bash
+nix profile install github:Jaxx497/NoctaVox
+```
+ 
 ## Quick Start
 
 Upon the first launch, NoctaVox will prompt the user to set up a root directory
