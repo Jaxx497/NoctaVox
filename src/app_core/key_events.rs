@@ -107,7 +107,7 @@ impl NoctaVox {
     }
 }
 
-/// 
+/// Global event processing loop
 pub fn key_loop() -> Receiver<AppEvent> {
     let (key_tx, key_rx) = crossbeam_channel::bounded(16);
 
