@@ -1,7 +1,7 @@
 use crossbeam_channel::{Receiver, never, select};
-use ratatui::crossterm::event::KeyEvent;
 use souvlaki::{MediaControlEvent, SeekDirection};
 
+use crate::app_core::AppEvent;
 use crate::{
     app_core::NoctaVox,
     config::timing,
@@ -11,7 +11,7 @@ use crate::{
 
 impl NoctaVox {
     #[inline]
-    pub fn select_shortcut(&mut self, key_rx: &Receiver<KeyEvent>) {
+    pub fn select_shortcut(&mut self, key_rx: &Receiver<AppEvent>) {
         select! {
             recv(self.player.events()) -> event => {
                 if let Ok(event) = event && let Err(e) = self.handle_player_events(event) {
@@ -38,13 +38,23 @@ impl NoctaVox {
                 }
             }
 
-            recv(key_rx) -> key => {
-                if let Ok(key) = key
-                    && let Some(action) = key_handler::handle_key_event(key, &mut self.ui)
-                        && let Err(e) = self.handle_action(action) {
-                            self.ui.set_error(e);
+            recv(key_rx) -> event => {
+                if let Ok(event) = event {
+                    match event {
+                        // usual key handling
+                        AppEvent::Key(key) => {
+                            if let Some(action) = key_handler::handle_key_event(key, &mut self.ui)
+                                && let Err(e) = self.handle_action(action) {
+                                    self.ui.set_error(e);
+                            }
+                        }
+                        // paste handling
+                        AppEvent::Paste(text) => {
+                            key_handler::handle_paste_event(text, &mut self.ui);
+                        }
+                    }
                 }
-            }
+        }
 
             default(timing().refresh_rate) => {
                 self.sync_media_controls_position();

@@ -25,7 +25,10 @@ impl StatefulWidget for RootManager {
         let theme = state.theme.get_display_theme(true);
 
         let padding_h = (area.height as f32 * 0.2) as u16;
-        let padding_w = (area.width as f32 * 0.2) as u16;
+        let padding_w = match settings_mode {
+            Some(SettingsMode::AddRoot) => 2, // fixed
+            _ => (area.width as f32 * 0.2) as u16,
+        };
 
         let title = match settings_mode {
             Some(SettingsMode::ViewRoots) => " Settings - Music Library Roots ",

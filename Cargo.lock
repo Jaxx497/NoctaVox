@@ -1342,6 +1342,7 @@ dependencies = [
  "anyhow",
  "clap",
  "crossbeam-channel",
+ "crossterm",
  "dirs",
  "fuzzy-matcher",
  "indexmap",

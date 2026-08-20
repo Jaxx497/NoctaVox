@@ -1,3 +1,4 @@
+use std::io::stdout;
 use crate::{
     Library, USER_CONFIG, UserConfig,
     app_core::{NoctaVox, key_loop},
@@ -12,6 +13,8 @@ use crate::{
 use anyhow::Result;
 use std::sync::Arc;
 use voxio::Vox;
+use crossterm::event::{EnableBracketedPaste, DisableBracketedPaste};
+use crossterm::execute;
 
 impl NoctaVox {
     pub fn new() -> Result<Self> {
@@ -48,7 +51,10 @@ impl NoctaVox {
     }
 
     pub fn run(&mut self) {
-        match ratatui::run(|t| -> anyhow::Result<()> {
+        // enable ability to paste into terminal as the one event
+        let _ = execute!(stdout(), EnableBracketedPaste);
+
+        let result = ratatui::run(|t| -> anyhow::Result<()> {
             self.preload_lib();
             self.restore_last_session();
             let _ = self.restore_last_played();
@@ -74,7 +80,11 @@ impl NoctaVox {
                 }
             }
             Ok(())
-        }) {
+        });
+        // turn off paste into terminal
+        let _ = execute!(stdout(), DisableBracketedPaste);
+
+        match result {
             Ok(_) => {
                 let _ = overwrite_line("Shutting down... do not close terminal!");
                 let _ = overwrite_line("Thank you for using NoctaVox!\n\n");

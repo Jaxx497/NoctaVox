@@ -1,7 +1,10 @@
+use crate::app_core::AppEvent;
 use crate::{app_core::NoctaVox, key_handler::Action, ui_state::Mode};
 use anyhow::Result;
 use crossbeam_channel::Receiver;
-use ratatui::crossterm::{self, event::KeyEvent};
+use crossterm::event;
+use crossterm::event::Event;
+use ratatui::crossterm::{self};
 
 impl NoctaVox {
     #[rustfmt::skip]
@@ -104,16 +107,22 @@ impl NoctaVox {
     }
 }
 
-pub fn key_loop() -> Receiver<KeyEvent> {
+/// 
+pub fn key_loop() -> Receiver<AppEvent> {
     let (key_tx, key_rx) = crossbeam_channel::bounded(16);
 
     // 2. SPAWN the input thread (offloading)
     std::thread::spawn(move || {
         loop {
-            if let Ok(crossterm::event::Event::Key(key)) = crossterm::event::read()
-                && key.kind == crossterm::event::KeyEventKind::Press
-            {
-                let _ = key_tx.try_send(key);
+            match crossterm::event::read() {
+                //
+                Ok(Event::Key(key)) if key.kind == event::KeyEventKind::Press => {
+                    let _ = key_tx.try_send(AppEvent::Key(key));
+                }
+                Ok(Event::Paste(text)) => {
+                    let _ = key_tx.try_send(AppEvent::Paste(text));
+                }
+                _ => {}
             }
         }
     });

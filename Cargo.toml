@@ -34,6 +34,7 @@ unicode-width = "0.2.2"
 voxio = { version = "0.2.3", features = ["waveform"] }
 souvlaki = "0.7"
 xxhash-rust = { version = "0.8.18", features = ["xxh3"] }
+crossterm = "0.29.0"
 
 [target.'cfg(windows)'.dependencies]
 windows-sys = { version = "0.61", features = [

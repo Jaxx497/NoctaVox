@@ -57,6 +57,26 @@ cargo install --path .
 vox
 ```
 
+#### Building on Linux
+If you get an error like:
+```console
+error: failed to run custom build command for alsa-sys v0.4.0
+note: To improve backtraces for build dependencies, set the CARGO_PROFILE_DEV_BUILD_OVERRIDE_DEBUG=true environment variable to enable debug information generation.
+Caused by:
+    ......target/debug/build/alsa-sys-38242c71c19e71ec/build-script-build (exit status: 101)
+ --- stdout
+  cargo:rerun-if-env-changed=ALSA_NO_PKG_CONFIG
+  cargo:rerun-if-env-changed=PKG_CONFIG_x86_64-unknown-linux-gnu
+  cargo:rerun-if-env-changed=PKG_CONFIG_x86_64_unknown_linux_gnu
+  cargo:rerun-if-env-changed=HOST_PKG_CONFIG
+................
+```
+I have to install dev libraries:
+```bash
+sudo apt update
+sudo apt install libasound2-dev pkg-config
+```
+
 ## Quick Start
 
 Upon the first launch, NoctaVox will prompt the user to set up a root directory

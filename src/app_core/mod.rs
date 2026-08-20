@@ -21,3 +21,11 @@ pub struct NoctaVox {
     tick_sync: u32,
     restored_song_id: Option<u64>,
 }
+
+/// Two application event types:
+/// - `Key` events are received from the `crossterm` event stream
+/// - `Paste` events
+pub enum AppEvent {
+    Key(crossterm::event::KeyEvent),
+    Paste(String),
+}

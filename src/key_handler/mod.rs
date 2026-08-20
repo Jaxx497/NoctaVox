@@ -15,7 +15,7 @@ pub use keymap_help::{HelpRow, help_rows};
 use ratatui::crossterm::event::KeyEvent;
 use ratatui::crossterm::event::KeyModifiers;
 
-use crate::ui_state::Mode;
+use crate::ui_state::{Mode, SettingsMode, UiState};
 use crate::ui_state::Pane;
 use crate::ui_state::PopupType;
 use crate::ui_state::Root;
@@ -177,4 +177,12 @@ pub fn is_likely_paste() -> bool {
         *last = Some(Instant::now());
         is_paste
     })
+}
+
+pub fn handle_paste_event(text: String, state: &mut UiState) {
+    if let Some(SettingsMode::AddRoot) = state.get_settings_mode() {
+        // text paste into 'Add root' dialogue
+        state.popup.input.insert_str(&text.trim());
+    }
+    // another text paste cases...
 }
