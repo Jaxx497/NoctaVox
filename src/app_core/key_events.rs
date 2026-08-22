@@ -105,7 +105,7 @@ impl NoctaVox {
 }
 
 pub fn key_loop() -> Receiver<KeyEvent> {
-    let (key_tx, key_rx) = crossbeam_channel::bounded(16);
+    let (key_tx, key_rx) = crossbeam_channel::unbounded();
 
     // 2. SPAWN the input thread (offloading)
     std::thread::spawn(move || {
@@ -113,7 +113,7 @@ pub fn key_loop() -> Receiver<KeyEvent> {
             if let Ok(crossterm::event::Event::Key(key)) = crossterm::event::read()
                 && key.kind == crossterm::event::KeyEventKind::Press
             {
-                let _ = key_tx.try_send(key);
+                let _ = key_tx.send(key);
             }
         }
     });

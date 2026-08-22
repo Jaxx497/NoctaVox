@@ -159,22 +159,3 @@ pub enum Incrementor {
     Up,
     Down,
 }
-
-thread_local! {
-    static LAST_KEY_TIME: RefCell<Option<Instant>> = RefCell::new(None);
-}
-
-const PASTE_THRESHOLD: Duration = Duration::from_millis(10);
-
-pub fn is_likely_paste() -> bool {
-    LAST_KEY_TIME.with(|last_time| {
-        let mut last = last_time.borrow_mut();
-
-        let is_paste = match *last {
-            Some(prev) => prev.elapsed() < PASTE_THRESHOLD,
-            None => false,
-        };
-        *last = Some(Instant::now());
-        is_paste
-    })
-}

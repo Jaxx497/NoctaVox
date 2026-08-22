@@ -19,6 +19,7 @@ use indexmap::IndexMap;
 pub use player_snapshot::PlayerSnapshot;
 pub use playlist::PlaylistAction;
 pub use popup::PopupType;
+use ratatui_textarea::WrapMode;
 pub use search_state::{MatchField, MatchSpans};
 pub use settings::SettingsMode;
 pub use sidebar::Sidebar;
@@ -89,6 +90,7 @@ pub struct UiState {
 
 fn new_textarea(placeholder: &str) -> ratatui_textarea::TextArea<'static> {
     let mut search = ratatui_textarea::TextArea::default();
+    search.set_wrap_mode(WrapMode::WordOrGlyph);
     search.set_cursor_line_style(ratatui::style::Style::default());
     search.set_placeholder_text(format!(" {placeholder}: "));
 

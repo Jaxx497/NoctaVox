@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## UNRELEASED
+
+  - *(readme)* Updated readme for better Linux support
+  - *(textarea)* Fixed paste bug
+
 ## [0.3.4] - Tighter Visual Buffs + More bug fixes
 > #### **2026-08-15**
 

@@ -57,6 +57,20 @@ cargo install --path .
 vox
 ```
 
+		
+> **Building on Linux** \
+> Ensure you have the proper dev dependencies installed. 
+
+```bash
+# Arch
+pacman -S alsa-lib pkgconf
+
+# Ubuntu
+apt install libasound2-dev pkg-config
+
+# Use the equivalent for your distro
+```
+		
 ## Quick Start
 
 Upon the first launch, NoctaVox will prompt the user to set up a root directory
