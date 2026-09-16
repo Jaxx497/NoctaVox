@@ -102,6 +102,11 @@ impl UiState {
         for (name, mut children) in buckets {
             children.sort_by_key(|id| self.library.albums.get(id).and_then(|a| a.year));
 
+            if let [id] = children[..] {
+                rows.push(SidebarRow::new(RowKind::LoneAlbum { artist: name, id }, 1));
+                continue;
+            }
+
             let collapsed = self.is_collapsed(&NodeKey::Artist(Arc::clone(&name)));
             let album_rows: Vec<SidebarRow> = match collapsed {
                 true => Vec::new(),
@@ -119,7 +124,7 @@ impl UiState {
 
     pub(super) fn songs_for_row(&self, row: &SidebarRow) -> Vec<Arc<SimpleSong>> {
         match &row.kind {
-            RowKind::Album(id) => self
+            RowKind::LoneAlbum { id, .. } | RowKind::Album(id) => self
                 .library
                 .albums
                 .get(id)
@@ -147,7 +152,9 @@ impl UiState {
     fn parent_key_of(&self, row: &SidebarRow) -> Option<NodeKey> {
         match &row.kind {
             RowKind::Category(_) => None,
-            RowKind::Artist { .. } => Some(NodeKey::Root(Root::Library)),
+            RowKind::Artist { .. } | RowKind::LoneAlbum { .. } => {
+                Some(NodeKey::Root(Root::Library))
+            }
             RowKind::Playlist { .. } => Some(NodeKey::Root(Root::Playlist)),
             RowKind::Album(id) if row.depth == 2 => Some(NodeKey::Artist(Arc::clone(
                 &self.library.albums.get(id)?.artist,
@@ -166,10 +173,13 @@ impl UiState {
             return;
         };
 
+        let in_place = row.folds_in_place();
         if !self.nav.sidebar.collapsed.remove(&key) {
             self.nav.sidebar.collapsed.insert(key);
-            self.nav.sidebar.prev_folds.push(row);
-        } else {
+            if !in_place {
+                self.nav.sidebar.prev_folds.push(row);
+            }
+        } else if !in_place {
             self.nav.sidebar.prev_folds.pop();
         }
 
@@ -185,7 +195,9 @@ impl UiState {
         if let Some(key) = row.collapse_key() {
             if !self.is_collapsed(&key) {
                 self.nav.sidebar.collapsed.insert(key.clone());
-                self.nav.sidebar.prev_folds.push(row);
+                if !row.folds_in_place() {
+                    self.nav.sidebar.prev_folds.push(row);
+                }
 
                 self.rebuild_rows();
                 self.set_legal_songs();
@@ -216,11 +228,11 @@ impl UiState {
                 self.rebuild_rows();
                 self.set_legal_songs();
 
-                if let Some(prev_row) = self.nav.sidebar.prev_folds.pop() {
-                    self.select_by_key(&prev_row.key())
-                } else {
-                    false
-                };
+                if !row.folds_in_place()
+                    && let Some(prev_row) = self.nav.sidebar.prev_folds.pop()
+                {
+                    self.select_by_key(&prev_row.key());
+                }
             }
             _ => self.set_pane(Pane::TrackList),
         }
@@ -248,6 +260,26 @@ impl UiState {
         self.nav.sidebar.prev_folds.clear();
         self.rebuild_rows();
         self.select_by_key(&NodeKey::Album(album_id));
+    }
+
+    pub fn row_height(&self, row: &SidebarRow) -> u16 {
+        match row.kind {
+            RowKind::LoneAlbum { .. }
+                if !row.collapse_key().is_some_and(|k| self.is_collapsed(&k)) =>
+            {
+                2
+            }
+            _ => 1,
+        }
+    }
+
+    pub fn sidebar_line_count(&self) -> usize {
+        self.nav
+            .sidebar
+            .rows
+            .iter()
+            .map(|row| self.row_height(row) as usize)
+            .sum()
     }
 
     pub fn adjust_sidebar_size(&mut self, delta: isize) {

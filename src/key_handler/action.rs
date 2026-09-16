@@ -188,13 +188,10 @@ fn handle_sidebar(key: &KeyEvent, state: &UiState) -> Option<Action> {
     match (key.modifiers, key.code) {
         (X, Enter) => Some(match is_header {
             true => Action::SidebarToggle,
-            false => Action::ChangePane(Pane::TrackList),
+            false => Action::SidebarExpand,
         }),
 
-        (X, Char('l')) | (X, Tab) | (X, Right) => Some(match is_header {
-            true => Action::SidebarExpand,
-            false => Action::ChangePane(Pane::TrackList),
-        }),
+        (X, Char('l')) | (X, Tab) | (X, Right) => Some(Action::SidebarExpand),
 
         (X, Char('h')) | (X, Left) => Some(Action::SidebarCollapse),
         (_, Char('L')) => Some(Action::SidebarExpandAll),

@@ -13,16 +13,28 @@ const KILL_WIDTH_PLAYLIST: u16 = 25;
 const PADDING_L: u16 = 1;
 const PADDING_R: u16 = 2;
 
-use crate::ui_state::{LayoutStyle, Pane, Root, UiState};
+use crate::{
+    theme::DisplayTheme,
+    ui_state::{LayoutStyle, Pane, Root, UiState},
+};
+use unicode_width::UnicodeWidthStr;
 
 pub fn create_standard_list<'a>(
     list_items: Vec<ListItem<'a>>,
-    state: &UiState,
+    theme: &DisplayTheme,
     area: Rect,
+    block: Block<'a>,
 ) -> List<'a> {
+    List::new(list_items)
+        .block(block)
+        .highlight_style(Style::new().fg(theme.text_selected).bg(theme.accent))
+        .scroll_padding((area.height as f32 * 0.25) as usize)
+        .highlight_spacing(HighlightSpacing::Always)
+}
+
+pub fn create_sidebar_block(state: &UiState, theme: &DisplayTheme, area: Rect) -> Block<'static> {
     let focus = matches!(&state.get_pane(), Pane::SideBar);
     let layout = &state.layout;
-    let theme = state.theme.get_display_theme(focus);
 
     let title = state
         .selected_row()
@@ -52,7 +64,7 @@ pub fn create_standard_list<'a>(
                 let decorator = &state.theme.icons().decorator;
                 let playlist_keymaps =
                     format!(" [q]ueue {decorator} [c]reate {decorator} [x] delete ");
-                match area.width as usize + 4 < playlist_keymaps.len() {
+                match area.width as usize + 4 < playlist_keymaps.width() {
                     true => Line::default(),
                     false => Line::from(playlist_keymaps),
                 }
@@ -62,7 +74,7 @@ pub fn create_standard_list<'a>(
         Line::default()
     };
 
-    let block = match layout {
+    match layout {
         LayoutStyle::Traditional => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
@@ -78,13 +90,7 @@ pub fn create_standard_list<'a>(
             .border_style(theme.border)
             .bg(theme.bg_global)
             .padding(get_padding(layout, theme.border_display)),
-    };
-
-    List::new(list_items)
-        .block(block)
-        .highlight_style(Style::new().fg(theme.text_selected).bg(theme.accent))
-        .scroll_padding((area.height as f32 * 0.25) as usize)
-        .highlight_spacing(HighlightSpacing::Always)
+    }
 }
 
 fn get_padding(layout: &LayoutStyle, borders: Borders) -> Padding {

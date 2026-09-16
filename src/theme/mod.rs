@@ -9,11 +9,12 @@ mod theme_manager;
 mod theme_utils;
 
 pub use color_utils::{SHARP_FACTOR, fade_color};
+pub(crate) use color_utils::{interpolate_color, scale_color};
 pub use display_theme::DisplayTheme;
 pub use gradients::{InactiveGradient, ProgressGradient};
 pub use import::{ProgressGradientRaw, ThemeImport};
 pub use parsed::*;
-pub use shimmer::shimmer_line;
+pub use shimmer::{Bar, Sweep, animation_time, shimmer_line};
 pub use theme_config::{ThemeConfig, ThemeIcons};
 pub use theme_manager::ThemeManager;
 

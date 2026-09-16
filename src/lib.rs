@@ -16,7 +16,7 @@ use std::{
 };
 use ui_state::UiState;
 use unicode_normalization::UnicodeNormalization;
-use unicode_width::UnicodeWidthStr;
+use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 use xxhash_rust::xxh3::xxh3_64;
 
 pub mod addons;
@@ -149,11 +149,16 @@ fn truncate_at_last_space(s: &str, limit: usize) -> String {
         return s.to_string();
     }
 
-    let byte_limit = s
-        .char_indices()
-        .map(|(i, _)| i)
-        .nth(limit)
-        .unwrap_or(s.len());
+    let mut used = 0;
+    let mut byte_limit = s.len();
+    for (i, ch) in s.char_indices() {
+        let w = UnicodeWidthChar::width(ch).unwrap_or(0);
+        if used + w > limit {
+            byte_limit = i;
+            break;
+        }
+        used += w;
+    }
 
     match s[..byte_limit].rfind(' ') {
         Some(last_space) => s[..last_space].to_string(),

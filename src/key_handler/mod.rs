@@ -2,11 +2,8 @@ mod action;
 mod key_buffer;
 mod keymap_help;
 
-use std::cell::RefCell;
 use std::collections::HashSet;
 use std::sync::LazyLock;
-use std::time::Duration;
-use std::time::Instant;
 
 pub use action::handle_key_event;
 pub use action::next_event;

@@ -25,11 +25,14 @@ impl StatefulWidget for Timer {
 
         let text_color = state.theme.active.text_muted;
 
-        let elapsed = state.metrics.position();
+        let dur_str = state.metrics.duration();
+
+        // Position runs slightly past the duration while the output ring plays
+        // out the tail, so clamp rather than display an overshoot.
+        let elapsed = state.metrics.position().min(dur_str);
         let elapsed_str = get_readable_duration(elapsed, crate::DurationStyle::Compact);
         let elapsed_str_len = elapsed_str.len() as u16;
 
-        let dur_str = state.metrics.duration();
         let duration_str = get_readable_duration(dur_str, DurationStyle::Compact);
 
         let dur_str_len = duration_str.len() as u16;

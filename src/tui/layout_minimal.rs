@@ -47,7 +47,7 @@ impl LayoutMinimal {
         };
 
         let item_count = match (state.get_pane(), &state.popup.cached) {
-            (Pane::SideBar, _) | (Pane::Popup, Pane::SideBar) => state.nav.sidebar.rows.len(),
+            (Pane::SideBar, _) | (Pane::Popup, Pane::SideBar) => state.sidebar_line_count(),
             _ => state.get_legal_songs().len(),
         };
 

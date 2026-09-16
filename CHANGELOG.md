@@ -1,9 +1,23 @@
 # CHANGELOG
 
-## UNRELEASED
+## [0.3.5] - Shimmers & bug fixes
+> #### **2026-09-16**
 
-  - *(readme)* Updated readme for better Linux support
-  - *(textarea)* Fixed paste bug
+Another small version bump- Added some more flair to the visuals with gradient
+selector bars. Also tightened up progress reporting
+
+### Added: 
+  - *(ui)* gradient/shimmer effect to highlighted rows
+
+### Changed:
+  - *(player)* more resilient against unplugging hardware during playback
+  - *(progress widget)* no longer wraps back to 00:00 at end of track
+  - *(readme)* Updated readme for better linux support
+  - *(sidebar)* Single album/artist combinations act as a single index
+  - *(textarea)* Pasting text 
+  - *(timer)* Clamped elapsed time to track duration
+  - *(deps)* bumped voxio version
+  - *(workflow)* updated git workflow deps
 
 ## [0.3.4] - Tighter Visual Buffs + More bug fixes
 > #### **2026-08-15**

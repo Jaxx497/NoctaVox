@@ -29,11 +29,11 @@ jobs:
             name: linux-arm64
             archive: tar.gz
           - target: x86_64-apple-darwin
-            runner: macos-latest
+            runner: macos-15-large
             name: macos-x64
             archive: tar.gz
           - target: aarch64-apple-darwin
-            runner: macos-14
+            runner: macos-15
             name: macos-arm64
             archive: tar.gz
           - target: x86_64-pc-windows-msvc
@@ -41,7 +41,7 @@ jobs:
             name: windows-x64
             archive: zip
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Install Linux dependencies
         if: runner.os == 'Linux'
@@ -78,7 +78,7 @@ jobs:
           (Get-FileHash "$stage.zip" -Algorithm SHA256).Hash | Out-File "$stage.zip.sha256"
 
       - name: Upload
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.name }}
           path: |
@@ -89,10 +89,10 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v7
 
       - name: Download artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v8
         with:
           path: artifacts
           merge-multiple: true

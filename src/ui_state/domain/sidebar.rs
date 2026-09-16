@@ -54,6 +54,10 @@ pub enum RowKind {
         name: Arc<String>,
         children: Vec<i64>,
     },
+    LoneAlbum {
+        artist: Arc<String>,
+        id: i64,
+    },
     Album(i64),
     Playlist(i64),
 }
@@ -73,6 +77,7 @@ impl SidebarRow {
         match &self.kind {
             RowKind::Category(r) => NodeKey::Root(*r),
             RowKind::Artist { name, .. } => NodeKey::Artist(Arc::clone(name)),
+            RowKind::LoneAlbum { id, .. } => NodeKey::Album(*id),
             RowKind::Album(id) => NodeKey::Album(*id),
             RowKind::Playlist(id) => NodeKey::Playlist(*id),
         }
@@ -81,7 +86,7 @@ impl SidebarRow {
     pub fn root(&self) -> Root {
         match &self.kind {
             RowKind::Category(r) => *r,
-            RowKind::Artist { .. } | RowKind::Album(_) => Root::Library,
+            RowKind::Artist { .. } | RowKind::LoneAlbum { .. } | RowKind::Album(_) => Root::Library,
             RowKind::Playlist(_) => Root::Playlist,
         }
     }
@@ -89,7 +94,12 @@ impl SidebarRow {
     pub fn collapse_key(&self) -> Option<NodeKey> {
         match &self.kind {
             RowKind::Category(_) | RowKind::Artist { .. } => Some(self.key()),
+            RowKind::LoneAlbum { artist, .. } => Some(NodeKey::Artist(Arc::clone(artist))),
             _ => None,
         }
+    }
+
+    pub fn folds_in_place(&self) -> bool {
+        matches!(self.kind, RowKind::LoneAlbum { .. })
     }
 }

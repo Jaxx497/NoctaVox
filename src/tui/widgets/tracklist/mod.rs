@@ -90,13 +90,31 @@ pub fn create_standard_table<'a>(
     rows: Vec<Row<'a>>,
     state: &UiState,
     theme: &DisplayTheme,
-    area: Rect,
+    block: Block<'a>,
 ) -> Table<'a> {
+    let widths = get_widths(state);
+    let highlight_style = match state.get_pane() {
+        Pane::TrackList => Style::new().fg(theme.text_selected).bg(theme.accent),
+        _ => Style::new(),
+    };
+
+    Table::new(rows, widths)
+        .block(block)
+        .column_spacing(COLUMN_SPACING)
+        .flex(Flex::SpaceBetween)
+        // .highlight_symbol(state.theme.icons().selector.to_string().fg(theme.accent))
+        .row_highlight_style(highlight_style)
+}
+
+pub(super) fn create_table_block(
+    state: &UiState,
+    theme: &DisplayTheme,
+    area: Rect,
+) -> Block<'static> {
     let mode = state.get_mode();
     let pane = state.get_pane();
     let decorator = &state.theme.icons().decorator;
 
-    let widths = get_widths(state);
     let title = get_title(state, area).centered();
     let keymaps = match pane {
         Pane::TrackList => get_keymaps(mode, decorator),
@@ -112,7 +130,7 @@ pub fn create_standard_table<'a>(
             .into(),
     };
 
-    let block = match state.layout {
+    match state.layout {
         LayoutStyle::Traditional => Block::bordered()
             .borders(theme.border_display)
             .border_type(theme.border_type)
@@ -129,19 +147,7 @@ pub fn create_standard_table<'a>(
             .border_style(theme.border)
             .padding(get_padding(state, theme, area))
             .bg(theme.bg_global),
-    };
-
-    let highlight_style = match state.get_pane() {
-        Pane::TrackList => Style::new().fg(theme.text_selected).bg(theme.accent),
-        _ => Style::new(),
-    };
-
-    Table::new(rows, widths)
-        .block(block)
-        .column_spacing(COLUMN_SPACING)
-        .flex(Flex::SpaceBetween)
-        // .highlight_symbol(state.theme.icons().selector.to_string().fg(theme.accent))
-        .row_highlight_style(highlight_style)
+    }
 }
 
 pub fn create_empty_block(theme: &DisplayTheme, title: &str) -> Block<'static> {

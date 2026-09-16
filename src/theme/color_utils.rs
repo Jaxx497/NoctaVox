@@ -20,7 +20,7 @@ pub fn get_gradient_color(gradient: &[Color], position: f32, time: f32) -> Color
     interpolate_color(gradient[segment], gradient[next_segment], sharp)
 }
 
-fn interpolate_color(c1: Color, c2: Color, t: f32) -> Color {
+pub(crate) fn interpolate_color(c1: Color, c2: Color, t: f32) -> Color {
     match (c1, c2) {
         (Color::Rgb(r1, g1, b1), Color::Rgb(r2, g2, b2)) => Color::Rgb(
             (r1 as f32 + (r2 as f32 - r1 as f32) * t) as u8,
@@ -43,6 +43,17 @@ pub fn fade_color(is_dark: bool, color: Color, factor: f32) -> Color {
     match is_dark {
         true => dim_color(color, factor),
         false => brighten_color(color, factor),
+    }
+}
+
+pub(crate) fn scale_color(color: Color, factor: f32) -> Color {
+    match color {
+        Color::Rgb(r, g, b) => Color::Rgb(
+            (r as f32 * factor).min(255.0) as u8,
+            (g as f32 * factor).min(255.0) as u8,
+            (b as f32 * factor).min(255.0) as u8,
+        ),
+        other => other,
     }
 }
 

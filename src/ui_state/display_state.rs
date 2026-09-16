@@ -148,7 +148,7 @@ impl UiState {
             return None;
         }
         match &self.selected_row()?.kind {
-            RowKind::Album(id) => self.library.albums.get(id),
+            RowKind::LoneAlbum { id, .. } | RowKind::Album(id) => self.library.albums.get(id),
             _ => None,
         }
     }
