@@ -6,7 +6,17 @@ set -eu
 OWNER="Jaxx497"
 REPO="NoctaVox"
 BRANCH="master"
-THEME_DIR="${NOCTAVOX_THEME_DIR:-${XDG_CONFIG_HOME:-$HOME/.config}/noctavox/themes}"
+
+case "$(uname -s)" in
+    Darwin)
+        default_theme_dir="$HOME/Library/Application Support/noctavox/themes"
+        ;;
+    *)
+        default_theme_dir="${XDG_CONFIG_HOME:-$HOME/.config}/noctavox/themes"
+        ;;
+esac
+
+THEME_DIR="${NOCTAVOX_THEME_DIR:-$default_theme_dir}"
 
 API_URL="https://api.github.com/repos/$OWNER/$REPO/contents/docs/theme_examples?ref=$BRANCH"
 
