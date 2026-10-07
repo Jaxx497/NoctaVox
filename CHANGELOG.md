@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## Unreleaed
+
+### Changed:
+  - *(queue)* Goes back to library view when queue empties
+
 ## [0.3.5] - Shimmers & bug fixes
 > #### **2026-09-16**
 

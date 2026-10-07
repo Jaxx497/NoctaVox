@@ -327,7 +327,17 @@ impl UiState {
                     None => Vec::new(),
                 }
             }
-            Mode::Queue => self.legal_songs = self.playback.get_queue(),
+            Mode::Queue => {
+                if self.playback.peek_queue().is_none() {
+                    self.set_mode(Mode::Library);
+                    self.legal_songs = match self.selected_row().cloned() {
+                        Some(row) => self.songs_for_row(&row),
+                        None => Vec::new(),
+                    }
+                } else {
+                    self.legal_songs = self.playback.get_queue();
+                }
+            }
 
             Mode::Search => match self.search.len() > 1 {
                 true => self.filter_songs_by_search(),
