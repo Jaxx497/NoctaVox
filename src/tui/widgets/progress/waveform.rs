@@ -28,18 +28,18 @@ impl StatefulWidget for Waveform {
             _ => (area.height as f32 * 0.35) as u16,
         };
 
-        let padding = match state.layout {
-            LayoutStyle::Traditional => Padding {
-                left: 10,
-                right: 10,
-                top: padding_vertical + 1,
-                bottom: padding_vertical + 1,
-            },
-            LayoutStyle::Minimal => Padding {
+        let padding = match (state.is_fullscreen(), &state.layout) {
+            (false, LayoutStyle::Minimal) => Padding {
                 left: 0,
                 right: 0,
                 top: 0,
                 bottom: 0,
+            },
+            _ => Padding {
+                left: 10,
+                right: 10,
+                top: padding_vertical + 1,
+                bottom: padding_vertical + 1,
             },
         };
 

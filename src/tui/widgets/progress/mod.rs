@@ -37,7 +37,7 @@ impl StatefulWidget for Progress {
             ProgressDisplay::Oscilloscope => Oscilloscope.render(area, buf, state),
             ProgressDisplay::Spectrum => SpectrumAnalyzer.render(area, buf, state),
         }
-        if state.layout == LayoutStyle::Traditional {
+        if state.is_fullscreen() || (state.layout == LayoutStyle::Traditional) {
             Timer.render(area, buf, state);
         }
     }

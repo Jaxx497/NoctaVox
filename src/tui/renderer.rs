@@ -6,14 +6,14 @@ use crate::{
         render_bg,
         widgets::{BreadCrumbs, BufferLine, PopupManager},
     },
-    ui_state::{LayoutStyle, Mode, Pane},
+    ui_state::{LayoutStyle, Pane},
 };
 use ratatui::{Frame, layout::Rect, widgets::StatefulWidget};
 
 pub fn render(f: &mut Frame, state: &mut UiState) {
     let area = f.area();
 
-    if matches!(state.get_mode(), Mode::Fullscreen) {
+    if state.is_fullscreen() {
         let bf_area = get_bufferline_area(area);
         Progress.render(area, f.buffer_mut(), state);
         BufferLine.render(bf_area, f.buffer_mut(), state);

@@ -28,6 +28,22 @@ impl StatefulWidget for SpectrumAnalyzer {
         let theme = state.theme.get_display_theme(true);
         let elapsed = state.metrics.position().as_secs_f32();
 
+        let padding = match (&state.is_fullscreen(), &state.layout) {
+            (false, LayoutStyle::Minimal) => Padding::default(),
+            (true, _) => Padding {
+                left: 10,
+                right: 10,
+                top: (area.height as f32 * 0.25) as u16,
+                bottom: (area.height as f32 * 0.25) as u16,
+            },
+            _ => Padding {
+                left: 10,
+                right: 10,
+                top: 1,
+                bottom: 1,
+            },
+        };
+
         let canvas_width = area.width.max(1) as usize;
         let pixel_width = canvas_width * 2;
 
@@ -38,17 +54,6 @@ impl StatefulWidget for SpectrumAnalyzer {
         if display.is_empty() {
             return;
         }
-
-        let padding = if let LayoutStyle::Traditional = state.layout {
-            Padding {
-                left: 10,
-                right: 10,
-                top: 1,
-                bottom: 1,
-            }
-        } else {
-            Padding::default()
-        };
 
         let is_mirrored = theme.spectrum.mirror;
 

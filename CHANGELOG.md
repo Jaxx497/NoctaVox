@@ -4,6 +4,8 @@
 
 ### Changed:
   - *(queue)* Goes back to library view when queue empties
+  - *(fullscreen)* full screen displays are uniform 
+  - *(theme scripts)* Fix install path on Apple systems
 
 ## [0.3.5] - Shimmers & bug fixes
 > #### **2026-09-16**

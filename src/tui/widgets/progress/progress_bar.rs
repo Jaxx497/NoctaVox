@@ -41,9 +41,9 @@ impl StatefulWidget for ProgressBar {
             &theme.progress_bar.active_color,
         );
 
-        let (x_pad, y_pad) = match state.layout {
-            LayoutStyle::Traditional => (9, (area.height.saturating_sub(1) / 2)),
-            LayoutStyle::Minimal => (0, 0),
+        let (x_pad, y_pad) = match (state.is_fullscreen(), &state.layout) {
+            (false, LayoutStyle::Minimal) => (0, 0),
+            _ => (9, (area.height.saturating_sub(1) / 2)),
         };
 
         let guage = LineGauge::default()

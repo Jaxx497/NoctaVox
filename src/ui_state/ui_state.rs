@@ -172,6 +172,10 @@ impl UiState {
         self.theme.active.border_display != Borders::NONE
     }
 
+    pub fn is_fullscreen(&self) -> bool {
+        matches!(self.get_mode(), Mode::Fullscreen)
+    }
+
     pub fn set_theme(&mut self, theme: ThemeConfig) {
         self.theme.cached_focused = ThemeManager::set_display_theme(&theme, true);
         self.theme.cached_unfocused = ThemeManager::set_display_theme(&theme, false);
